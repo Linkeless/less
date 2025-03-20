@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: "Welcome to Linkeless",
   icons: {
     icon: "/Linkeless.ico",
+    apple: "/Linkeless.ico",
+    shortcut: "/Linkeless.ico",
   },
 };
 
