@@ -16,11 +16,6 @@ const getFilteredUrl = (baseUrl: string, nodes: Array<{id: string}>) => {
   return `${baseUrl}&filter=${filter}`;
 };
 
-const user = {
-  name: 'Tom Cook',
-  email: 'tom@example.com',
-  imageUrl: getGravatarUrl('tom@example.com'),
-}
 const navigation = [
   { name: 'Dashboard', href: '#', current: true },
   // { name: 'Team', href: '#', current: false },
@@ -28,6 +23,7 @@ const navigation = [
   // { name: 'Calendar', href: '#', current: false },
   // { name: 'Reports', href: '#', current: false },
 ]
+
 const userNavigation = [
   { 
     name: 'Sign out', 
@@ -99,6 +95,13 @@ export default function Example() {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
   const [showCopyNotification, setShowCopyNotification] = useState(false)
   const [showUUID, setShowUUID] = useState(false);
+
+  // Move user object inside component
+  const user = {
+    name: userInfo ? userInfo.email.split('@')[0] : 'User',
+    email: userInfo ? userInfo.email : '',
+    imageUrl: userInfo ? getGravatarUrl(userInfo.email) : getGravatarUrl(''),
+  }
 
   useEffect(() => {
     const fetchSubscription = async () => {
