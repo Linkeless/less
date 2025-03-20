@@ -29,9 +29,13 @@ const navigation = [
   // { name: 'Reports', href: '#', current: false },
 ]
 const userNavigation = [
-  // { name: 'Your Profile', href: '#' },
-  // { name: 'Settings', href: '#' },
-  { name: 'Sign out', href: '/login' },
+  { 
+    name: 'Sign out', 
+    onClick: () => {
+      localStorage.clear();
+      window.location.href = '/login';
+    }
+  },
 ]
 
 function classNames(...classes: string[]) {
@@ -68,6 +72,7 @@ const nodeOptions = [
   { id: 'N1', name: '京港-北京入口' },
   { id: 'N2', name: '京德-北京入口' },
   { id: 'W1', name: '成港-成都入口' },
+  { id: 'Special', name: '直连线路' },  
 ]
 
 // Add global styles at the top
@@ -174,16 +179,18 @@ export default function Example() {
     <>
       <style jsx global>{globalStyles}</style>
       <div className="min-h-[100dvh] flex flex-col">
-        <Disclosure as="nav" className="bg-gray-800 flex-none">
+        <Disclosure as="nav" className="bg-white border-b border-gray-200 flex-none">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between">
               <div className="flex items-center">
                 <div className="shrink-0">
-                  <img
-                    alt="Linkeless"
-                    src="/Linkeless.png"
-                    className="size-8"
-                  />
+                  <a href="/">
+                    <img
+                      alt="Linkeless"
+                      src="/Linkeless.png"
+                      className="size-8"
+                    />
+                  </a>
                 </div>
                 <div className="hidden md:block">
                   <div className="ml-10 flex items-baseline space-x-4">
@@ -193,7 +200,7 @@ export default function Example() {
                         href={item.href}
                         aria-current={item.current ? 'page' : undefined}
                         className={classNames(
-                          item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                          item.current ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900',
                           'rounded-md px-3 py-2 text-sm font-medium',
                         )}
                       >
@@ -207,7 +214,7 @@ export default function Example() {
                 <div className="ml-4 flex items-center md:ml-6">
                   <button
                     type="button"
-                    className="relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-hidden"
+                    className="relative rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
                   >
                     <span className="absolute -inset-1.5" />
                     <span className="sr-only">View notifications</span>
@@ -217,7 +224,7 @@ export default function Example() {
                   {/* Profile dropdown */}
                   <Menu as="div" className="relative ml-3">
                     <div>
-                      <MenuButton className="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-hidden">
+                      <MenuButton className="relative flex max-w-xs items-center rounded-full bg-white text-sm focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden">
                         <span className="absolute -inset-1.5" />
                         <span className="sr-only">Open user menu</span>
                         <img 
@@ -233,12 +240,12 @@ export default function Example() {
                     >
                       {userNavigation.map((item) => (
                         <MenuItem key={item.name}>
-                          <a
-                            href={item.href}
-                            className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:outline-hidden"
+                          <button
+                            onClick={item.onClick}
+                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:outline-hidden"
                           >
                             {item.name}
-                          </a>
+                          </button>
                         </MenuItem>
                       ))}
                     </MenuItems>
@@ -247,7 +254,7 @@ export default function Example() {
               </div>
               <div className="-mr-2 flex md:hidden">
                 {/* Mobile menu button */}
-                <DisclosureButton className="group relative inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-hidden">
+                <DisclosureButton className="group relative inline-flex items-center justify-center rounded-md bg-white p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden">
                   <span className="absolute -inset-0.5" />
                   <span className="sr-only">Open main menu</span>
                   <Bars3Icon aria-hidden="true" className="block size-6 group-data-open:hidden" />
@@ -266,7 +273,7 @@ export default function Example() {
                   href={item.href}
                   aria-current={item.current ? 'page' : undefined}
                   className={classNames(
-                    item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                    item.current ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900',
                     'block rounded-md px-3 py-2 text-base font-medium',
                   )}
                 >
@@ -274,7 +281,7 @@ export default function Example() {
                 </DisclosureButton>
               ))}
             </div>
-            <div className="border-t border-gray-700 pt-4 pb-3">
+            <div className="border-t border-gray-200 pt-4 pb-3">
               <div className="flex items-center px-5">
                 <div className="shrink-0">
                   <img 
@@ -284,12 +291,12 @@ export default function Example() {
                   />
                 </div>
                 <div className="ml-3">
-                  <div className="text-base/5 font-medium text-white">{user.name}</div>
-                  <div className="text-sm font-medium text-gray-400">{user.email}</div>
+                  <div className="text-base/5 font-medium text-gray-900">{user.name}</div>
+                  <div className="text-sm font-medium text-gray-500">{user.email}</div>
                 </div>
                 <button
                   type="button"
-                  className="relative ml-auto shrink-0 rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-hidden"
+                  className="relative ml-auto shrink-0 rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
                 >
                   <span className="absolute -inset-1.5" />
                   <span className="sr-only">View notifications</span>
@@ -300,9 +307,9 @@ export default function Example() {
                 {userNavigation.map((item) => (
                   <DisclosureButton
                     key={item.name}
-                    as="a"
-                    href={item.href}
-                    className="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
+                    as="button"
+                    onClick={item.onClick}
+                    className="block w-full rounded-md px-3 py-2 text-base font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900"
                   >
                     {item.name}
                   </DisclosureButton>
@@ -443,11 +450,13 @@ export default function Example() {
                                           key={item.id}
                                           href={item.href}
                                           className={`flex items-center justify-center gap-1.5 px-2.5 py-2 text-sm font-medium ${
-                                            item.id === 'clash' 
-                                              ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                            ['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x'].includes(item.id)
+                                              ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                           } rounded-lg transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                                            item.id === 'clash' ? 'focus:ring-indigo-500' : 'focus:ring-gray-500'
+                                            ['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x'].includes(item.id)
+                                              ? 'focus:ring-gray-500'
+                                              : 'focus:ring-gray-500'
                                           }`}
                                         >
                                           <img 
@@ -484,17 +493,18 @@ export default function Example() {
                 <div className="relative max-lg:row-start-1">
                   <div className="absolute inset-px rounded-lg bg-white max-lg:rounded-t-[2rem]"></div>
                   <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] max-lg:rounded-t-[calc(2rem+1px)]">
-                    <div className="px-8 pt-8 sm:px-10 sm:pt-10">
+                    <div className="px-8 pt-6 pb-3 sm:px-10 sm:pt-8">
                       <p className="mt-2 text-lg font-medium tracking-tight text-gray-950 max-lg:text-center">Knowledge Base</p>
                       <div className="mt-4">
                         {loadingKnowledge ? (
-                          <div className="flex justify-center py-4">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                          <div className="flex flex-col items-center justify-center py-12">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                            <p className="mt-4 text-sm text-gray-500">Loading articles...</p>
                           </div>
                         ) : (
                           <div className="space-y-6">
                             {Object.entries(knowledgeArticles).map(([category, articles]) => (
-                              <div key={category}>
+                              <div key={category} className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
                                 <h3 className="text-sm font-medium text-gray-900 mb-3">{category}</h3>
                                 <ul className="space-y-2">
                                   {articles.slice(0, 3).map(article => (
@@ -521,17 +531,18 @@ export default function Example() {
                 <div className="relative max-lg:row-start-3 lg:col-start-2 lg:row-start-2">
                   <div className="absolute inset-px rounded-lg bg-white"></div>
                   <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)]">
-                    <div className="px-8 pt-8 sm:px-10 sm:pt-10">
+                    <div className="px-8 pt-6 pb-3 sm:px-10 sm:pt-8">
                       <p className="mt-2 text-lg font-medium tracking-tight text-gray-950 max-lg:text-center">Support Tickets</p>
                       <div className="mt-4">
                         {loadingTickets ? (
-                          <div className="flex justify-center py-4">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                          <div className="flex flex-col items-center justify-center py-12">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                            <p className="mt-4 text-sm text-gray-500">Loading tickets...</p>
                           </div>
                         ) : tickets.length > 0 ? (
                           <div className="space-y-3">
                             {tickets.map(ticket => (
-                              <div key={ticket.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div key={ticket.id} className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-br from-gray-50 to-white shadow-sm ring-1 ring-gray-950/5">
                                 <div className="flex-1">
                                   <p className="text-sm font-medium text-gray-900 truncate">{ticket.subject}</p>
                                   <p className="text-xs text-gray-500">
@@ -549,14 +560,16 @@ export default function Example() {
                             ))}
                           </div>
                         ) : (
-                          <p className="text-sm text-gray-500 text-center py-8">No tickets found</p>
+                          <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-6 text-center shadow-sm ring-1 ring-gray-950/5">
+                            <p className="text-sm text-gray-500">No tickets found</p>
+                          </div>
                         )}
                       </div>
                     </div>
                   </div>
                   <div className="pointer-events-none absolute inset-px rounded-lg ring-1 shadow-sm ring-black/5"></div>
                 </div>
-                <div className="relative lg:row-span-2">
+                <div className="relative lg:row-span-2 max-lg:row-start-4">
                   <div className="absolute inset-px rounded-lg bg-white max-lg:rounded-b-[2rem] lg:rounded-r-[2rem]"></div>
                   <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] max-lg:rounded-b-[calc(2rem+1px)] lg:rounded-r-[calc(2rem+1px)]">
                     <div className="px-8 pt-8 pb-3 sm:px-10 sm:pt-10">

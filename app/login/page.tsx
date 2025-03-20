@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Example() {
     const [formData, setFormData] = useState({
@@ -7,6 +7,14 @@ export default function Example() {
         password: ''
     });
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        // Check if user is already logged in
+        const authData = localStorage.getItem('auth_data');
+        if (authData) {
+            window.location.href = '/dashboard';
+        }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -47,11 +55,13 @@ export default function Example() {
         */}
         <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
           <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-            <img
-              alt="Linkeless"
-              src="/Linkeless.png"
-              className="mx-auto h-10 w-auto"
-            />
+            <a href="/">
+              <img
+                alt="Linkeless"
+                src="/Linkeless.png"
+                className="mx-auto h-10 w-auto cursor-pointer"
+              />
+            </a>
             <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
               Sign in to your account
             </h2>
