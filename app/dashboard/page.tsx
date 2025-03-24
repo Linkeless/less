@@ -10,10 +10,13 @@ const getGravatarUrl = (email: string) => {
   return `https://www.gravatar.com/avatar/${hash}?s=256&d=monsterid`;
 };
 
-const getFilteredUrl = (baseUrl: string, nodes: Array<{id: string}>) => {
-  if (!nodes.length) return baseUrl;
-  const filter = nodes.map(node => node.id).join('|');
-  return `${baseUrl}&filter=${filter}`;
+const getFilteredUrl = (token: string, nodes: Array<{id: string}>) => {
+  const baseUrl = process.env.NEXT_PUBLIC_SUB_API_URL || `${window.location.protocol}//${window.location.host}`;
+  let url = `${baseUrl}/service/sub?token=${token}`;
+  if (nodes.length) {
+    url += `&filter=${nodes.map(node => node.id).join('|')}`;
+  }
+  return url;
 };
 
 const navigation = [
@@ -47,6 +50,7 @@ interface Subscription {
     transfer_enable: number;
     expired_at: string | null;
     subscribe_url: string;
+    token: string;
   };
   status: string;
 }
@@ -423,12 +427,12 @@ export default function Example() {
                                 <div className="space-y-3 pt-2">
                                   <div className="grid grid-cols-1 gap-2">
                                     {[
-                                      { id: 'copy', name: 'Copy URL', onClick: () => handleCopyUrl(getFilteredUrl(subscription.data.subscribe_url, selectedNodes)) },
+                                      { id: 'copy', name: 'Copy URL', onClick: () => handleCopyUrl(getFilteredUrl(subscription.data.token, selectedNodes)) },
                                       ...(['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x'] as const).map(client => ({
                                         id: client,
                                         name: client === 'quantumult-x' ? 'Quantumult X' : client.charAt(0).toUpperCase() + client.slice(1),
                                         href: (() => {
-                                          const url = getFilteredUrl(subscription.data.subscribe_url, selectedNodes);
+                                          const url = getFilteredUrl(subscription.data.token, selectedNodes);
                                           const clientUrls = {
                                             'clash': `clash://install-config?url=${encodeURIComponent(url)}`,
                                             'surge': `surge:///install-config?url=${encodeURIComponent(url)}`,

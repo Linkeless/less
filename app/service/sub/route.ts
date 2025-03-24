@@ -3,23 +3,29 @@ import { getSubscription } from '@/lib/api';
 
 export async function GET(request: NextRequest) {
   try {
-    const subscription = await getSubscription();
-    if (!subscription?.data?.subscribe_url) {
+    const baseUrl = process.env.NEXT_SUB_API_URL || '';
+    const searchParams = request.nextUrl.searchParams.toString();
+    const subscribeUrl = searchParams 
+      ? `${baseUrl}/api/v1/client/subscribe?${searchParams}`
+      : `${baseUrl}/api/v1/client/subscribe`;
+      
+    const subscription = await fetch(subscribeUrl);
+    if (!subscription.ok) {
       return new Response('Subscription not found', { status: 404 });
     }
 
-    const filter = request.nextUrl.searchParams.get('filter');
-    const targetUrl = filter 
-      ? `${subscription.data.subscribe_url}&filter=${filter}`
-      : subscription.data.subscribe_url;
-
-    const response = await fetch(targetUrl);
-    const data = await response.text();
+    const data = await subscription.text();
+    const host = request.headers.get('host') || '';
+    const webPageUrl = `${request.nextUrl.protocol}//${host}`;
 
     return new Response(data, {
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
+        'Content-Type': 'text/html',
         'Cache-Control': 'no-cache',
+        'Content-Disposition': subscription.headers.get('content-disposition') || '',
+        'Profile-Update-Interval': subscription.headers.get('profile-update-interval') || '',
+        'Profile-Web-Page-Url': webPageUrl,
+        'Subscription-Userinfo': subscription.headers.get('subscription-userinfo') || '',
       },
     });
   } catch (error) {
