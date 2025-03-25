@@ -21,8 +21,8 @@ const getFilteredUrl = (token: string, nodes: Array<{id: string}>) => {
 
 const navigation = [
   { name: 'Dashboard', href: '#', current: true },
-  // { name: 'Team', href: '#', current: false },
-  // { name: 'Projects', href: '#', current: false },
+  { name: 'Product', href: '/product', current: false },
+  { name: 'Orders', href: '/orders', current: false },
   // { name: 'Calendar', href: '#', current: false },
   // { name: 'Reports', href: '#', current: false },
 ]

@@ -1,14 +1,19 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const handleResponse = async (response: Response) => {
-  if (!response.ok) {
-    if (response.status === 401) {
-      localStorage.removeItem('auth_data');
-      window.location.href = '/login';
-    }
-    throw new Error(`HTTP error! status: ${response.status}`);
+  const data = await response.json();
+  
+  if (response.status === 401) {
+    localStorage.removeItem('auth_data');
+    window.location.href = '/login';
+    throw new Error(data.message || 'Unauthorized');
   }
-  return response.json();
+
+  if (data.status === 'fail' || !response.ok) {
+    throw new Error(data.message || 'Request failed');
+  }
+
+  return data;
 };
 
 const createRequest = async (path: string, options: RequestInit = {}) => {
@@ -167,6 +172,117 @@ interface ResetUUIDResponse {
   error: null;
 }
 
+interface CouponResponse {
+  status: string;
+  message: string;
+  data: {
+    discount: number;
+  } | null;
+  error: string | null;
+}
+
+interface FetchProductResponse {
+  status: string;
+  message: string;
+  data: PurchasePlan;
+  error: string | null;
+}
+
+interface OrderResponse {
+  status: string;
+  message: string;
+  data: string; // trade_no
+  error: null;
+}
+
+interface OrderDetailResponse {
+  status: string;
+  message: string;
+  data: {
+    id: number;
+    invite_user_id: number | null;
+    user_id: number;
+    plan_id: number;
+    coupon_id: number | null;
+    payment_id: number | null;
+    type: number;
+    period: string;
+    trade_no: string;
+    callback_no: string;
+    total_amount: number;
+    handling_amount: number | null;
+    discount_amount: number | null;
+    surplus_amount: number | null;
+    refund_amount: number | null;
+    balance_amount: number;
+    surplus_order_ids: string | null;
+    status: number;
+    commission_status: number;
+    commission_balance: number;
+    actual_commission_balance: number | null;
+    paid_at: number;
+    created_at: number;
+    updated_at: number;
+    plan: {
+      id: number;
+      group_id: number;
+      transfer_enable: number;
+      name: string;
+      speed_limit: number | null;
+      show: number;
+      sort: number;
+      renew: number;
+      content: string;
+      month_price: number;
+      quarter_price: number;
+      half_year_price: number;
+      year_price: number;
+      two_year_price: number | null;
+      three_year_price: number | null;
+      onetime_price: number | null;
+      reset_price: number | null;
+      reset_traffic_method: number | null;
+      capacity_limit: number | null;
+      created_at: number;
+      updated_at: number;
+    };
+    try_out_plan_id: number;
+  };
+  error: null;
+}
+
+interface PaymentMethodResponse {
+  status: string;
+  message: string;
+  data: Array<{
+    id: number;
+    name: string;
+    icon: string;
+    handling_fee_percent: number;
+  }>;
+  error: null;
+}
+
+interface OrdersResponse {
+  status: string;
+  message: string;
+  data: Array<{
+    trade_no: string;
+    created_at: number;
+    total_amount: number;
+    status: number;
+    status_text: string;
+    payment_method: string;
+    goods_name: string;
+  }>;
+  error: null;
+}
+
+interface CheckoutResponse {
+  type: number;
+  data: string;  // boolean for type -1/0, string (URL) for type 1
+}
+
 export const getSubscription = async (): Promise<SubscriptionResponse> => {
   const token = localStorage.getItem('auth_data');
   if (!token) {
@@ -204,6 +320,62 @@ export const resetUUID = async (): Promise<ResetUUIDResponse> => {
   });
 };
 
+export const fetchProduct = async (id: string): Promise<FetchProductResponse> => {
+  const response = await createRequest(`/api/v1/user/plan/fetch?id=${id}`);
+  if (Array.isArray(response.data)) {
+    return {
+      ...response,
+      data: response.data[0]
+    };
+  }
+  return response;
+};
+
+export const checkCoupon = async (code: string): Promise<CouponResponse> => {
+  return createRequest('/api/v1/user/coupon/check', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  });
+};
+
+export const createOrder = async (params: {
+  period: string;
+  plan_id: number;
+  coupon_code?: string;
+}): Promise<OrderResponse> => {
+  const searchParams = new URLSearchParams();
+  searchParams.append('period', params.period);
+  searchParams.append('plan_id', params.plan_id.toString());
+  searchParams.append('coupon_code', params.coupon_code || '');
+  
+  return createRequest(`/api/v1/user/order/save?${searchParams}`, {
+    method: 'POST'
+  });
+};
+
+export const getOrderDetail = async (trade_no: string): Promise<OrderDetailResponse> => {
+  return createRequest(`/api/v1/user/order/detail?trade_no=${trade_no}`);
+};
+
+export const getPaymentMethods = async (): Promise<PaymentMethodResponse> => {
+  return createRequest('/api/v1/user/order/getPaymentMethod');
+};
+
+export const fetchOrders = async (): Promise<OrdersResponse> => {
+  return createRequest('/api/v1/user/order/fetch');
+};
+
+export const cancelOrder = async (trade_no: string): Promise<{ status: string; message: string }> => {
+  return createRequest(`/api/v1/user/order/cancel?trade_no=${trade_no}`, {
+    method: 'POST'
+  });
+};
+
+export const checkout = async (trade_no: string, method: number): Promise<CheckoutResponse> => {
+  return createRequest(`/api/v1/user/order/checkout?trade_no=${trade_no}&method=${method}`, {
+    method: 'POST'
+  });
+};
 
 export default {
   get: (url: string) => createRequest(url),
