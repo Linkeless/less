@@ -1,7 +1,7 @@
 'use client';
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems, Listbox, ListboxButton, ListboxOptions, ListboxOption, Dialog, DialogPanel, DialogTitle, DialogBackdrop, Transition } from '@headlessui/react'
 import { Bars3Icon, BellIcon, XMarkIcon, ChevronDownIcon, CheckIcon, ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
-import { getSubscription, fetchKnowledge, fetchTickets, fetchUserInfo, resetUUID, getTrafficLog } from '@/lib/api'
+import { getSubscription, fetchKnowledge, fetchTickets, fetchUserInfo, resetUUID, getTrafficLog, UserInfoResponse, TrafficLog, Subscription, ProcessedTrafficData, processTrafficData, formatBytes } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import md5 from 'md5'
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
@@ -55,23 +55,7 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
 }
 
-interface Subscription {
-  data: {
-    plan: { 
-      name: string;
-      id: number;
-    };
-    plan_id: number;
-    email: string;
-    u: number;
-    d: number;
-    transfer_enable: number;
-    expired_at: string | null;
-    subscribe_url: string;
-    token: string;
-  };
-  status: string;
-}
+// Remove the local Subscription interface since we're importing it from api.ts
 
 const copyToClipboard = async (text: string) => {
   try {
@@ -104,43 +88,13 @@ const globalStyles = `
   }
 `;
 
-interface TrafficLog {
-  created_at: number;
-  u: number;
-  d: number;
-}
-
-interface ProcessedTrafficData {
-  date: string;
-  download: number;
-  upload: number;
-}
-
-const processTrafficData = (data: any[]): ProcessedTrafficData[] => {
-  const dailyData = new Map<number, { download: number; upload: number }>();
-  
-  data.forEach(item => {
-    const day = item.record_at;
-    const current = dailyData.get(day) || { download: 0, upload: 0 };
-    
-    // Convert to GB and consider server_rate
-    const rate = parseFloat(item.server_rate);
-    dailyData.set(day, {
-      download: current.download + (item.d * rate) / (1024 * 1024 * 1024),
-      upload: current.upload + (item.u * rate) / (1024 * 1024 * 1024)
-    });
-  });
-
-  return Array.from(dailyData.entries())
-    .map(([timestamp, traffic]) => ({
-      date: new Date(timestamp * 1000).toLocaleDateString(),
-      download: Number(traffic.download.toFixed(2)),
-      upload: Number(traffic.upload.toFixed(2))
-    }))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-};
-
 const formatTraffic = (value: number) => {
+  if (value >= 1024 * 1024) {
+    return `${(value / (1024 * 1024)).toFixed(1)}PB`;
+  }
+  if (value >= 1024) {
+    return `${(value / 1024).toFixed(1)}TB`;
+  }
   if (value < 1) {
     return `${(value * 1024).toFixed(0)}MB`;  // Removed space before MB
   }
@@ -155,7 +109,7 @@ export default function Example() {
   const [loadingKnowledge, setLoadingKnowledge] = useState(true)
   const [tickets, setTickets] = useState<Array<{id: number; subject: string; status: string; created_at: number}>>([])
   const [loadingTickets, setLoadingTickets] = useState(true)
-  const [userInfo, setUserInfo] = useState<any>(null)
+  const [userInfo, setUserInfo] = useState<UserInfoResponse['data'] | null>(null)
   const [loadingUserInfo, setLoadingUserInfo] = useState(true)
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
   const [showCopyNotification, setShowCopyNotification] = useState(false)
@@ -426,16 +380,16 @@ export default function Example() {
                               </div>
                             </div>
                               <div className="flex-1 min-w-0">
-                                <h2 className="text-lg font-semibold text-gray-900 truncate">
+                                <h2 className="text-xl font-semibold text-gray-900 leading-7 truncate">
                                   {subscription.data?.plan?.name || 'No active subscription'}
                                 </h2>
                                 <div className="flex items-center gap-2">
-                                  <p className="text-sm text-gray-500">
+                                  <p className="text-sm font-medium text-gray-600">
                                     Expires: {formatDate(subscription.data.expired_at)}
                                   </p>
                                   <a 
                                     href={`/product/order?id=${subscription.data.plan_id}`}
-                                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                                    className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
                                   >
                                     Renew
                                   </a>
@@ -446,11 +400,15 @@ export default function Example() {
                           {subscription.data?.plan ? (
                             <div className="space-y-6">
                               <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
-                                <p className="text-sm font-medium text-gray-500">Traffic Usage</p>
-                                <div className="mt-3">
-                                  <div className="flex items-center justify-between text-sm mb-2">
-                                    <span className="text-gray-700 font-medium">{((subscription.data.u + subscription.data.d) / 1024 / 1024 / 1024).toFixed(2)} GB</span>
-                                    <span className="text-gray-700 font-medium">{(subscription.data.transfer_enable / 1024 / 1024 / 1024).toFixed(2)} GB</span>
+                                <p className="text-base font-semibold text-gray-700">Traffic Usage</p>
+                                <div className="mt-4">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <span className="text-2xl font-bold text-indigo-600 tabular-nums">
+                                      {formatBytes(subscription.data.u + subscription.data.d)}
+                                    </span>
+                                    <span className="text-2xl font-bold text-gray-900 tabular-nums">
+                                      {formatBytes(subscription.data.transfer_enable)}
+                                    </span>
                                   </div>
                                   <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
                                     <div 
@@ -460,7 +418,7 @@ export default function Example() {
                                       }}
                                     />
                                   </div>
-                                  <p className="mt-1 text-xs text-gray-500 text-right">
+                                  <p className="mt-2 text-sm font-medium text-gray-600 text-right">
                                     {((subscription.data.u + subscription.data.d) / subscription.data.transfer_enable * 100).toFixed(1)}% Used
                                   </p>
                                 </div>
@@ -468,7 +426,7 @@ export default function Example() {
 
                               <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-4 space-y-4 shadow-sm ring-1 ring-gray-950/5">
                                 <div className="space-y-2">
-                                  <h3 className="text-sm font-medium text-gray-900">Subscribe Methods</h3>
+                                  <h3 className="text-base font-semibold text-gray-700">Subscribe Methods</h3>
                                   <Listbox value={selectedNodes} onChange={setSelectedNodes} multiple>
                                     <div className="relative">
                                       <ListboxButton className="relative w-full cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left border focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm">
@@ -597,10 +555,10 @@ export default function Example() {
                           className="h-16 w-16 rounded-full ring-4 ring-gray-50" 
                         />
                         <div className="flex-1 min-w-0">
-                          <h2 className="text-lg font-semibold text-gray-900 truncate">
+                          <h2 className="text-xl font-semibold text-gray-900 leading-7">
                             User Information
                           </h2>
-                          <p className="text-sm text-gray-500 truncate">
+                          <p className="text-sm font-medium text-gray-600">
                             {userInfo?.email}
                           </p>
                         </div>
@@ -615,7 +573,7 @@ export default function Example() {
                           <div className="space-y-6">
                             <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
                               <div className="flex items-center justify-between mb-4">
-                                <p className="text-base font-medium text-gray-500">UUID</p>
+                                <p className="text-base font-semibold text-gray-700">UUID</p>
                                 <button
                                   onClick={() => setShowUUID(!showUUID)}
                                   className="inline-flex items-center gap-x-1.5 rounded-md bg-gradient-to-br from-indigo-50 to-white px-2.5 py-1.5 text-xs font-medium text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -623,31 +581,37 @@ export default function Example() {
                                   {showUUID ? 'Hide' : 'Show'}
                                 </button>
                               </div>
-                              <p className="text-base text-gray-900 font-medium break-all">
+                              <p className="text-base font-medium text-gray-900 tracking-wide break-all font-mono">
                                 {showUUID ? userInfo.uuid : '••••••••-••••-••••-••••-••••••••••••'}
                               </p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                               <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
-                                <p className="text-sm font-medium text-gray-500">Balance</p>
-                                <p className="mt-2 text-2xl font-semibold text-indigo-600">¥{(userInfo.balance / 100).toFixed(2)}</p>
+                                <p className="text-base font-semibold text-gray-700">Balance</p>
+                                <p className="mt-2 text-2xl font-bold text-indigo-600 tabular-nums">
+                                  ¥{(userInfo.balance / 100).toFixed(2)}
+                                </p>
                               </div>
                               <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
-                                <p className="text-sm font-medium text-gray-500">Commission</p>
-                                <p className="mt-2 text-2xl font-semibold text-indigo-600">¥{(userInfo.commission_balance / 100).toFixed(2)}</p>
+                                <p className="text-base font-semibold text-gray-700">Commission</p>
+                                <p className="mt-2 text-2xl font-bold text-indigo-600 tabular-nums">
+                                  ¥{(userInfo.commission_balance / 100).toFixed(2)}
+                                </p>
                               </div>
                             </div>
                             
                             <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-4 space-y-3 shadow-sm ring-1 ring-gray-950/5">
                               <div className="flex justify-between text-sm">
-                                <span className="text-gray-500">Member Since</span>
-                                <span className="text-gray-900 font-medium">{new Date(userInfo.created_at * 1000).toLocaleDateString()}</span>
+                                <span className="font-medium text-gray-600">Member Since</span>
+                                <span className="font-semibold text-gray-900">
+                                  {new Date(userInfo.created_at * 1000).toLocaleDateString()}
+                                </span>
                               </div>
                               {userInfo.telegram_id && (
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-gray-500">Telegram</span>
-                                  <span className="text-gray-900 font-medium">Connected</span>
+                                  <span className="font-medium text-gray-600">Telegram</span>
+                                  <span className="font-semibold text-gray-900">Connected</span>
                                 </div>
                               )}
                             </div>
@@ -665,7 +629,7 @@ export default function Example() {
                   <div className="absolute inset-px rounded-2xl bg-white"></div>
                   <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(2rem+1px)]">
                     <div className="px-8 pt-6 pb-3 sm:px-10 sm:pt-8">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-6">Traffic Statistics</h3>
+                      <h3 className="text-xl font-semibold text-gray-900 leading-7 mb-6">Traffic Statistics</h3>
                       {loadingTraffic ? (
                         <div className="flex justify-center py-4">
                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>

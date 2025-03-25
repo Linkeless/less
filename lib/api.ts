@@ -54,6 +54,28 @@ interface SubscriptionResponse {
   error: string | null;
 }
 
+export interface Subscription extends SubscriptionResponse {
+  status: string;
+  message: string;
+  data: {
+    plan: { 
+      name: string;
+      id: number;
+    };
+    plan_id: number;
+    email: string;
+    u: number;
+    d: number;
+    transfer_enable: number;
+    expired_at: string | null;
+    subscribe_url: string;
+    token: string;
+    uuid: string;
+    reset_day: number | null;
+  };
+  error: string | null;
+}
+
 interface KnowledgeArticle {
   id: number;
   category: string;
@@ -118,9 +140,13 @@ interface TicketResponse {
   error: null;
 }
 
-export interface UserInfo {
+interface BaseResponse {
   status: string;
   message: string;
+  error: string | null;
+}
+
+export interface UserInfoResponse extends BaseResponse {
   data: {
     email: string;
     transfer_enable: number;
@@ -139,7 +165,6 @@ export interface UserInfo {
     uuid: string;
     avatar_url: string;
   };
-  error: null;
 }
 
 interface ResetUUIDResponse {
@@ -262,14 +287,24 @@ interface CheckoutResponse {
   data: string;  // boolean for type -1/0, string (URL) for type 1
 }
 
-interface TrafficLogResponse {
+export interface ProcessedTrafficData {
+  date: string;
+  download: number;
+  upload: number;
+}
+
+export interface TrafficLog {
+  created_at: number;
+  u: number;
+  d: number;
+  server_rate?: number;
+  record_at?: number;
+}
+
+export interface TrafficLogResponse {
   status: string;
   message: string;
-  data: Array<{
-    created_at: number;
-    u: number;
-    d: number;
-  }>;
+  data: TrafficLog[];
   error: null;
 }
 
@@ -296,7 +331,7 @@ export const fetchTickets = async (): Promise<TicketResponse> => {
   return createRequest('/api/v1/user/ticket/fetch');
 };
 
-export const fetchUserInfo = async (): Promise<UserInfo> => {
+export const fetchUserInfo = async (): Promise<UserInfoResponse> => {
   return createRequest('/api/v1/user/info');
 };
 
@@ -365,6 +400,45 @@ export const checkout = async (trade_no: string, method: number): Promise<Checko
 
 export const getTrafficLog = async (): Promise<TrafficLogResponse> => {
   return createRequest('/api/v1/user/stat/getTrafficLog');
+};
+
+export const processTrafficData = (data: TrafficLog[]): ProcessedTrafficData[] => {
+  const dailyData = new Map<number, { download: number; upload: number }>();
+  
+  data.forEach(item => {
+    const day = item.record_at || item.created_at;
+    const current = dailyData.get(day) || { download: 0, upload: 0 };
+    
+    const rate = item.server_rate || 1;
+    dailyData.set(day, {
+      download: current.download + (item.d * rate) / (1024 * 1024 * 1024),
+      upload: current.upload + (item.u * rate) / (1024 * 1024 * 1024)
+    });
+  });
+
+  return Array.from(dailyData.entries())
+    .map(([timestamp, traffic]) => ({
+      date: new Date(timestamp * 1000).toLocaleDateString(),
+      download: Number(traffic.download.toFixed(2)),
+      upload: Number(traffic.upload.toFixed(2))
+    }))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+};
+
+export const formatBytes = (bytes: number): string => {
+  const units = ['MB', 'GB', 'TB', 'PB'];
+  let value = bytes / (1024 * 1024 * 1024); // Convert to GB first
+  let unitIndex = 1; // Start at GB (index 1)
+
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex++;
+  }
+
+  if (unitIndex === 0) { // MB
+    return `${Math.round(value)}${units[unitIndex]}`;
+  }
+  return `${value.toFixed(1)}${units[unitIndex]}`;
 };
 
 export default {
