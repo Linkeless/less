@@ -146,25 +146,27 @@ interface BaseResponse {
   error: string | null;
 }
 
+export interface UserInfo {
+  email: string;
+  transfer_enable: number;
+  last_login_at: number;
+  created_at: number;
+  banned: number;
+  remind_expire: number;
+  remind_traffic: number;
+  expired_at: string | null;
+  balance: number;
+  commission_balance: number;
+  plan_id: number;
+  discount: number | null;
+  commission_rate: number | null;
+  telegram_id: number;
+  uuid: string;
+  avatar_url: string;
+}
+
 export interface UserInfoResponse extends BaseResponse {
-  data: {
-    email: string;
-    transfer_enable: number;
-    last_login_at: number;
-    created_at: number;
-    banned: number;
-    remind_expire: number;
-    remind_traffic: number;
-    expired_at: string | null;
-    balance: number;
-    commission_balance: number;
-    plan_id: number;
-    discount: number | null;
-    commission_rate: number | null;
-    telegram_id: number;
-    uuid: string;
-    avatar_url: string;
-  };
+  data: UserInfo;
 }
 
 interface ResetUUIDResponse {

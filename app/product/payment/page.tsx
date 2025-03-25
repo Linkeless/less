@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { fetchUserInfo, getOrderDetail, getPaymentMethods, checkout } from '@/lib/api'
 import TitleBar from '@/components/TitleBar'
@@ -48,7 +48,8 @@ interface OrderDetail {
   };
 }
 
-export default function PaymentPage() {
+// Create a separate component for the payment content
+function PaymentContent() {
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -314,5 +315,18 @@ export default function PaymentPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// Update the main component to include Suspense
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[100dvh] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    }>
+      <PaymentContent />
+    </Suspense>
   )
 }

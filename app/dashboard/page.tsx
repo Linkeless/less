@@ -109,7 +109,7 @@ export default function Example() {
   const [loadingKnowledge, setLoadingKnowledge] = useState(true)
   const [tickets, setTickets] = useState<Array<{id: number; subject: string; status: string; created_at: number}>>([])
   const [loadingTickets, setLoadingTickets] = useState(true)
-  const [userInfo, setUserInfo] = useState<UserInfoResponse['data'] | null>(null)
+  const [userInfo, setUserInfo] = useState<UserInfoResponse | null>(null)
   const [loadingUserInfo, setLoadingUserInfo] = useState(true)
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
   const [showCopyNotification, setShowCopyNotification] = useState(false)
@@ -119,9 +119,9 @@ export default function Example() {
 
   // Move user object inside component
   const user = {
-    name: userInfo ? userInfo.email.split('@')[0] : 'User',
-    email: userInfo ? userInfo.email : '',
-    imageUrl: userInfo ? getGravatarUrl(userInfo.email) : getGravatarUrl(''),
+    name: userInfo ? userInfo.data.email.split('@')[0] : 'User',
+    email: userInfo ? userInfo.data.email : '',
+    imageUrl: userInfo ? getGravatarUrl(userInfo.data.email) : getGravatarUrl(''),
   }
 
   useEffect(() => {
@@ -167,7 +167,7 @@ export default function Example() {
     const fetchUserData = async () => {
       try {
         const response = await fetchUserInfo()
-        setUserInfo(response.data)
+        setUserInfo(response) // 修改这一行，传入完整的 response 而不是 response.data
       } catch (error) {
         console.error('Failed to fetch user info:', error)
       } finally {
@@ -194,10 +194,13 @@ export default function Example() {
   const handleResetUUID = async () => {
     try {
       const response = await resetUUID();
-      setUserInfo((prev: any) => ({
+      setUserInfo((prev) => prev ? {
         ...prev,
-        uuid: response.data.uuid
-      }));
+        data: {
+          ...prev.data,
+          uuid: response.data.uuid
+        }
+      } : null);
       setIsResetDialogOpen(false);
     } catch (error) {
       console.error('Failed to reset UUID:', error);
@@ -266,7 +269,7 @@ export default function Example() {
                         <span className="sr-only">Open user menu</span>
                         <img 
                           alt="" 
-                          src={userInfo ? getGravatarUrl(userInfo.email) : user.imageUrl} 
+                          src={userInfo ? getGravatarUrl(userInfo.data.email) : user.imageUrl} 
                           className="size-8 rounded-full" 
                         />
                       </MenuButton>
@@ -323,7 +326,7 @@ export default function Example() {
                 <div className="shrink-0">
                   <img 
                     alt="" 
-                    src={userInfo ? getGravatarUrl(userInfo.email) : user.imageUrl} 
+                    src={userInfo ? getGravatarUrl(userInfo.data.email) : user.imageUrl} 
                     className="size-10 rounded-full" 
                   />
                 </div>
@@ -550,7 +553,7 @@ export default function Example() {
                     <div className="px-8 pt-8 pb-3 sm:px-10">
                       <div className="flex items-center gap-3 mb-8">
                         <img 
-                          src={userInfo ? getGravatarUrl(userInfo.email) : user.imageUrl} 
+                          src={userInfo ? getGravatarUrl(userInfo.data.email) : user.imageUrl} 
                           alt="" 
                           className="h-16 w-16 rounded-full ring-4 ring-gray-50" 
                         />
@@ -559,7 +562,7 @@ export default function Example() {
                             User Information
                           </h2>
                           <p className="text-sm font-medium text-gray-600">
-                            {userInfo?.email}
+                            {userInfo?.data.email}
                           </p>
                         </div>
                       </div>
@@ -582,7 +585,7 @@ export default function Example() {
                                 </button>
                               </div>
                               <p className="text-base font-medium text-gray-900 tracking-wide break-all font-mono">
-                                {showUUID ? userInfo.uuid : '••••••••-••••-••••-••••-••••••••••••'}
+                                {showUUID ? userInfo.data.uuid : '••••••••-••••-••••-••••-••••••••••••'}
                               </p>
                             </div>
 
@@ -590,13 +593,13 @@ export default function Example() {
                               <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
                                 <p className="text-base font-semibold text-gray-700">Balance</p>
                                 <p className="mt-2 text-2xl font-bold text-indigo-600 tabular-nums">
-                                  ¥{(userInfo.balance / 100).toFixed(2)}
+                                  ¥{(userInfo.data.balance / 100).toFixed(2)}
                                 </p>
                               </div>
                               <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
                                 <p className="text-base font-semibold text-gray-700">Commission</p>
                                 <p className="mt-2 text-2xl font-bold text-indigo-600 tabular-nums">
-                                  ¥{(userInfo.commission_balance / 100).toFixed(2)}
+                                  ¥{(userInfo.data.commission_balance / 100).toFixed(2)}
                                 </p>
                               </div>
                             </div>
@@ -605,10 +608,10 @@ export default function Example() {
                               <div className="flex justify-between text-sm">
                                 <span className="font-medium text-gray-600">Member Since</span>
                                 <span className="font-semibold text-gray-900">
-                                  {new Date(userInfo.created_at * 1000).toLocaleDateString()}
+                                  {new Date(userInfo.data.created_at * 1000).toLocaleDateString()}
                                 </span>
                               </div>
-                              {userInfo.telegram_id && (
+                              {userInfo.data.telegram_id && (
                                 <div className="flex justify-between text-sm">
                                   <span className="font-medium text-gray-600">Telegram</span>
                                   <span className="font-semibold text-gray-900">Connected</span>

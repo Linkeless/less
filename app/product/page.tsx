@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { fetchPlans, fetchUserInfo, type PurchasePlan, type UserInfo } from '@/lib/api'
+import { fetchPlans, fetchUserInfo, type PurchasePlan, type UserInfoResponse } from '@/lib/api'
 import { Menu, MenuButton, MenuItem, MenuItems, Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react'
 import { Bars3Icon, BellIcon, XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import md5 from 'md5'
@@ -100,7 +100,7 @@ function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
 export default function Example() {
   const [plans, setPlans] = useState<PurchasePlan[]>([])
   const [periodType, setPeriodType] = useState<'monthly' | 'yearly'>('monthly')
-  const [userInfo, setUserInfo] = useState<UserInfo['data'] | null>(null)
+  const [userInfo, setUserInfo] = useState<UserInfoResponse | null>(null)
   const [showAuthModal, setShowAuthModal] = useState(false)
 
   useEffect(() => {
@@ -128,7 +128,7 @@ export default function Example() {
       try {
         const response = await fetchUserInfo()
         if (response.status === 'success') {
-          setUserInfo(response.data)
+          setUserInfo(response)
         }
       } catch (error: any) {
         console.error('Failed to fetch user info:', error)
@@ -196,7 +196,7 @@ export default function Example() {
                   <MenuButton className="relative flex rounded-full bg-white text-sm">
                     <img 
                       alt="" 
-                      src={userInfo ? getGravatarUrl(userInfo.email) : '/default-avatar.png'} 
+                      src={userInfo ? getGravatarUrl(userInfo.data.email) : '/default-avatar.png'} 
                       className="size-8 rounded-full" 
                     />
                   </MenuButton>

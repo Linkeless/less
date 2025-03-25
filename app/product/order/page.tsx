@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { fetchProduct, checkCoupon, fetchUserInfo, getSubscription, createOrder, getOrderDetail, getPaymentMethods } from '@/lib/api'
 import TitleBar from '@/components/TitleBar'
@@ -23,7 +23,8 @@ function Content({ html }: ContentProps) {
   );
 }
 
-export default function OrderPage() {
+// Move the main content into a separate component
+function OrderContent() {
   const searchParams = useSearchParams()
   const [couponCode, setCouponCode] = useState('')
   const [discount, setDiscount] = useState(0)
@@ -416,5 +417,18 @@ export default function OrderPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// Update the main component to include Suspense
+export default function OrderPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[100dvh] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    }>
+      <OrderContent />
+    </Suspense>
   )
 }
