@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --background-gradient: linear-gradient(to bottom right, #fafafa, #ffffff);
+  --accent-gradient: linear-gradient(to bottom right, #6366f1, #4f46e5);
+  --transition-all: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @theme inline {
@@ -34,4 +37,42 @@ h1, h2, h3, h4, h5, h6 {
 
 p {
   line-height: 1.6;
+}
+
+/* Common Components */
+.btn {
+  @apply rounded-lg px-4 py-2 font-medium transition-all;
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.btn-primary {
+  @apply bg-indigo-600 text-white;
+  @apply hover:bg-indigo-500;
+  @apply focus:ring-indigo-500;
+}
+
+.btn-secondary {
+  @apply bg-white text-gray-900 ring-1 ring-inset ring-gray-300;
+  @apply hover:bg-gray-50;
+  @apply focus:ring-indigo-500;
+}
+
+.input {
+  @apply block w-full rounded-lg px-3 py-2;
+  @apply text-gray-900 bg-white;
+  @apply outline-1 outline-gray-300;
+  @apply focus:outline-2 focus:outline-indigo-600;
+  @apply placeholder:text-gray-400;
+}
+
+/* Cards & Containers */
+.card {
+  @apply rounded-2xl bg-gradient-to-br from-gray-50 to-white;
+  @apply shadow-sm ring-1 ring-gray-950/5;
+  @apply p-6;
+}
+
+/* Transitions */
+.transition-common {
+  @apply transition-all duration-200 ease-in-out;
 }

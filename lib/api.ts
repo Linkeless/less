@@ -32,35 +32,15 @@ const createRequest = async (path: string, options: RequestInit = {}) => {
   return handleResponse(response);
 };
 
-interface Plan {
-  id: number;
-  group_id: number;
-  transfer_enable: number;
-  name: string;
-  speed_limit: number | null;
-  show: number;
-  sort: number;
-  renew: number;
-  content: string;
-  month_price: number;
-  quarter_price: number;
-  half_year_price: number;
-  year_price: number;
-  two_year_price: number | null;
-  three_year_price: number | null;
-  onetime_price: number | null;
-  reset_price: number | null;
-  reset_traffic_method: number | null;
-  capacity_limit: number | null;
-  created_at: number;
-  updated_at: number;
-}
-
 interface SubscriptionResponse {
   status: string;
   message: string;
   data: {
     plan_id: number;
+    plan: { 
+      name: string;
+      id: number;
+    };
     token: string;
     expired_at: string | null;
     u: number;
@@ -68,7 +48,6 @@ interface SubscriptionResponse {
     transfer_enable: number;
     email: string;
     uuid: string;
-    plan: Plan;
     subscribe_url: string;
     reset_day: number | null;
   };
@@ -96,7 +75,7 @@ interface KnowledgeResponse {
   error: null;
 }
 
-interface PurchasePlan {
+export interface PurchasePlan {
   id: number;
   group_id: number;
   transfer_enable: number;
@@ -139,7 +118,7 @@ interface TicketResponse {
   error: null;
 }
 
-interface UserInfo {
+export interface UserInfo {
   status: string;
   message: string;
   data: {
@@ -283,11 +262,18 @@ interface CheckoutResponse {
   data: string;  // boolean for type -1/0, string (URL) for type 1
 }
 
+interface TrafficLogResponse {
+  status: string;
+  message: string;
+  data: Array<{
+    created_at: number;
+    u: number;
+    d: number;
+  }>;
+  error: null;
+}
+
 export const getSubscription = async (): Promise<SubscriptionResponse> => {
-  const token = localStorage.getItem('auth_data');
-  if (!token) {
-    throw new Error('No authentication token found');
-  }
   return createRequest('/api/v1/user/getSubscribe');
 };
 
@@ -375,6 +361,10 @@ export const checkout = async (trade_no: string, method: number): Promise<Checko
   return createRequest(`/api/v1/user/order/checkout?trade_no=${trade_no}&method=${method}`, {
     method: 'POST'
   });
+};
+
+export const getTrafficLog = async (): Promise<TrafficLogResponse> => {
+  return createRequest('/api/v1/user/stat/getTrafficLog');
 };
 
 export default {

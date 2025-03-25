@@ -1,9 +1,10 @@
 'use client';
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems, Listbox, ListboxButton, ListboxOptions, ListboxOption, Dialog, DialogPanel, DialogTitle, DialogBackdrop, Transition } from '@headlessui/react'
 import { Bars3Icon, BellIcon, XMarkIcon, ChevronDownIcon, CheckIcon, ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
-import { getSubscription, fetchKnowledge, fetchTickets, fetchUserInfo, resetUUID } from '@/lib/api'
+import { getSubscription, fetchKnowledge, fetchTickets, fetchUserInfo, resetUUID, getTrafficLog } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import md5 from 'md5'
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 
 const getGravatarUrl = (email: string) => {
   const hash = md5(email.trim().toLowerCase());
@@ -17,6 +18,19 @@ const getFilteredUrl = (token: string, nodes: Array<{id: string}>) => {
     url += `&filter=${nodes.map(node => node.id).join('|')}`;
   }
   return url;
+};
+
+const formatDate = (timestamp: string | null) => {
+  if (!timestamp) return 'Never';
+  const date = new Date(parseInt(timestamp) * 1000);
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).replace(/\//g, '-');
 };
 
 const navigation = [
@@ -43,7 +57,11 @@ function classNames(...classes: string[]) {
 
 interface Subscription {
   data: {
-    plan: { name: string };
+    plan: { 
+      name: string;
+      id: number;
+    };
+    plan_id: number;
     email: string;
     u: number;
     d: number;
@@ -86,6 +104,49 @@ const globalStyles = `
   }
 `;
 
+interface TrafficLog {
+  created_at: number;
+  u: number;
+  d: number;
+}
+
+interface ProcessedTrafficData {
+  date: string;
+  download: number;
+  upload: number;
+}
+
+const processTrafficData = (data: any[]): ProcessedTrafficData[] => {
+  const dailyData = new Map<number, { download: number; upload: number }>();
+  
+  data.forEach(item => {
+    const day = item.record_at;
+    const current = dailyData.get(day) || { download: 0, upload: 0 };
+    
+    // Convert to GB and consider server_rate
+    const rate = parseFloat(item.server_rate);
+    dailyData.set(day, {
+      download: current.download + (item.d * rate) / (1024 * 1024 * 1024),
+      upload: current.upload + (item.u * rate) / (1024 * 1024 * 1024)
+    });
+  });
+
+  return Array.from(dailyData.entries())
+    .map(([timestamp, traffic]) => ({
+      date: new Date(timestamp * 1000).toLocaleDateString(),
+      download: Number(traffic.download.toFixed(2)),
+      upload: Number(traffic.upload.toFixed(2))
+    }))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+};
+
+const formatTraffic = (value: number) => {
+  if (value < 1) {
+    return `${(value * 1024).toFixed(0)}MB`;  // Removed space before MB
+  }
+  return `${value.toFixed(1)}GB`;  // Removed space before GB
+};
+
 export default function Example() {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
@@ -99,6 +160,8 @@ export default function Example() {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
   const [showCopyNotification, setShowCopyNotification] = useState(false)
   const [showUUID, setShowUUID] = useState(false);
+  const [trafficLog, setTrafficLog] = useState<TrafficLog[]>([])
+  const [loadingTraffic, setLoadingTraffic] = useState(true)
 
   // Move user object inside component
   const user = {
@@ -159,6 +222,19 @@ export default function Example() {
     }
 
     fetchUserData()
+
+    const fetchTrafficLog = async () => {
+      try {
+        const response = await getTrafficLog()
+        setTrafficLog(response.data || [])
+      } catch (error) {
+        console.error('Failed to fetch traffic log:', error)
+      } finally {
+        setLoadingTraffic(false)
+      }
+    }
+
+    fetchTrafficLog()
   }, [])
 
   const handleResetUUID = async () => {
@@ -328,11 +404,11 @@ export default function Example() {
 
         <main className="flex-1 flex flex-col">
           <div className="flex-1 bg-gray-50">
-            <div className="mx-auto max-w-2xl px-4 py-4 sm:px-6 lg:max-w-7xl lg:px-8">
-              <div className="grid gap-4 lg:grid-cols-3 lg:grid-rows-2">
-                <div className="relative lg:row-span-2">
-                  <div className="absolute inset-px rounded-lg bg-white lg:rounded-l-[2rem]"></div>
-                  <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] lg:rounded-l-[calc(2rem+1px)]">
+            <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+              <div className="grid gap-6 lg:grid-cols-2">
+                <div className="relative">
+                  <div className="absolute inset-px rounded-2xl bg-white"></div>
+                  <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(2rem+1px)]">
                     <div className="px-8 pt-6 pb-3 sm:px-10 sm:pt-8">
                       {loading ? (
                         <div className="flex flex-col items-center justify-center py-12">
@@ -343,16 +419,28 @@ export default function Example() {
                         <div className="space-y-6">
                           <div className="flex items-center gap-3 mb-6">
                             <div className="size-16 rounded-xl bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
-                              <div className="size-full bg-indigo-600 rounded-lg"></div>
+                              <div className="size-full bg-indigo-600 rounded-lg flex items-center justify-center">
+                                <span className="text-lg font-semibold text-white">
+                                  {subscription.data?.plan?.name?.[0]?.toUpperCase() || '?'}
+                                </span>
+                              </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h2 className="text-lg font-semibold text-gray-900 truncate">
-                                {subscription.data?.plan?.name || 'No active subscription'}
-                              </h2>
-                              <p className="text-sm text-gray-500">
-                                Expires: {subscription.data.expired_at || 'Never'}
-                              </p>
-                            </div>
+                              <div className="flex-1 min-w-0">
+                                <h2 className="text-lg font-semibold text-gray-900 truncate">
+                                  {subscription.data?.plan?.name || 'No active subscription'}
+                                </h2>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm text-gray-500">
+                                    Expires: {formatDate(subscription.data.expired_at)}
+                                  </p>
+                                  <a 
+                                    href={`/product/order?id=${subscription.data.plan_id}`}
+                                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                                  >
+                                    Renew
+                                  </a>
+                                </div>
+                              </div>
                           </div>
 
                           {subscription.data?.plan ? (
@@ -495,91 +583,13 @@ export default function Example() {
                       )}
                     </div>
                   </div>
-                  <div className="pointer-events-none absolute inset-px rounded-lg ring-1 shadow-sm ring-black/5 lg:rounded-l-[2rem]"></div>
+                  <div className="pointer-events-none absolute inset-px rounded-2xl ring-1 shadow-sm ring-black/5"></div>
                 </div>
-                <div className="relative max-lg:row-start-1">
-                  <div className="absolute inset-px rounded-lg bg-white max-lg:rounded-t-[2rem]"></div>
-                  <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] max-lg:rounded-t-[calc(2rem+1px)]">
-                    <div className="px-8 pt-6 pb-3 sm:px-10 sm:pt-8">
-                      <p className="mt-2 text-lg font-medium tracking-tight text-gray-950 max-lg:text-center">Knowledge Base</p>
-                      <div className="mt-4">
-                        {loadingKnowledge ? (
-                          <div className="flex flex-col items-center justify-center py-12">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                            <p className="mt-4 text-sm text-gray-500">Loading articles...</p>
-                          </div>
-                        ) : (
-                          <div className="space-y-6">
-                            {Object.entries(knowledgeArticles).map(([category, articles]) => (
-                              <div key={category} className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
-                                <h3 className="text-sm font-medium text-gray-900 mb-3">{category}</h3>
-                                <ul className="space-y-2">
-                                  {articles.slice(0, 3).map(article => (
-                                    <li key={article.id} className="flex items-center">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-600 mr-2"></div>
-                                      <a 
-                                        href={`/knowledge/${article.id}`} 
-                                        className="text-sm text-gray-600 hover:text-indigo-600 hover:underline line-clamp-1"
-                                      >
-                                        {article.title}
-                                      </a>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="pointer-events-none absolute inset-px rounded-lg ring-1 shadow-sm ring-black/5 max-lg:rounded-t-[2rem]"></div>
-                </div>
-                <div className="relative max-lg:row-start-3 lg:col-start-2 lg:row-start-2">
-                  <div className="absolute inset-px rounded-lg bg-white"></div>
-                  <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)]">
-                    <div className="px-8 pt-6 pb-3 sm:px-10 sm:pt-8">
-                      <p className="mt-2 text-lg font-medium tracking-tight text-gray-950 max-lg:text-center">Support Tickets</p>
-                      <div className="mt-4">
-                        {loadingTickets ? (
-                          <div className="flex flex-col items-center justify-center py-12">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                            <p className="mt-4 text-sm text-gray-500">Loading tickets...</p>
-                          </div>
-                        ) : tickets.length > 0 ? (
-                          <div className="space-y-3">
-                            {tickets.map(ticket => (
-                              <div key={ticket.id} className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-br from-gray-50 to-white shadow-sm ring-1 ring-gray-950/5">
-                                <div className="flex-1">
-                                  <p className="text-sm font-medium text-gray-900 truncate">{ticket.subject}</p>
-                                  <p className="text-xs text-gray-500">
-                                    {new Date(ticket.created_at * 1000).toLocaleDateString()}
-                                  </p>
-                                </div>
-                                <span className={`text-xs px-2 py-1 rounded ${
-                                  ticket.status === 'open' ? 'bg-green-100 text-green-700' : 
-                                  ticket.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 
-                                  'bg-gray-100 text-gray-700'
-                                }`}>
-                                  {ticket.status}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-6 text-center shadow-sm ring-1 ring-gray-950/5">
-                            <p className="text-sm text-gray-500">No tickets found</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="pointer-events-none absolute inset-px rounded-lg ring-1 shadow-sm ring-black/5"></div>
-                </div>
-                <div className="relative lg:row-span-2 max-lg:row-start-4">
-                  <div className="absolute inset-px rounded-lg bg-white max-lg:rounded-b-[2rem] lg:rounded-r-[2rem]"></div>
-                  <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] max-lg:rounded-b-[calc(2rem+1px)] lg:rounded-r-[calc(2rem+1px)]">
-                    <div className="px-8 pt-8 pb-3 sm:px-10 sm:pt-10">
+
+                <div className="relative">
+                  <div className="absolute inset-px rounded-2xl bg-white"></div>
+                  <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(2rem+1px)]">
+                    <div className="px-8 pt-8 pb-3 sm:px-10">
                       <div className="flex items-center gap-3 mb-8">
                         <img 
                           src={userInfo ? getGravatarUrl(userInfo.email) : user.imageUrl} 
@@ -648,7 +658,112 @@ export default function Example() {
                       </div>
                     </div>
                   </div>
-                  <div className="pointer-events-none absolute inset-px rounded-lg ring-1 shadow-sm ring-black/5 max-lg:rounded-b-[2rem] lg:rounded-r-[2rem]"></div>
+                  <div className="pointer-events-none absolute inset-px rounded-2xl ring-1 shadow-sm ring-black/5"></div>
+                </div>
+
+                <div className="lg:col-span-2 relative">
+                  <div className="absolute inset-px rounded-2xl bg-white"></div>
+                  <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(2rem+1px)]">
+                    <div className="px-8 pt-6 pb-3 sm:px-10 sm:pt-8">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-6">Traffic Statistics</h3>
+                      {loadingTraffic ? (
+                        <div className="flex justify-center py-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                        </div>
+                      ) : trafficLog.length > 0 ? (
+                        <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-6 shadow-sm ring-1 ring-gray-950/5">
+                          <div className="h-[400px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart 
+                                data={processTrafficData(trafficLog)}
+                                margin={{ top: 10, right: 10, left: 10, bottom: 5 }}
+                              >
+                                <CartesianGrid 
+                                  strokeDasharray="3 3" 
+                                  stroke="#E5E7EB" 
+                                  vertical={false}
+                                />
+                                <XAxis 
+                                  dataKey="date" 
+                                  stroke="#6B7280"
+                                  fontSize={12}
+                                  tickLine={false}
+                                  axisLine={{ stroke: '#E5E7EB' }}
+                                  dy={10}
+                                />
+                                <YAxis 
+                                  stroke="#6B7280"
+                                  fontSize={12}
+                                  tickLine={false}
+                                  axisLine={{ stroke: '#E5E7EB' }}
+                                  tickFormatter={formatTraffic}
+                                  width={65}  // Fixed width for Y-axis
+                                  dx={-10}
+                                  allowDecimals={false}  // Avoid decimal points in axis
+                                />
+                                <Tooltip
+                                  cursor={{ stroke: '#E5E7EB', strokeWidth: 1 }}
+                                  contentStyle={{
+                                    backgroundColor: '#ffffff',
+                                    border: 'none',
+                                    borderRadius: '0.75rem',
+                                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                                    padding: '0.75rem 1rem',
+                                  }}
+                                  labelStyle={{
+                                    color: '#111827',
+                                    fontWeight: 600,
+                                    marginBottom: '0.5rem',
+                                  }}
+                                  itemStyle={{
+                                    color: '#4B5563',
+                                    fontSize: '0.875rem',
+                                    padding: '0.25rem 0',
+                                  }}
+                                  formatter={(value: number, name: string) => [
+                                    formatTraffic(value),
+                                    name === 'download' ? 'Download' : 'Upload'
+                                  ]}
+                                  labelFormatter={(label) => `Date: ${label}`}  // Add "Date:" prefix
+                                />
+                                <Line 
+                                  type="monotone" 
+                                  dataKey="download" 
+                                  stroke="#6366F1"
+                                  strokeWidth={2.5}
+                                  dot={false}
+                                  activeDot={{ 
+                                    r: 6, 
+                                    strokeWidth: 2,
+                                    stroke: '#ffffff',
+                                    fill: '#6366F1'
+                                  }}
+                                />
+                                <Line 
+                                  type="monotone" 
+                                  dataKey="upload" 
+                                  stroke="#34D399"
+                                  strokeWidth={2.5}
+                                  dot={false}
+                                  activeDot={{ 
+                                    r: 6,
+                                    strokeWidth: 2,
+                                    stroke: '#ffffff',
+                                    fill: '#34D399'
+                                  }}
+                                />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-6 text-center shadow-sm ring-1 ring-gray-950/5">
+                          <p className="text-sm text-gray-500">No traffic data available</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="pointer-events-none absolute inset-px rounded-2xl ring-1 shadow-sm ring-black/5"></div>
                 </div>
               </div>
             </div>

@@ -1,38 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { fetchPlans, fetchUserInfo } from '@/lib/api'
+import { fetchPlans, fetchUserInfo, type PurchasePlan, type UserInfo } from '@/lib/api'
 import { Menu, MenuButton, MenuItem, MenuItems, Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react'
-import { Bars3Icon, BellIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, BellIcon, XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import md5 from 'md5'
 
 const getGravatarUrl = (email: string) => {
   const hash = md5(email.trim().toLowerCase());
   return `https://www.gravatar.com/avatar/${hash}?s=256&d=monsterid`;
 };
-interface PurchasePlan {
-  id: number;
-  group_id: number;
-  transfer_enable: number;
-  name: string;
-  speed_limit: number | null;
-  show: number;
-  sort: number;
-  renew: number;
-  content: string;
-  month_price: number | null;
-  quarter_price: number | null;
-  half_year_price: number | null;
-  year_price: number | null;
-  two_year_price: number | null;
-  three_year_price: number | null;
-  onetime_price: number | null;
-  reset_price: number | null;
-  reset_traffic_method: number | null;
-  capacity_limit: number | null;
-  created_at: number;
-  updated_at: number;
-}
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
@@ -67,32 +44,101 @@ const userNavigation = [
   },
 ]
 
+function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  if (!isOpen) return null;
+  
+  return (
+    <div className="fixed inset-0 z-50">
+      <div className="fixed inset-0 bg-white"></div>
+      <div className="relative min-h-[100dvh] flex flex-col">
+        <nav className="bg-white border-b border-gray-200 flex-none">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex h-16 items-center">
+              <div className="shrink-0">
+                <img
+                  alt="Linkeless"
+                  src="/Linkeless.png"
+                  className="size-8"
+                />
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        <main className="flex-1 bg-gray-50 flex items-center justify-center">
+          <div className="relative w-full max-w-md mx-4">
+            <div className="relative rounded-lg bg-white p-4 shadow-lg">
+              <div className="flex items-start space-x-4">
+                <div className="shrink-0">
+                  <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+                </div>
+                <div className="flex-1 md:flex md:justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900">Authentication required</h3>
+                    <p className="mt-1 text-sm text-gray-500">Please login to access this page</p>
+                  </div>
+                  <div className="mt-4 flex md:ml-6 md:mt-0">
+                    <button
+                      type="button"
+                      onClick={() => window.location.href = '/login'}
+                      className="text-sm font-medium text-yellow-600 hover:text-yellow-500"
+                    >
+                      Login
+                      <span aria-hidden="true"> &rarr;</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
 export default function Example() {
   const [plans, setPlans] = useState<PurchasePlan[]>([])
   const [periodType, setPeriodType] = useState<'monthly' | 'yearly'>('monthly')
-  const [userInfo, setUserInfo] = useState<any>(null)
+  const [userInfo, setUserInfo] = useState<UserInfo['data'] | null>(null)
+  const [showAuthModal, setShowAuthModal] = useState(false)
 
   useEffect(() => {
+    const authData = localStorage.getItem('auth_data')
+    if (!authData) {
+      setShowAuthModal(true)
+      return
+    }
+
     const getPlans = async () => {
       try {
         const response = await fetchPlans()
         if (response.status === 'success') {
           setPlans(response.data.filter(plan => plan.show === 1).sort((a, b) => a.sort - b.sort))
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to fetch plans:', error)
+        if (error.response?.status === 401) {
+          setShowAuthModal(true)
+        }
       }
     }
-    getPlans()
-
+    
     const fetchUserData = async () => {
       try {
         const response = await fetchUserInfo()
-        setUserInfo(response.data)
-      } catch (error) {
+        if (response.status === 'success') {
+          setUserInfo(response.data)
+        }
+      } catch (error: any) {
         console.error('Failed to fetch user info:', error)
+        if (error.response?.status === 401) {
+          setShowAuthModal(true)
+        }
       }
     }
+
+    getPlans()
     fetchUserData()
   }, [])
 
@@ -107,6 +153,10 @@ export default function Example() {
 
   return (
     <div className="min-h-[100dvh] flex flex-col">
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+      />
       <Disclosure as="nav" className="bg-white border-b border-gray-200 flex-none">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
