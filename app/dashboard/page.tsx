@@ -462,7 +462,7 @@ export default function Example() {
                                   <div className="grid grid-cols-1 gap-2">
                                     {[
                                       { id: 'copy', name: 'Copy URL', onClick: () => handleCopyUrl(getFilteredUrl(subscription.data.token, selectedNodes)) },
-                                      ...(['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x'] as const).map(client => ({
+                                      ...(['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x', 'loon'] as const).map(client => ({
                                         id: client,
                                         name: client === 'quantumult-x' ? 'Quantumult X' : client.charAt(0).toUpperCase() + client.slice(1),
                                         href: (() => {
@@ -472,7 +472,8 @@ export default function Example() {
                                             'surge': `surge:///install-config?url=${encodeURIComponent(url + '&flag=surge')}`,
                                             'shadowrocket': `shadowrocket://add/sub://${btoa(url + '&flag=shadowrocket')}`,
                                             'surfboard': `surfboard:///install-config?url=${encodeURIComponent(url + '&flag=surfboard')}`,
-                                            'quantumult-x': `quantumult-x:///update-configuration?remote-resource=${encodeURIComponent(url + '&flag=quantumult%20x')}`
+                                            'quantumult-x': `quantumult-x:///update-configuration?remote-resource=${encodeURIComponent(url + '&flag=quantumult%20x')}`,
+                                            'loon': `loon://import?url=${encodeURIComponent(url + '&flag=loon')}`
                                           };
                                           return clientUrls[client];
                                         })()
