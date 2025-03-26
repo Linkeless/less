@@ -3,6 +3,7 @@ import TitleBar from '@/components/TitleBar'
 import OrdersTable from './OrdersTable'
 import { getUserInfo } from '@/lib/actions'
 import md5 from 'md5'
+import SignOutButton from '@/components/SignOutButton'
 import type { UserInfo } from '@/lib/types'
 
 export default async function OrdersPage() {
@@ -14,15 +15,15 @@ export default async function OrdersPage() {
     { name: 'Orders', href: '/orders', current: true },
   ]
 
-  const userNavigation = [
-    { name: 'Sign out', onClick: () => window.location.href = '/login' }
-  ]
-
   const user = {
     name: userInfo.data.email.split('@')[0],
     email: userInfo.data.email,
     imageUrl: `https://www.gravatar.com/avatar/${md5(userInfo.data.email.trim().toLowerCase())}?s=256&d=monsterid`,
   }
+
+  const userNavigation = [
+    { name: 'Sign out', component: <SignOutButton /> }
+  ]
 
   return (
     <div className="min-h-[100dvh] flex flex-col">

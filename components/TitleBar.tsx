@@ -9,10 +9,16 @@ interface User {
   imageUrl: string;
 }
 
+type UserNavigationItem = {
+  name: string;
+  onClick?: () => void;
+  component?: React.ReactNode;
+}
+
 interface TitleBarProps {
   user: User;
   navigation: Array<{ name: string; href: string; current: boolean }>;
-  userNavigation: Array<{ name: string; onClick: () => void }>;
+  userNavigation: UserNavigationItem[];
 }
 
 function classNames(...classes: string[]) {
@@ -74,13 +80,10 @@ export default function TitleBar({ user, navigation, userNavigation }: TitleBarP
                     <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 ring-1 shadow-lg ring-black/5">
                       {userNavigation.map((item) => (
                         <Menu.Item key={item.name}>
-                          {({ active }) => (
+                          {item.component || (
                             <button
                               onClick={item.onClick}
-                              className={classNames(
-                                active ? 'bg-gray-100' : '',
-                                'block w-full px-4 py-2 text-left text-sm text-gray-700'
-                              )}
+                              className="block px-3 py-1 text-sm leading-6 text-gray-900"
                             >
                               {item.name}
                             </button>
