@@ -468,11 +468,11 @@ export default function Example() {
                                         href: (() => {
                                           const url = getFilteredUrl(subscription.data.token, selectedNodes);
                                           const clientUrls = {
-                                            'clash': `clash://install-config?url=${encodeURIComponent(url)}`,
-                                            'surge': `surge:///install-config?url=${encodeURIComponent(url)}`,
-                                            'shadowrocket': `shadowrocket://add/sub://${btoa(url)}`,
-                                            'surfboard': `surfboard:///install-config?url=${encodeURIComponent(url)}`,
-                                            'quantumult-x': `quantumult-x:///update-configuration?remote-resource=${encodeURIComponent(url)}`
+                                            'clash': `clash://install-config?url=${encodeURIComponent(url + '&flag=clash')}`,
+                                            'surge': `surge:///install-config?url=${encodeURIComponent(url + '&flag=surge')}`,
+                                            'shadowrocket': `shadowrocket://add/sub://${btoa(url + '&flag=shadowrocket')}`,
+                                            'surfboard': `surfboard:///install-config?url=${encodeURIComponent(url + '&flag=surfboard')}`,
+                                            'quantumult-x': `quantumult-x:///update-configuration?remote-resource=${encodeURIComponent(url + '&flag=quantumult%20x')}`
                                           };
                                           return clientUrls[client];
                                         })()
