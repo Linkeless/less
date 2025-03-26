@@ -6,6 +6,7 @@ import md5 from 'md5'
 import { verifyPayment } from '@/lib/actions'
 import TitleBar from '@/components/TitleBar'
 import type { UserInfo } from '@/lib/types'
+import { useLanguage } from '@/lib/i18n/hooks';
 
 interface PaymentFormProps {
   initialOrder: {
@@ -44,15 +45,16 @@ function classNames(...classes: string[]) {
 }
 
 export default function PaymentForm({ initialOrder, paymentMethods, user }: PaymentFormProps) {
+  const { t } = useLanguage();
   const [selectedMethod, setSelectedMethod] = useState<number | null>(
     paymentMethods.length > 0 ? paymentMethods[0].id : null
   );
   const [processingPayment, setProcessingPayment] = useState(false);
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', current: false },
-    { name: 'Product', href: '/product', current: true },
-    { name: 'Orders', href: '/orders', current: false },
+    { name: t.common.dashboard, href: '/dashboard', current: false },
+    { name: t.common.product, href: '/product', current: false },
+    { name: t.common.orders, href: '/orders', current: false },
   ];
 
   const userNavigation = [
@@ -109,7 +111,7 @@ export default function PaymentForm({ initialOrder, paymentMethods, user }: Paym
             {/* Product Information */}
             <div className="mb-8 md:mb-0">
               <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5 p-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Product Details</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">{t.product.order.details}</h2>
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-lg font-medium text-gray-900">{initialOrder.plan.name}</h3>
@@ -117,7 +119,7 @@ export default function PaymentForm({ initialOrder, paymentMethods, user }: Paym
                   </div>
                   <div className="pt-4 border-t border-gray-200">
                     <div className="flex justify-between text-gray-600">
-                      <span>Traffic Package:</span>
+                      <span>{t.product.order.traffic}:</span>
                       <span className="font-medium">
                         {initialOrder.plan.transfer_enable >= 1024 
                           ? `${(initialOrder.plan.transfer_enable / 1024).toFixed(0)}TB` 
@@ -135,7 +137,7 @@ export default function PaymentForm({ initialOrder, paymentMethods, user }: Paym
               <div className="sticky top-8 space-y-6">
                 <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
                   <div className="p-8">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6">Payment Methods</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-6">{t.product.payment.methods}</h2>
                     <div className="space-y-4">
                       {paymentMethods.map((method) => (
                         <div
@@ -151,7 +153,7 @@ export default function PaymentForm({ initialOrder, paymentMethods, user }: Paym
                           <span className="font-medium text-gray-900">{method.name}</span>
                           {method.handling_fee_percent > 0 && (
                             <span className="text-sm text-gray-500">
-                              +{method.handling_fee_percent}% fee
+                              {t.product.payment.fee.replace('{percent}', method.handling_fee_percent.toString())}
                             </span>
                           )}
                         </div>
@@ -160,11 +162,11 @@ export default function PaymentForm({ initialOrder, paymentMethods, user }: Paym
                   </div>
 
                   <div className="border-t border-gray-900/5 p-8">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-6">{t.product.payment.summary}</h2>
                     <dl className="space-y-4">
                       {initialOrder.discount_amount && initialOrder.discount_amount > 0 && (
                         <div className="flex items-center justify-between">
-                          <dt className="text-gray-600">Discount</dt>
+                          <dt className="text-gray-600">{t.product.payment.discount}</dt>
                           <dd className="font-medium text-green-600">
                             -¥{initialOrder.discount_amount / 100}
                           </dd>
@@ -172,7 +174,7 @@ export default function PaymentForm({ initialOrder, paymentMethods, user }: Paym
                       )}
                       {initialOrder.balance_amount > 0 && (
                         <div className="flex items-center justify-between">
-                          <dt className="text-gray-600">Balance Payment</dt>
+                          <dt className="text-gray-600">{t.product.payment.summary}</dt>
                           <dd className="font-medium text-blue-600">
                             ¥{initialOrder.balance_amount / 100}
                           </dd>
@@ -182,7 +184,7 @@ export default function PaymentForm({ initialOrder, paymentMethods, user }: Paym
 
                     <div className="mt-8 space-y-4">
                       <div className="flex items-center justify-between">
-                        <dt className="text-lg font-medium text-gray-900">Total Payment</dt>
+                        <dt className="text-lg font-medium text-gray-900">{t.product.payment.totalPayment}</dt>
                         <dd className="text-xl font-semibold text-gray-900">
                           ¥{initialOrder.total_amount / 100}
                         </dd>
@@ -192,7 +194,7 @@ export default function PaymentForm({ initialOrder, paymentMethods, user }: Paym
                         disabled={!selectedMethod || processingPayment}
                         className="w-full rounded-xl bg-indigo-600 px-6 py-4 text-base font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {processingPayment ? 'Processing...' : 'Pay Now'}
+                        {processingPayment ? t.product.payment.processing : t.product.payment.payNow}
                       </button>
                     </div>
                   </div>

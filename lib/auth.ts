@@ -25,7 +25,7 @@ export async function login(email: string, password: string): Promise<LoginRespo
 
   if (data.data?.auth_data) {
     const cookieStore = await cookies();
-    await cookieStore.set({
+    cookieStore.set({
       name: 'auth_data',
       value: data.data.auth_data,
       httpOnly: true,

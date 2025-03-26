@@ -12,6 +12,9 @@ import {
   getTrafficLog, 
   resetUUID
 } from '@/lib/actions'
+import { useLanguage } from '@/lib/i18n/hooks';
+import TitleBar from '@/components/TitleBar'
+import { useRouter } from 'next/navigation'
 
 const getGravatarUrl = (email: string) => {
   const hash = md5(email.trim().toLowerCase());
@@ -108,7 +111,39 @@ const formatTraffic = (value: number) => {
   return `${value.toFixed(1)}GB`;  // Removed space before GB
 };
 
+const LanguageSwitch = () => {
+  const { language, setLanguage } = useLanguage();
+  
+  return (
+    <Menu as="div" className="relative ml-3">
+      <MenuButton className="relative flex items-center rounded-full bg-white p-1 text-gray-400 hover:text-gray-500">
+        <span className="text-sm font-medium">{language === 'zh-CN' ? '中文' : 'EN'}</span>
+      </MenuButton>
+      <MenuItems className="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5">
+        <MenuItem>
+          <button
+            onClick={() => setLanguage('en')}
+            className={`block w-full px-4 py-2 text-sm text-left ${language === 'en' ? 'bg-gray-100' : ''}`}
+          >
+            English
+          </button>
+        </MenuItem>
+        <MenuItem>
+          <button
+            onClick={() => setLanguage('zh-CN')}
+            className={`block w-full px-4 py-2 text-sm text-left ${language === 'zh-CN' ? 'bg-gray-100' : ''}`}
+          >
+            中文
+          </button>
+        </MenuItem>
+      </MenuItems>
+    </Menu>
+  );
+};
+
 export default function Example() {
+  const router = useRouter();
+  const { t } = useLanguage();
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedNodes, setSelectedNodes] = useState<typeof nodeOptions>([])
@@ -200,150 +235,32 @@ export default function Example() {
     }
   }
 
+  const navigation = [
+    { name: t.common.dashboard, href: '#', current: true },
+    { name: t.common.product, href: '/product', current: false },
+    { name: t.common.orders, href: '/orders', current: false },
+  ]
+
+  const userNavigation = [
+    { 
+      name: t.common.signOut, 
+      onClick: () => {
+        localStorage.clear();
+        router.push('/login');
+      }
+    },
+  ]
+
   return (
     <>
       <style jsx global>{globalStyles}</style>
       <div className="min-h-[100dvh] flex flex-col">
-        <Disclosure as="nav" className="bg-white border-b border-gray-200 flex-none">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-16 items-center justify-between">
-              <div className="flex items-center">
-                <div className="shrink-0">
-                  <a href="/">
-                    <img
-                      alt="Linkeless"
-                      src="/Linkeless.png"
-                      className="size-8"
-                    />
-                  </a>
-                </div>
-                <div className="hidden md:block">
-                  <div className="ml-10 flex items-baseline space-x-4">
-                    {navigation.map((item) => (
-                      <a
-                        key={item.name}
-                        href={item.href}
-                        aria-current={item.current ? 'page' : undefined}
-                        className={classNames(
-                          item.current ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900',
-                          'rounded-md px-3 py-2 text-sm font-medium',
-                        )}
-                      >
-                        {item.name}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="hidden md:block">
-                <div className="ml-4 flex items-center md:ml-6">
-                  <button
-                    type="button"
-                    className="relative rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
-                  >
-                    <span className="absolute -inset-1.5" />
-                    <span className="sr-only">View notifications</span>
-                    <BellIcon aria-hidden="true" className="size-6" />
-                  </button>
-
-                  {/* Profile dropdown */}
-                  <Menu as="div" className="relative ml-3">
-                    <div>
-                      <MenuButton className="relative flex max-w-xs items-center rounded-full bg-white text-sm focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden">
-                        <span className="absolute -inset-1.5" />
-                        <span className="sr-only">Open user menu</span>
-                        <img 
-                          alt="" 
-                          src={userInfo ? getGravatarUrl(userInfo.data.email) : user.imageUrl} 
-                          className="size-8 rounded-full" 
-                        />
-                      </MenuButton>
-                    </div>
-                    <MenuItems
-                      transition
-                      className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
-                    >
-                      {userNavigation.map((item) => (
-                        <MenuItem key={item.name}>
-                          <button
-                            onClick={item.onClick}
-                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:outline-hidden"
-                          >
-                            {item.name}
-                          </button>
-                        </MenuItem>
-                      ))}
-                    </MenuItems>
-                  </Menu>
-                </div>
-              </div>
-              <div className="-mr-2 flex md:hidden">
-                {/* Mobile menu button */}
-                <DisclosureButton className="group relative inline-flex items-center justify-center rounded-md bg-white p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden">
-                  <span className="absolute -inset-0.5" />
-                  <span className="sr-only">Open main menu</span>
-                  <Bars3Icon aria-hidden="true" className="block size-6 group-data-open:hidden" />
-                  <XMarkIcon aria-hidden="true" className="hidden size-6 group-data-open:block" />
-                </DisclosureButton>
-              </div>
-            </div>
-          </div>
-
-          <DisclosurePanel className="md:hidden">
-            <div className="space-y-1 px-2 pt-2 pb-3 sm:px-3">
-              {navigation.map((item) => (
-                <DisclosureButton
-                  key={item.name}
-                  as="a"
-                  href={item.href}
-                  aria-current={item.current ? 'page' : undefined}
-                  className={classNames(
-                    item.current ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900',
-                    'block rounded-md px-3 py-2 text-base font-medium',
-                  )}
-                >
-                  {item.name}
-                </DisclosureButton>
-              ))}
-            </div>
-            <div className="border-t border-gray-200 pt-4 pb-3">
-              <div className="flex items-center px-5">
-                <div className="shrink-0">
-                  <img 
-                    alt="" 
-                    src={userInfo ? getGravatarUrl(userInfo.data.email) : user.imageUrl} 
-                    className="size-10 rounded-full" 
-                  />
-                </div>
-                <div className="ml-3">
-                  <div className="text-base/5 font-medium text-gray-900">{user.name}</div>
-                  <div className="text-sm font-medium text-gray-500">{user.email}</div>
-                </div>
-                <button
-                  type="button"
-                  className="relative ml-auto shrink-0 rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
-                >
-                  <span className="absolute -inset-1.5" />
-                  <span className="sr-only">View notifications</span>
-                  <BellIcon aria-hidden="true" className="size-6" />
-                </button>
-              </div>
-              <div className="mt-3 space-y-1 px-2">
-                {userNavigation.map((item) => (
-                  <DisclosureButton
-                    key={item.name}
-                    as="button"
-                    onClick={item.onClick}
-                    className="block w-full rounded-md px-3 py-2 text-base font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                  >
-                    {item.name}
-                  </DisclosureButton>
-                ))}
-              </div>
-            </div>
-          </DisclosurePanel>
-        </Disclosure>
-
+        <TitleBar 
+          user={user}
+          navigation={navigation}
+          userNavigation={userNavigation}
+          showLanguageSwitch={true}
+        />
         <main className="flex-1 flex flex-col">
           <div className="flex-1 bg-gray-50">
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -355,7 +272,7 @@ export default function Example() {
                       {loading ? (
                         <div className="flex flex-col items-center justify-center py-12">
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                          <p className="mt-4 text-sm text-gray-500">Loading subscription info...</p>
+                          <p className="mt-4 text-sm text-gray-500">{t.dashboard.traffic.loading}</p>
                         </div>
                       ) : subscription ? (
                         <div className="space-y-6">
@@ -369,17 +286,17 @@ export default function Example() {
                             </div>
                               <div className="flex-1 min-w-0">
                                 <h2 className="text-xl font-semibold text-gray-900 leading-7 truncate">
-                                  {subscription.data?.plan?.name || 'No active subscription'}
+                                  {subscription.data?.plan?.name || t.dashboard.subscription.noActive}
                                 </h2>
                                 <div className="flex items-center gap-2">
                                   <p className="text-sm font-medium text-gray-600">
-                                    Expires: {formatDate(subscription.data.expired_at)}
+                                    {t.dashboard.subscription.expires}: {formatDate(subscription.data.expired_at)}
                                   </p>
                                   <a 
                                     href={`/product/order?id=${subscription.data.plan_id}`}
                                     className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
                                   >
-                                    Renew
+                                    {t.dashboard.subscription.renew}
                                   </a>
                                 </div>
                               </div>
@@ -388,7 +305,7 @@ export default function Example() {
                           {subscription.data?.plan ? (
                             <div className="space-y-6">
                               <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
-                                <p className="text-base font-semibold text-gray-700">Traffic Usage</p>
+                                <p className="text-base font-semibold text-gray-700">{t.dashboard.subscription.trafficUsage}</p>
                                 <div className="mt-4">
                                   <div className="flex items-center justify-between mb-3">
                                     <span className="text-2xl font-bold text-indigo-600 tabular-nums">
@@ -407,19 +324,22 @@ export default function Example() {
                                     />
                                   </div>
                                   <p className="mt-2 text-sm font-medium text-gray-600 text-right">
-                                    {((subscription.data.u + subscription.data.d) / subscription.data.transfer_enable * 100).toFixed(1)}% Used
+                                    {((subscription.data.u + subscription.data.d) / subscription.data.transfer_enable * 100).toFixed(1)}% {t.dashboard.subscription.used}
                                   </p>
                                 </div>
                               </div>
 
                               <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-4 space-y-4 shadow-sm ring-1 ring-gray-950/5">
                                 <div className="space-y-2">
-                                  <h3 className="text-base font-semibold text-gray-700">Subscribe Methods</h3>
+                                  <h3 className="text-base font-semibold text-gray-700">{t.dashboard.nodes.title}</h3>
                                   <Listbox value={selectedNodes} onChange={setSelectedNodes} multiple>
                                     <div className="relative">
                                       <ListboxButton className="relative w-full cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left border focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm">
                                         <span className="block truncate">
-                                          {selectedNodes.length ? `${selectedNodes.length} Regional Entrance Selected` : 'Select Regional Entrance'}
+                                          {selectedNodes.length 
+                                            ? t.dashboard.nodes.selectedCount.replace('{count}', selectedNodes.length.toString())
+                                            : t.dashboard.nodes.selectRegion
+                                          }
                                         </span>
                                         <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                                           <ChevronDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -453,15 +373,13 @@ export default function Example() {
                                       </ListboxOptions>
                                     </div>
                                   </Listbox>
-                                  <p className="text-xs text-gray-500">
-                                    Select Entry Region, default to all.
-                                  </p>
+                                  <p className="text-xs text-gray-500">{t.dashboard.nodes.selectHint}</p>
                                 </div>
                                 
                                 <div className="space-y-3 pt-2">
                                   <div className="grid grid-cols-1 gap-2">
                                     {[
-                                      { id: 'copy', name: 'Copy URL', onClick: () => handleCopyUrl(getFilteredUrl(subscription.data.token, selectedNodes)) },
+                                      { id: 'copy', name: t.dashboard.traffic.copyUrl, onClick: () => handleCopyUrl(getFilteredUrl(subscription.data.token, selectedNodes)) },
                                       ...(['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x', 'loon'] as const).map(client => ({
                                         id: client,
                                         name: client === 'quantumult-x' ? 'Quantumult X' : client.charAt(0).toUpperCase() + client.slice(1),
@@ -516,16 +434,16 @@ export default function Example() {
                             </div>
                           ) : (
                             <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-6 text-center shadow-sm ring-1 ring-gray-950/5">
-                              <p className="text-sm text-gray-500">Please purchase a subscription to access the service.</p>
+                              <p className="text-sm text-gray-500">{t.dashboard.purchase.needSubscription}</p>
                               <a href="/product" className="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                                Purchase Now
+                                {t.dashboard.purchase.purchaseNow}
                               </a>
                             </div>
                           )}
                         </div>
                       ) : (
                         <div className="text-center py-12">
-                          <p className="text-sm text-gray-500">Failed to load subscription data</p>
+                          <p className="text-sm text-gray-500">{t.dashboard.traffic.loadFailed}</p>
                         </div>
                       )}
                     </div>
@@ -545,7 +463,7 @@ export default function Example() {
                         />
                         <div className="flex-1 min-w-0">
                           <h2 className="text-xl font-semibold text-gray-900 leading-7">
-                            User Information
+                            {t.dashboard.userInfo}
                           </h2>
                           <p className="text-sm font-medium text-gray-600">
                             {userInfo?.data.email}
@@ -567,7 +485,7 @@ export default function Example() {
                                   onClick={() => setShowUUID(!showUUID)}
                                   className="inline-flex items-center gap-x-1.5 rounded-md bg-gradient-to-br from-indigo-50 to-white px-2.5 py-1.5 text-xs font-medium text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                                 >
-                                  {showUUID ? 'Hide' : 'Show'}
+                                  {showUUID ? t.dashboard.uuid.hide : t.dashboard.uuid.show}
                                 </button>
                               </div>
                               <p className="text-base font-medium text-gray-900 tracking-wide break-all font-mono">
@@ -577,13 +495,13 @@ export default function Example() {
 
                             <div className="grid grid-cols-2 gap-4">
                               <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
-                                <p className="text-base font-semibold text-gray-700">Balance</p>
+                                <p className="text-base font-semibold text-gray-700">{t.dashboard.balance}</p>
                                 <p className="mt-2 text-2xl font-bold text-indigo-600 tabular-nums">
                                   ¥{(userInfo.data.balance / 100).toFixed(2)}
                                 </p>
                               </div>
                               <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
-                                <p className="text-base font-semibold text-gray-700">Commission</p>
+                                <p className="text-base font-semibold text-gray-700">{t.dashboard.commission}</p>
                                 <p className="mt-2 text-2xl font-bold text-indigo-600 tabular-nums">
                                   ¥{(userInfo.data.commission_balance / 100).toFixed(2)}
                                 </p>
@@ -592,15 +510,15 @@ export default function Example() {
                             
                             <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-4 space-y-3 shadow-sm ring-1 ring-gray-950/5">
                               <div className="flex justify-between text-sm">
-                                <span className="font-medium text-gray-600">Member Since</span>
+                                <span className="font-medium text-gray-600">{t.dashboard.memberSince}</span>
                                 <span className="font-semibold text-gray-900">
                                   {new Date(userInfo.data.created_at * 1000).toLocaleDateString()}
                                 </span>
                               </div>
                               {userInfo.data.telegram_id && (
                                 <div className="flex justify-between text-sm">
-                                  <span className="font-medium text-gray-600">Telegram</span>
-                                  <span className="font-semibold text-gray-900">Connected</span>
+                                  <span className="font-medium text-gray-600">{t.common.telegram}</span>
+                                  <span className="font-semibold text-gray-900">{t.common.connected}</span>
                                 </div>
                               )}
                             </div>
@@ -618,7 +536,7 @@ export default function Example() {
                   <div className="absolute inset-px rounded-2xl bg-white"></div>
                   <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(2rem+1px)]">
                     <div className="px-8 pt-6 pb-3 sm:px-10 sm:pt-8">
-                      <h3 className="text-xl font-semibold text-gray-900 leading-7 mb-6">Traffic Statistics</h3>
+                      <h3 className="text-xl font-semibold text-gray-900 leading-7 mb-6">{t.dashboard.trafficStats}</h3>
                       {loadingTraffic ? (
                         <div className="flex justify-center py-4">
                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
@@ -730,11 +648,11 @@ export default function Example() {
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <DialogTitle as="h3" className="text-base font-semibold text-gray-900">
-                      Reset UUID
+                      {t.dashboard.uuid.reset}
                     </DialogTitle>
                     <div className="mt-2">
                       <p className="text-sm text-gray-500">
-                        Are you sure you want to reset your UUID? This action cannot be undone.
+                        {t.dashboard.uuid.confirmReset}
                       </p>
                     </div>
                   </div>
@@ -746,7 +664,7 @@ export default function Example() {
                   onClick={handleResetUUID}
                   className="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 sm:ml-3 sm:w-auto"
                 >
-                  Reset
+                  {t.dashboard.uuid.reset}
                 </button>
                 <button
                   type="button"
@@ -754,7 +672,7 @@ export default function Example() {
                   onClick={() => setIsResetDialogOpen(false)}
                   className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto"
                 >
-                  Cancel
+                  {t.dashboard.uuid.cancel}
                 </button>
               </div>
             </DialogPanel>
@@ -779,7 +697,7 @@ export default function Example() {
             <div className="flex items-center space-x-2">
               <CheckIcon className="h-5 w-5 text-green-400" aria-hidden="true" />
               <p className="text-sm font-medium text-white">
-                Copied to clipboard
+                {t.dashboard.traffic.copied}
               </p>
             </div>
           </div>

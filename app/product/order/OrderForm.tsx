@@ -5,6 +5,7 @@ import md5 from 'md5'
 import { checkCoupon, getSubscription, createOrder } from '@/lib/actions'
 import TitleBar from '@/components/TitleBar'
 import type { UserInfo, PurchasePlan } from '@/lib/types'
+import { useLanguage } from '@/lib/i18n/hooks';
 
 export interface OrderFormProps {
   initialProduct: PurchasePlan;
@@ -30,6 +31,7 @@ function Content({ html }: ContentProps) {
 }
 
 export default function OrderForm({ initialProduct, user, couponValue }: OrderFormProps) {
+  const { t } = useLanguage();
   const [couponCode, setCouponCode] = useState('')
   const [discount, setDiscount] = useState(0)
   const [discountType, setDiscountType] = useState(0) // 2: percent, 1: fixed
@@ -152,9 +154,9 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
   }
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', current: false },
-    { name: 'Product', href: '/product', current: true },
-    { name: 'Orders', href: '/orders', current: false },  
+    { name: t.common.dashboard, href: '/dashboard', current: false },
+    { name: t.common.product, href: '/product', current: false },
+    { name: t.common.orders, href: '/orders', current: false },
   ]
 
   const userNavigation = [
@@ -173,35 +175,25 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
     return (
       <dl className="space-y-4">
         <div className="flex items-center justify-between">
-          <dt className="text-gray-600">Selected Plan</dt>
+          <dt className="text-gray-600">{t.product.order.selectedPlan}</dt>
           <dd className="font-medium text-gray-900">{initialProduct.name} ({getPeriodText()})</dd>
         </div>
         <div className="flex items-center justify-between">
-          <dt className="text-gray-600">Original Price</dt>
+          <dt className="text-gray-600">{t.product.payment.originalPrice}</dt>
           <dd className="font-medium text-gray-900">¥{basePrice.toFixed(2)}</dd>
         </div>
         {discountValue > 0 && (
-          <>
-            <div className="flex items-center justify-between text-green-600">
-              <dt>
-                {discountType === 2
-                  ? `Discount (${discountValue}% off)`
-                  : 'Discount'}
-              </dt>
-              <dd className="font-medium">-¥{discountAmount.toFixed(2)}</dd>
-            </div>
-            <div className="flex items-center justify-between border-t border-gray-200 pt-4">
-              <dt className="text-lg font-medium text-gray-900">Price After Discount</dt>
-              <dd className="text-lg font-medium text-indigo-600">¥{finalPrice.toFixed(2)}</dd>
-            </div>
-          </>
+          <div className="flex items-center justify-between text-green-600">
+            <dt>
+              {discountType === 2
+                ? `${t.product.payment.discount} (${discountValue}%)`
+                : t.product.payment.discount}
+            </dt>
+            <dd className="font-medium">-¥{discountAmount.toFixed(2)}</dd>
+          </div>
         )}
         <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-          <dt className="text-gray-600">Traffic Package</dt>
-          <dd className="font-medium text-gray-900">{getTrafficText()}</dd>
-        </div>
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-          <dt className="text-lg font-medium text-gray-900">Total Payment</dt>
+          <dt className="text-lg font-medium text-gray-900">{t.product.payment.totalPayment}</dt>
           <dd className="text-xl font-semibold text-gray-900">¥{finalPrice.toFixed(2)}</dd>
         </div>
       </dl>
@@ -226,7 +218,7 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
             {/* Left side - Product Information */}
             <div className="mb-8 md:mb-0">
               <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5 p-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Product Details</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">{t.product.order.details}</h2>
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-lg font-medium text-gray-900">{initialProduct.name}</h3>
@@ -236,13 +228,13 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                     <div className="space-y-3">
                       {initialProduct.month_price && (
                         <div className="flex justify-between text-gray-600">
-                          <span>Monthly Price:</span>
+                          <span>{t.product.price.monthlyPrice}:</span>
                           <span className="font-medium">¥{initialProduct.month_price / 100}</span>
                         </div>
                       )}
                       {initialProduct.year_price && (
                         <div className="flex justify-between text-gray-600">
-                          <span>Yearly Price:</span>
+                          <span>{t.product.price.yearlyPrice}:</span>
                           <span className="font-medium">¥{initialProduct.year_price / 100}</span>
                         </div>
                       )}
@@ -258,7 +250,7 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                 <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
                   {/* Billing Period Selection */}
                   <div className="p-8">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6">Billing Period</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-6">{t.product.billing.period}</h2>
                     <div className="grid grid-cols-2 gap-4">
                       {initialProduct.month_price && (
                         <button
@@ -271,8 +263,8 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                             'flex flex-col items-center justify-center rounded-xl border-2 p-4 text-sm transition-colors'
                           )}
                         >
-                          <span className="font-medium">Monthly</span>
-                          <span className="mt-1">¥{initialProduct.month_price / 100}/mo</span>
+                          <span className="font-medium">{t.product.billing.monthly}</span>
+                          <span className="mt-1">¥{initialProduct.month_price / 100}{t.product.billing.perMonth}</span>
                         </button>
                       )}
                       {initialProduct.quarter_price && (
@@ -286,8 +278,8 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                             'flex flex-col items-center justify-center rounded-xl border-2 p-4 text-sm transition-colors'
                           )}
                         >
-                          <span className="font-medium">Quarterly</span>
-                          <span className="mt-1">¥{initialProduct.quarter_price / 100}/quarter</span>
+                          <span className="font-medium">{t.product.billing.perQuarter}</span>
+                          <span className="mt-1">¥{initialProduct.quarter_price / 100}{t.product.billing.perQuarter}</span>
                         </button>
                       )}
                       {initialProduct.half_year_price && (
@@ -301,8 +293,8 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                             'flex flex-col items-center justify-center rounded-xl border-2 p-4 text-sm transition-colors'
                           )}
                         >
-                          <span className="font-medium">Semi-Annual</span>
-                          <span className="mt-1">¥{initialProduct.half_year_price / 100}/Semi-Annual</span>
+                          <span className="font-medium">{t.product.billing.perSemiAnnual}</span>
+                          <span className="mt-1">¥{initialProduct.half_year_price / 100}{t.product.billing.perSemiAnnual}</span>
                         </button>
                       )}
                       {initialProduct.year_price && (
@@ -316,8 +308,8 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                             'flex flex-col items-center justify-center rounded-xl border-2 p-4 text-sm transition-colors'
                           )}
                         >
-                          <span className="font-medium">Annual</span>
-                          <span className="mt-1">¥{initialProduct.year_price / 100}/year</span>
+                          <span className="font-medium">{t.product.billing.annual}</span>
+                          <span className="mt-1">¥{initialProduct.year_price / 100}{t.product.billing.perYear}</span>
                         </button>
                       )}
                     </div>
@@ -325,13 +317,13 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
 
                   {/* Order Summary Section */}
                   <div className="border-t border-gray-900/5 p-8">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-6">{t.product.payment.summary}</h2>
                     {renderOrderSummary()}
 
                     {/* Coupon Input */}
                     <div className="mt-6 pt-6 border-t border-gray-200">
                       <label htmlFor="coupon" className="block text-sm font-medium text-gray-700 mb-3">
-                        Have a coupon?
+                        {t.product.order.coupon.title}
                       </label>
                       <div className="flex space-x-4">
                         <input
@@ -339,13 +331,13 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                           value={couponCode}
                           onChange={(e) => setCouponCode(e.target.value)}
                           className="block flex-1 rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                          placeholder="Enter coupon code"
+                          placeholder={t.product.order.coupon.placeholder}
                         />
                         <button
                           onClick={handleCheckCoupon}
                           className="rounded-lg bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 border border-gray-300"
                         >
-                          Verify
+                          {t.product.order.coupon.verify}
                         </button>
                       </div>
                       {couponError && (
@@ -356,7 +348,7 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                     {/* Final Price and Confirm Button */}
                     <div className="mt-8 space-y-4">
                       <div className="flex items-center justify-between">
-                        <dt className="text-lg font-medium text-gray-900">Total Payment</dt>
+                        <dt className="text-lg font-medium text-gray-900">{t.product.payment.totalPayment}</dt>
                         <dd className="text-xl font-semibold text-gray-900">¥{calculatePrices().finalPrice.toFixed(2)}</dd>
                       </div>
                       <button
@@ -364,7 +356,7 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                         disabled={checkingSubscription}
                         className="w-full rounded-xl bg-indigo-600 px-6 py-4 text-base font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {checkingSubscription ? 'Processing...' : 'Confirm Order'}
+                        {checkingSubscription ? t.product.payment.processing : t.product.payment.payNow}
                       </button>
                     </div>
                   </div>

@@ -1,17 +1,52 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Menu, MenuButton, MenuItem, MenuItems, Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react'
 import { Bars3Icon, BellIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import md5 from 'md5'
 import type { PurchasePlan, UserInfo } from '@/lib/types'
+import { useLanguage } from '@/lib/i18n/hooks';
+import TitleBar from '@/components/TitleBar'
 
 interface ProductListProps {
   initialProducts: PurchasePlan[]
   initialUser: UserInfo | null
 }
 
+const LanguageSwitch = () => {
+  const { language, setLanguage } = useLanguage();
+  
+  return (
+    <Menu as="div" className="relative ml-3">
+      <MenuButton className="relative flex items-center rounded-full bg-white p-1 text-gray-400 hover:text-gray-500">
+        <span className="text-sm font-medium">{language === 'zh-CN' ? '中文' : 'EN'}</span>
+      </MenuButton>
+      <MenuItems className="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5">
+        <MenuItem>
+          <button
+            onClick={() => setLanguage('en')}
+            className={`block w-full px-4 py-2 text-sm text-left ${language === 'en' ? 'bg-gray-100' : ''}`}
+          >
+            English
+          </button>
+        </MenuItem>
+        <MenuItem>
+          <button
+            onClick={() => setLanguage('zh-CN')}
+            className={`block w-full px-4 py-2 text-sm text-left ${language === 'zh-CN' ? 'bg-gray-100' : ''}`}
+          >
+            中文
+          </button>
+        </MenuItem>
+      </MenuItems>
+    </Menu>
+  );
+};
+
 export default function ProductList({ initialProducts, initialUser }: ProductListProps) {
+  const router = useRouter();
+  const { t } = useLanguage();
   const [periodType, setPeriodType] = useState<'monthly' | 'yearly'>('monthly')
   const [showAuthModal, setShowAuthModal] = useState(!initialUser)
   
@@ -47,20 +82,26 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
   }
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', current: false },
-    { name: 'Product', href: '/product', current: true },
-    { name: 'Orders', href: '/orders', current: false },  
+    { name: t.common.dashboard, href: '/dashboard', current: false },
+    { name: t.common.product, href: '/product', current: true },
+    { name: t.common.orders, href: '/orders', current: false },  
   ]
 
   const userNavigation = [
     { 
-      name: 'Sign out', 
+      name: t.common.signOut, 
       onClick: () => {
         localStorage.clear();
-        window.location.href = '/login';
+        router.push('/login');
       }
     },
   ]
+
+  const user = {
+    name: initialUser ? initialUser.email.split('@')[0] : 'User',
+    email: initialUser ? initialUser.email : '',
+    imageUrl: initialUser ? getGravatarUrl(initialUser.email) : '/default-avatar.png',
+  }
 
   function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     if (!isOpen) return null;
@@ -92,8 +133,8 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
                   </div>
                   <div className="flex-1 md:flex md:justify-between">
                     <div>
-                      <h3 className="text-sm font-medium text-gray-900">Authentication required</h3>
-                      <p className="mt-1 text-sm text-gray-500">Please login to access this page</p>
+                      <h3 className="text-sm font-medium text-gray-900">{t.product.auth.required}</h3>
+                      <p className="mt-1 text-sm text-gray-500">{t.product.auth.pleaseLogin}</p>
                     </div>
                     <div className="mt-4 flex md:ml-6 md:mt-0">
                       <button
@@ -121,95 +162,17 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
         isOpen={showAuthModal} 
         onClose={() => setShowAuthModal(false)} 
       />
-      <Disclosure as="nav" className="bg-white border-b border-gray-200 flex-none">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center">
-              <div className="shrink-0">
-                <a href="/">
-                  <img
-                    alt="Linkeless"
-                    src="/Linkeless.png"
-                    className="size-8"
-                  />
-                </a>
-              </div>
-              <div className="hidden md:block">
-                <div className="ml-10 flex items-baseline space-x-4">
-                  {navigation.map((item) => (
-                    <a
-                      key={item.name}
-                      href={item.href}
-                      className={classNames(
-                        item.current ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900',
-                        'rounded-md px-3 py-2 text-sm font-medium'
-                      )}
-                    >
-                      {item.name}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="hidden md:block">
-              <div className="ml-4 flex items-center md:ml-6">
-                <button className="relative rounded-full bg-white p-1 text-gray-400 hover:text-gray-500">
-                  <BellIcon className="size-6" />
-                </button>
-                <Menu as="div" className="relative ml-3">
-                  <MenuButton className="relative flex rounded-full bg-white text-sm">
-                    <img 
-                      alt="" 
-                      src={initialUser ? getGravatarUrl(initialUser.email) : '/default-avatar.png'} 
-                      className="size-8 rounded-full" 
-                    />
-                  </MenuButton>
-                  <MenuItems className="absolute right-0 z-10 mt-2 w-48 rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5">
-                    {userNavigation.map((item) => (
-                      <MenuItem key={item.name}>
-                        <button
-                          onClick={item.onClick}
-                          className="block w-full px-4 py-2 text-sm text-gray-700 text-left"
-                        >
-                          {item.name}
-                        </button>
-                      </MenuItem>
-                    ))}
-                  </MenuItems>
-                </Menu>
-              </div>
-            </div>
-            <div className="-mr-2 flex md:hidden">
-              <DisclosureButton className="relative p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500">
-                <Bars3Icon className="size-6" />
-              </DisclosureButton>
-            </div>
-          </div>
-        </div>
-
-        <DisclosurePanel className="md:hidden">
-          <div className="space-y-1 px-2 pb-3 pt-2">
-            {navigation.map((item) => (
-              <DisclosureButton
-                key={item.name}
-                as="a"
-                href={item.href}
-                className={classNames(
-                  item.current ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900',
-                  'block rounded-md px-3 py-2 text-base font-medium'
-                )}
-              >
-                {item.name}
-              </DisclosureButton>
-            ))}
-          </div>
-        </DisclosurePanel>
-      </Disclosure>
-
+      <TitleBar 
+        user={user}
+        navigation={navigation}
+        userNavigation={userNavigation}
+        showLanguageSwitch={true}
+      />
+      
       <main className="flex-1 bg-gray-50">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <h1 className="text-base font-semibold leading-7 text-indigo-600">Product List</h1>
+            <h1 className="text-base font-semibold leading-7 text-indigo-600">{t.product.title}</h1>
             <div className="mt-8 flex justify-center">
               <div className="relative rounded-full p-0.5 bg-gray-200">
                 <button
@@ -219,7 +182,7 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
                     'px-4 py-2 rounded-full text-sm font-semibold'
                   )}
                 >
-                  Monthly billing
+                  {t.product.billing.monthly}
                 </button>
                 <button
                   onClick={() => setPeriodType('yearly')}
@@ -228,7 +191,7 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
                     'px-4 py-2 rounded-full text-sm font-semibold'
                   )}
                 >
-                  Annual billing
+                  {t.product.billing.annual}
                 </button>
               </div>
             </div>
@@ -255,11 +218,23 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
                   </span>
                 </p>
                 <Content html={plan.content} />
+                {periodType === 'monthly' && plan.month_price && (
+                  <div className="flex justify-between text-gray-600">
+                    <span>{t.product.price.monthlyPrice}:</span>
+                    <span className="font-medium">¥{plan.month_price / 100}{t.product.billing.perMonth}</span>
+                  </div>
+                )}
+                {periodType === 'yearly' && plan.year_price && (
+                  <div className="flex justify-between text-gray-600">
+                    <span>{t.product.price.yearlyPrice}:</span>
+                    <span className="font-medium">¥{plan.year_price / 100}{t.product.billing.perYear}</span>
+                  </div>
+                )}
                 <a
                   href={`/product/order?id=${plan.id}`}
                   className="mt-6 block rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 bg-white text-indigo-600 ring-1 ring-inset ring-indigo-200 hover:ring-indigo-300"
                 >
-                  Order Now
+                  {t.product.order.now}
                 </a>
               </div>
             ))}
