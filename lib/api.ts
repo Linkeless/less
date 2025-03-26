@@ -32,26 +32,31 @@ const createRequest = async (path: string, options: RequestInit = {}) => {
   return handleResponse(response);
 };
 
-interface SubscriptionResponse {
-  status: string;
-  message: string;
-  data: {
-    plan_id: number;
-    plan: { 
-      name: string;
-      id: number;
-    };
-    token: string;
-    expired_at: string | null;
-    u: number;
-    d: number;
-    transfer_enable: number;
-    email: string;
-    uuid: string;
-    subscribe_url: string;
-    reset_day: number | null;
-  };
-  error: string | null;
+export interface UserInfoResponse {
+  email: string;
+  uuid: string;
+  // Add other user info fields as needed
+}
+
+export interface SubscriptionResponse {
+  plan_id: number;
+  expired_at: string;
+  // Add other subscription fields as needed
+}
+
+export interface TrafficLogResponse {
+  // Add traffic log fields
+}
+
+export interface KnowledgeResponse {
+  // Add knowledge fields
+}
+
+interface KnowledgeArticle {
+  id: number;
+  category: string;
+  title: string;
+  updated_at: string;
 }
 
 export interface Subscription extends SubscriptionResponse {
@@ -76,25 +81,33 @@ export interface Subscription extends SubscriptionResponse {
   error: string | null;
 }
 
-interface KnowledgeArticle {
-  id: number;
-  category: string;
-  title: string;
-  updated_at: string;
-}
-
-interface KnowledgeResponse {
+interface BaseResponse {
   status: string;
   message: string;
-  data: {
-    [category: string]: Array<{
-      id: number;
-      category: string;
-      title: string;
-      updated_at: number;
-    }>;
-  };
-  error: null;
+  error: string | null;
+}
+
+export interface UserInfo {
+  email: string;
+  transfer_enable: number;
+  last_login_at: number;
+  created_at: number;
+  banned: number;
+  remind_expire: number;
+  remind_traffic: number;
+  expired_at: string | null;
+  balance: number;
+  commission_balance: number;
+  plan_id: number;
+  discount: number | null;
+  commission_rate: number | null;
+  telegram_id: number;
+  uuid: string;
+  avatar_url: string;
+}
+
+export interface UserInfoResponse extends BaseResponse {
+  data: UserInfo;
 }
 
 export interface PurchasePlan {
@@ -138,35 +151,6 @@ interface TicketResponse {
     created_at: number;
   }>;
   error: null;
-}
-
-interface BaseResponse {
-  status: string;
-  message: string;
-  error: string | null;
-}
-
-export interface UserInfo {
-  email: string;
-  transfer_enable: number;
-  last_login_at: number;
-  created_at: number;
-  banned: number;
-  remind_expire: number;
-  remind_traffic: number;
-  expired_at: string | null;
-  balance: number;
-  commission_balance: number;
-  plan_id: number;
-  discount: number | null;
-  commission_rate: number | null;
-  telegram_id: number;
-  uuid: string;
-  avatar_url: string;
-}
-
-export interface UserInfoResponse extends BaseResponse {
-  data: UserInfo;
 }
 
 interface ResetUUIDResponse {

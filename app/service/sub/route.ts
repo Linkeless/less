@@ -1,15 +1,22 @@
 import { NextRequest } from 'next/server';
-import { getSubscription } from '@/lib/api';
+import { getSubscription } from '@/lib/actions';
+import { env } from '@/env.config';
 
 export async function GET(request: NextRequest) {
   try {
-    const baseUrl = process.env.NEXT_SUB_API_URL || '';
+    const baseUrl = env.SUB_API_URL;
     const searchParams = request.nextUrl.searchParams.toString();
     const subscribeUrl = searchParams 
       ? `${baseUrl}/api/v1/client/subscribe?${searchParams}`
       : `${baseUrl}/api/v1/client/subscribe`;
       
-    const subscription = await fetch(subscribeUrl);
+    const token = request.cookies.get('auth_data');
+    const subscription = await fetch(subscribeUrl, {
+      headers: {
+        ...(token && { Authorization: token.value })
+      }
+    });
+
     if (!subscription.ok) {
       return new Response('Subscription not found', { status: 404 });
     }

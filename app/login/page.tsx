@@ -1,42 +1,28 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { login } from '@/lib/auth';
 
-export default function Example() {
+export default function LoginPage() {
+    const router = useRouter();
     const [formData, setFormData] = useState({
         email: '',
         password: ''
     });
     const [error, setError] = useState('');
 
-    useEffect(() => {
-        // Check if user is already logged in
-        const authData = localStorage.getItem('auth_data');
-        if (authData) {
-            window.location.href = '/dashboard';
-        }
-    }, []);
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/passport/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            });
+            const result = await login(formData.email, formData.password);
             
-            const data = await response.json();
-            
-            if (data.data && data.data.auth_data) {
-                // Store token and redirect
-                localStorage.setItem('auth_data', data.data.auth_data);
-                window.location.href = '/dashboard';
+            if (result.data?.auth_data) {
+                router.push('/dashboard');
+                router.refresh();
             } else {
-                setError(data.message || 'Login failed');
+                setError(result.message || 'Login failed');
             }
         } catch (err) {
             setError('Network error occurred');

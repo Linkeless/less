@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import api, { sendEmailVerify } from '@/lib/api';
+import { register, sendVerificationEmail } from '@/lib/actions';
 
 export default function Register() {
     const [formData, setFormData] = useState({
@@ -8,7 +8,6 @@ export default function Register() {
         password: '',
         invite_code: '',
         email_code: '',
-        recaptcha_data: '',
         verify_code: ''
     });
     const [error, setError] = useState('');
@@ -20,11 +19,11 @@ export default function Register() {
             return;
         }
         try {
-            await sendEmailVerify(formData.email);
+            await sendVerificationEmail(formData.email);
             setVerificationSent(true);
             setError('Verification code sent to your email');
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to send verification code');
+            setError(err.message || 'Failed to send verification code');
         }
     };
 
@@ -33,10 +32,11 @@ export default function Register() {
         setError('');
         
         try {
-            const response = await api.post('/api/v1/passport/auth/register', {
+            const response = await register({
                 ...formData,
-                email_code: formData.verify_code // map verify_code to email_code for API
+                email_code: formData.verify_code,
             });
+            
             if (response.data && response.data.auth_data) {
                 localStorage.setItem('auth_data', response.data.auth_data);
                 window.location.href = '/dashboard';
@@ -44,7 +44,7 @@ export default function Register() {
                 setError('Registration failed');
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Registration failed');
+            setError(err.message || 'Registration failed');
         }
     };
 

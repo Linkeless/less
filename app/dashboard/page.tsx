@@ -1,10 +1,17 @@
 'use client';
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems, Listbox, ListboxButton, ListboxOptions, ListboxOption, Dialog, DialogPanel, DialogTitle, DialogBackdrop, Transition } from '@headlessui/react'
 import { Bars3Icon, BellIcon, XMarkIcon, ChevronDownIcon, CheckIcon, ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
-import { getSubscription, fetchKnowledge, fetchTickets, fetchUserInfo, resetUUID, getTrafficLog, UserInfoResponse, TrafficLog, Subscription, ProcessedTrafficData, processTrafficData, formatBytes } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import md5 from 'md5'
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
+import type { UserInfoResponse, TrafficLog, Subscription } from '@/lib/api'
+import { processTrafficData, formatBytes } from '@/lib/api'
+import { 
+  getUserInfo, 
+  getSubscription, 
+  getTrafficLog, 
+  resetUUID
+} from '@/lib/actions'
 
 const getGravatarUrl = (email: string) => {
   const hash = md5(email.trim().toLowerCase());
@@ -105,10 +112,6 @@ export default function Example() {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedNodes, setSelectedNodes] = useState<typeof nodeOptions>([])
-  const [knowledgeArticles, setKnowledgeArticles] = useState<{[category: string]: Array<{id: number, title: string}>}>({})
-  const [loadingKnowledge, setLoadingKnowledge] = useState(true)
-  const [tickets, setTickets] = useState<Array<{id: number; subject: string; status: string; created_at: number}>>([])
-  const [loadingTickets, setLoadingTickets] = useState(true)
   const [userInfo, setUserInfo] = useState<UserInfoResponse | null>(null)
   const [loadingUserInfo, setLoadingUserInfo] = useState(true)
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
@@ -116,6 +119,7 @@ export default function Example() {
   const [showUUID, setShowUUID] = useState(false);
   const [trafficLog, setTrafficLog] = useState<TrafficLog[]>([])
   const [loadingTraffic, setLoadingTraffic] = useState(true)
+  const [isMobile, setIsMobile] = useState(false);
 
   // Move user object inside component
   const user = {
@@ -125,71 +129,52 @@ export default function Example() {
   }
 
   useEffect(() => {
-    const fetchSubscription = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const data = await getSubscription()
-        setSubscription(data)
+        const [
+          subscriptionData,
+          userInfoData,
+          trafficData
+        ] = await Promise.all([
+          getSubscription(),
+          getUserInfo(),
+          getTrafficLog()
+        ]);
+
+        setSubscription(subscriptionData as unknown as Subscription);
+        if (userInfoData.status === 'success' && userInfoData.data) {
+          setUserInfo(userInfoData as unknown as UserInfoResponse);
+        }
+        setTrafficLog(trafficData.data || []);
       } catch (error) {
-        console.error('Failed to fetch subscription:', error)
+        console.error('Failed to fetch dashboard data:', error);
       } finally {
-        setLoading(false)
+        setLoading(false);
+        setLoadingUserInfo(false);
+        setLoadingTraffic(false);
       }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const getFilteredTrafficData = () => {
+    const data = processTrafficData(trafficLog);
+    if (isMobile) {
+      return data.slice(-7); // 只显示最后3天的数据
     }
-
-    fetchSubscription()
-
-    const fetchKnowledgeData = async () => {
-      try {
-        const response = await fetchKnowledge()
-        setKnowledgeArticles(response.data)
-      } catch (error) {
-        console.error('Failed to fetch knowledge base:', error)
-      } finally {
-        setLoadingKnowledge(false)
-      }
-    }
-
-    fetchKnowledgeData()
-
-    const fetchTicketData = async () => {
-      try {
-        const response = await fetchTickets()
-        setTickets(response.data)
-      } catch (error) {
-        console.error('Failed to fetch tickets:', error)
-      } finally {
-        setLoadingTickets(false)
-      }
-    }
-
-    fetchTicketData()
-
-    const fetchUserData = async () => {
-      try {
-        const response = await fetchUserInfo()
-        setUserInfo(response) // 修改这一行，传入完整的 response 而不是 response.data
-      } catch (error) {
-        console.error('Failed to fetch user info:', error)
-      } finally {
-        setLoadingUserInfo(false)
-      }
-    }
-
-    fetchUserData()
-
-    const fetchTrafficLog = async () => {
-      try {
-        const response = await getTrafficLog()
-        setTrafficLog(response.data || [])
-      } catch (error) {
-        console.error('Failed to fetch traffic log:', error)
-      } finally {
-        setLoadingTraffic(false)
-      }
-    }
-
-    fetchTrafficLog()
-  }, [])
+    return data;
+  };
 
   const handleResetUUID = async () => {
     try {
@@ -638,12 +623,15 @@ export default function Example() {
                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
                         </div>
                       ) : trafficLog.length > 0 ? (
-                        <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-6 shadow-sm ring-1 ring-gray-950/5">
-                          <div className="h-[400px]">
+                        <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-2 shadow-sm ring-1 ring-gray-950/5">
+                          <div className="h-[400px] md:h-[400px]">
                             <ResponsiveContainer width="100%" height="100%">
-                              <LineChart 
-                                data={processTrafficData(trafficLog)}
-                                margin={{ top: 10, right: 10, left: 10, bottom: 5 }}
+                              <BarChart
+                                data={getFilteredTrafficData()}
+                                margin={isMobile ? 
+                                  { top: 10, right: 5, left: 5, bottom: 5 } : // 减少左边距
+                                  { top: 10, right: 5, left: 35, bottom: 5 }
+                                }
                               >
                                 <CartesianGrid 
                                   strokeDasharray="3 3" 
@@ -653,73 +641,52 @@ export default function Example() {
                                 <XAxis 
                                   dataKey="date" 
                                   stroke="#6B7280"
-                                  fontSize={12}
+                                  fontSize={isMobile ? 10 : 12}
                                   tickLine={false}
                                   axisLine={{ stroke: '#E5E7EB' }}
                                   dy={10}
+                                  tick={{ transform: 'translate(0, 6)' }}
                                 />
                                 <YAxis 
                                   stroke="#6B7280"
-                                  fontSize={12}
+                                  fontSize={isMobile ? 10 : 12}
                                   tickLine={false}
                                   axisLine={{ stroke: '#E5E7EB' }}
                                   tickFormatter={formatTraffic}
-                                  width={65}  // Fixed width for Y-axis
-                                  dx={-10}
-                                  allowDecimals={false}  // Avoid decimal points in axis
+                                  width={isMobile ? 50 : 60} // 稍微减小宽度
+                                  dx={-4} // 向左移动文字
+                                  allowDecimals={false}
+                                  tick={{ transform: 'translate(-3, 0)' }}
                                 />
                                 <Tooltip
-                                  cursor={{ stroke: '#E5E7EB', strokeWidth: 1 }}
+                                  cursor={{ fill: '#E5E7EB', opacity: 0.1 }}
                                   contentStyle={{
                                     backgroundColor: '#ffffff',
                                     border: 'none',
                                     borderRadius: '0.75rem',
                                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                                     padding: '0.75rem 1rem',
-                                  }}
-                                  labelStyle={{
-                                    color: '#111827',
-                                    fontWeight: 600,
-                                    marginBottom: '0.5rem',
-                                  }}
-                                  itemStyle={{
-                                    color: '#4B5563',
-                                    fontSize: '0.875rem',
-                                    padding: '0.25rem 0',
+                                    fontSize: isMobile ? '0.75rem' : '0.875rem',
                                   }}
                                   formatter={(value: number, name: string) => [
                                     formatTraffic(value),
                                     name === 'download' ? 'Download' : 'Upload'
                                   ]}
-                                  labelFormatter={(label) => `Date: ${label}`}  // Add "Date:" prefix
+                                  labelFormatter={(label) => `Date: ${label}`}
                                 />
-                                <Line 
-                                  type="monotone" 
-                                  dataKey="download" 
-                                  stroke="#6366F1"
-                                  strokeWidth={2.5}
-                                  dot={false}
-                                  activeDot={{ 
-                                    r: 6, 
-                                    strokeWidth: 2,
-                                    stroke: '#ffffff',
-                                    fill: '#6366F1'
-                                  }}
+                                <Bar
+                                  dataKey="download"
+                                  fill="#6366F1"
+                                  radius={[4, 4, 0, 0]}
+                                  maxBarSize={isMobile ? 40 : 60}
                                 />
-                                <Line 
-                                  type="monotone" 
-                                  dataKey="upload" 
-                                  stroke="#34D399"
-                                  strokeWidth={2.5}
-                                  dot={false}
-                                  activeDot={{ 
-                                    r: 6,
-                                    strokeWidth: 2,
-                                    stroke: '#ffffff',
-                                    fill: '#34D399'
-                                  }}
+                                <Bar
+                                  dataKey="upload"
+                                  fill="#34D399"
+                                  radius={[4, 4, 0, 0]}
+                                  maxBarSize={isMobile ? 40 : 60}
                                 />
-                              </LineChart>
+                              </BarChart>
                             </ResponsiveContainer>
                           </div>
                         </div>
