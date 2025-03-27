@@ -14,8 +14,7 @@ import {
 } from '@/lib/actions'
 import { useLanguage } from '@/lib/i18n/hooks';
 import TitleBar from '@/components/TitleBar'
-import { useRouter } from 'next/navigation'
-import { handleLogout } from '@/lib/authUtils';
+import { useRouter } from 'next/navigation';
 
 const getGravatarUrl = (email: string) => {
   const hash = md5(email.trim().toLowerCase());
@@ -222,7 +221,6 @@ export default function Example() {
     { 
       name: t.common.signOut, 
       onClick: () => {
-        handleLogout();
         router.push('/login');
       }
     },

@@ -3,15 +3,9 @@
 import { handleLogout } from '@/lib/authUtils';
 
 export default function SignOutButton() {
-  const handleSignOut = async () => {
-    try {
-      // 这里可以添加退出前的确认
-      handleLogout();
-    } catch (error) {
-      console.error('登出失败:', error);
-      // 即使请求失败也清理本地状态并跳转
-      handleLogout();
-    }
+  // 简化登出处理函数，移除冗余的错误处理
+  const handleSignOut = () => {
+    handleLogout();
   };
 
   return (

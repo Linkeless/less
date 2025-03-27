@@ -27,46 +27,29 @@ export interface UserInfoResponse extends BaseResponse {
   data: UserInfo;
 }
 
-export interface Subscription {
-  status: string;
-  message: string;
-  data: {
-    plan: { 
-      name: string;
-      id: number;
-    };
-    plan_id: number;
-    email: string;
-    u: number;
-    d: number;
-    transfer_enable: number;
-    expired_at: string | null;
-    subscribe_url: string;
-    token: string;
-    uuid: string;
-    reset_day: number | null;
+// 移除多余定义，直接使用接口扩展
+export interface SubscriptionData {
+  plan: { 
+    name: string;
+    id: number;
   };
-  error: string | null;
+  plan_id: number;
+  email: string;
+  u: number;
+  d: number;
+  transfer_enable: number;
+  expired_at: string | null;
+  subscribe_url: string;
+  token: string;
+  uuid: string;
+  reset_day: number | null;
 }
 
 export interface SubscriptionResponse extends BaseResponse {
-  data: {
-    plan: { 
-      name: string;
-      id: number;
-    };
-    plan_id: number;
-    email: string;
-    u: number;
-    d: number;
-    transfer_enable: number;
-    expired_at: string | null;
-    subscribe_url: string;
-    token: string;
-    uuid: string;
-    reset_day: number | null;
-  };
+  data: SubscriptionData;
 }
+
+// 删除冗余的Subscription接口，直接使用SubscriptionResponse
 
 export interface TrafficLog {
   created_at: number;

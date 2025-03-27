@@ -19,6 +19,7 @@ const handleResponse = async (response: Response) => {
   return data;
 };
 
+// 确保函数名与功能一致，避免与服务端函数混淆
 export const clientFetch = async (path: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('auth_data');
   const headers = {
@@ -36,8 +37,8 @@ export const clientFetch = async (path: string, options: RequestInit = {}) => {
 };
 
 export default {
-  get: (path: string) => clientFetch(path),
-  post: (path: string, data?: any) => clientFetch(path, {
+  get: (path: string) => clientFetch(`${BASE_URL}${path}`),
+  post: (path: string, data?: any) => clientFetch(`${BASE_URL}${path}`, {
     method: 'POST',
     body: JSON.stringify(data),
   }),

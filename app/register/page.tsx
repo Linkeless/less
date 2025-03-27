@@ -9,7 +9,6 @@ export default function Register() {
         email: '',
         password: '',
         invite_code: '',
-        email_code: '',
         verify_code: ''
     });
     const [error, setError] = useState('');

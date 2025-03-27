@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import { getSubscription } from '@/lib/actions';
 import { env } from '@/env.config';
 
 export async function GET(request: NextRequest) {
@@ -27,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     return new Response(data, {
       headers: {
-        'Content-Type': 'text/html',
+        'Content-Type': 'text/html; charset=UTF-8',
         'Cache-Control': 'no-cache',
         'Content-Disposition': subscription.headers.get('content-disposition') || '',
         'Profile-Update-Interval': subscription.headers.get('profile-update-interval') || '',
