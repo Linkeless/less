@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Menu, MenuButton, MenuItem, MenuItems, Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react'
-import { Bars3Icon, BellIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import md5 from 'md5'
 import type { PurchasePlan, UserInfo } from '@/lib/types'
 import { useLanguage } from '@/lib/i18n/hooks';
@@ -14,6 +14,7 @@ interface ProductListProps {
   initialUser: UserInfo | null
 }
 
+// 此组件可由TitleBar内部使用，通过showLanguageSwitch标志控制
 const LanguageSwitch = () => {
   const { language, setLanguage } = useLanguage();
   
@@ -24,20 +25,24 @@ const LanguageSwitch = () => {
       </MenuButton>
       <MenuItems className="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5">
         <MenuItem>
-          <button
-            onClick={() => setLanguage('en')}
-            className={`block w-full px-4 py-2 text-sm text-left ${language === 'en' ? 'bg-gray-100' : ''}`}
-          >
-            English
-          </button>
+          {({ active }) => (
+            <button
+              onClick={() => setLanguage('en')}
+              className={`block w-full px-4 py-2 text-sm text-left ${language === 'en' ? 'bg-gray-100' : ''} ${active ? 'bg-gray-50' : ''}`}
+            >
+              English
+            </button>
+          )}
         </MenuItem>
         <MenuItem>
-          <button
-            onClick={() => setLanguage('zh-CN')}
-            className={`block w-full px-4 py-2 text-sm text-left ${language === 'zh-CN' ? 'bg-gray-100' : ''}`}
-          >
-            中文
-          </button>
+          {({ active }) => (
+            <button
+              onClick={() => setLanguage('zh-CN')}
+              className={`block w-full px-4 py-2 text-sm text-left ${language === 'zh-CN' ? 'bg-gray-100' : ''} ${active ? 'bg-gray-50' : ''}`}
+            >
+              中文
+            </button>
+          )}
         </MenuItem>
       </MenuItems>
     </Menu>

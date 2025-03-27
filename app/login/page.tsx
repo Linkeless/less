@@ -1,6 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
+import { Dialog, Transition, Switch } from '@headlessui/react';
 import { login } from '@/lib/auth';
 
 export default function LoginPage() {
@@ -10,6 +11,9 @@ export default function LoginPage() {
         password: ''
     });
     const [error, setError] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
+    const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+    const [resetEmail, setResetEmail] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -27,6 +31,13 @@ export default function LoginPage() {
         } catch (err) {
             setError('Network error occurred');
         }
+    };
+
+    const handleResetPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        // Implementation for password reset functionality
+        alert(`Password reset email sent to ${resetEmail}`);
+        setForgotPasswordOpen(false);
     };
 
     return (
@@ -74,9 +85,13 @@ export default function LoginPage() {
                     Password
                   </label>
                   <div className="text-sm">
-                    <a href="#" className="font-semibold text-indigo-600 hover:text-indigo-500">
+                    <button 
+                      type="button"
+                      onClick={() => setForgotPasswordOpen(true)}
+                      className="font-semibold text-indigo-600 hover:text-indigo-500"
+                    >
                       Forgot password?
-                    </a>
+                    </button>
                   </div>
                 </div>
                 <div className="mt-2">
@@ -91,6 +106,26 @@ export default function LoginPage() {
                     className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                   />
                 </div>
+              </div>
+
+              <div className="flex items-center">
+                <Switch
+                  checked={rememberMe}
+                  onChange={setRememberMe}
+                  className={`${
+                    rememberMe ? 'bg-indigo-600' : 'bg-gray-200'
+                  } relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`}
+                >
+                  <span className="sr-only">Remember me</span>
+                  <span
+                    className={`${
+                      rememberMe ? 'translate-x-5' : 'translate-x-1'
+                    } inline-block h-3 w-3 transform rounded-full bg-white transition-transform`}
+                  />
+                </Switch>
+                <label htmlFor="remember-me" className="ml-3 block text-sm/6 text-gray-900">
+                  Remember me
+                </label>
               </div>
   
               <div>
@@ -111,6 +146,82 @@ export default function LoginPage() {
             </p>
           </div>
         </div>
+
+        {/* Forgot Password Dialog using Headless UI */}
+        <Transition appear show={forgotPasswordOpen} as={Fragment}>
+          <Dialog as="div" className="relative z-10" onClose={() => setForgotPasswordOpen(false)}>
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <div className="fixed inset-0 bg-black/25" />
+            </Transition.Child>
+
+            <div className="fixed inset-0 overflow-y-auto">
+              <div className="flex min-h-full items-center justify-center p-4 text-center">
+                <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0 scale-95"
+                  enterTo="opacity-100 scale-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100 scale-100"
+                  leaveTo="opacity-0 scale-95"
+                >
+                  <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                    <Dialog.Title
+                      as="h3"
+                      className="text-lg font-medium leading-6 text-gray-900"
+                    >
+                      Reset your password
+                    </Dialog.Title>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-500">
+                        Enter your email address and we'll send you a link to reset your password.
+                      </p>
+                    </div>
+
+                    <form onSubmit={handleResetPassword} className="mt-4">
+                      <div className="mb-4">
+                        <label htmlFor="reset-email" className="block text-sm font-medium text-gray-700">
+                          Email address
+                        </label>
+                        <input
+                          type="email"
+                          id="reset-email"
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="mt-4 flex justify-end space-x-3">
+                        <button
+                          type="button"
+                          className="inline-flex justify-center rounded-md border border-transparent bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2"
+                          onClick={() => setForgotPasswordOpen(false)}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                        >
+                          Send reset link
+                        </button>
+                      </div>
+                    </form>
+                  </Dialog.Panel>
+                </Transition.Child>
+              </div>
+            </div>
+          </Dialog>
+        </Transition>
       </>
     )
   }

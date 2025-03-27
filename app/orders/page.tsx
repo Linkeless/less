@@ -7,21 +7,21 @@ import { getUserInfo } from '@/lib/actions'
 import md5 from 'md5'
 import SignOutButton from '@/components/SignOutButton'
 import type { UserInfo } from '@/lib/types'
-import { useLanguage } from '@/lib/i18n/hooks';
+import { useLanguage } from '@/lib/i18n/hooks'
 
 export default function OrdersPage() {
-  const { t } = useLanguage();
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const { t } = useLanguage()
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
 
   useEffect(() => {
     const loadUserInfo = async () => {
-      const response = await getUserInfo();
+      const response = await getUserInfo()
       if (response.status === 'success') {
-        setUserInfo(response.data);
+        setUserInfo(response.data)
       }
-    };
-    loadUserInfo();
-  }, []);
+    }
+    loadUserInfo()
+  }, [])
   
   const navigation = [
     { name: t.common.dashboard, href: '/dashboard', current: false },

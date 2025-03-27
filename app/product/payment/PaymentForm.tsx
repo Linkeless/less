@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import md5 from 'md5'
+import { RadioGroup } from '@headlessui/react'
 import { verifyPayment } from '@/lib/actions'
 import TitleBar from '@/components/TitleBar'
 import type { UserInfo } from '@/lib/types'
@@ -59,7 +59,7 @@ export default function PaymentForm({ initialOrder, paymentMethods, user }: Paym
 
   const userNavigation = [
     { 
-      name: 'Sign out', 
+      name: t.common.signOut, 
       onClick: () => {
         localStorage.clear();
         window.location.href = '/login';
@@ -75,7 +75,7 @@ export default function PaymentForm({ initialOrder, paymentMethods, user }: Paym
       const response = await verifyPayment(initialOrder.trade_no, selectedMethod);
       
       if (response.type === -1) {
-        alert('Balance payment successful');
+        alert('余额支付成功');
         window.location.href = '/dashboard';
       } 
       else if (response.type === 1) {
@@ -84,10 +84,10 @@ export default function PaymentForm({ initialOrder, paymentMethods, user }: Paym
       else if (response.type === 0) {
         window.location.href = `/product/pay?trade_no=${initialOrder.trade_no}&method=${selectedMethod}`;
       } else {
-        throw new Error('Payment processing failed');
+        throw new Error('支付处理失败');
       }
     } catch (err: any) {
-      alert(err.message || 'Payment processing failed');
+      alert(err.message || '支付处理失败');
     } finally {
       setProcessingPayment(false);
     }
@@ -138,27 +138,38 @@ export default function PaymentForm({ initialOrder, paymentMethods, user }: Paym
                 <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
                   <div className="p-8">
                     <h2 className="text-xl font-semibold text-gray-900 mb-6">{t.product.payment.methods}</h2>
-                    <div className="space-y-4">
-                      {paymentMethods.map((method) => (
-                        <div
-                          key={method.id}
-                          onClick={() => setSelectedMethod(method.id)}
-                          className={classNames(
-                            'flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-colors',
-                            selectedMethod === method.id
-                              ? 'border-indigo-600 bg-indigo-50'
-                              : 'border-gray-200 hover:border-gray-300'
-                          )}
-                        >
-                          <span className="font-medium text-gray-900">{method.name}</span>
-                          {method.handling_fee_percent > 0 && (
-                            <span className="text-sm text-gray-500">
-                              {t.product.payment.fee.replace('{percent}', method.handling_fee_percent.toString())}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                    <RadioGroup value={selectedMethod} onChange={setSelectedMethod}>
+                      <RadioGroup.Label className="sr-only">支付方式</RadioGroup.Label>
+                      <div className="space-y-4">
+                        {paymentMethods.map((method) => (
+                          <RadioGroup.Option
+                            key={method.id}
+                            value={method.id}
+                            className={({ checked }) =>
+                              classNames(
+                                'relative flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-colors',
+                                checked
+                                  ? 'border-indigo-600 bg-indigo-50'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              )
+                            }
+                          >
+                            {({ checked }) => (
+                              <>
+                                <RadioGroup.Label as="span" className="font-medium text-gray-900">
+                                  {method.name}
+                                </RadioGroup.Label>
+                                {method.handling_fee_percent > 0 && (
+                                  <RadioGroup.Description as="span" className="text-sm text-gray-500">
+                                    {t.product.payment.fee.replace('{percent}', method.handling_fee_percent.toString())}
+                                  </RadioGroup.Description>
+                                )}
+                              </>
+                            )}
+                          </RadioGroup.Option>
+                        ))}
+                      </div>
+                    </RadioGroup>
                   </div>
 
                   <div className="border-t border-gray-900/5 p-8">

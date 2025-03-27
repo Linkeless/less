@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import md5 from 'md5'
+import { RadioGroup } from '@headlessui/react'
 import { checkCoupon, getSubscription, createOrder } from '@/lib/actions'
 import TitleBar from '@/components/TitleBar'
 import type { UserInfo, PurchasePlan } from '@/lib/types'
@@ -40,13 +41,20 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
   const [selectedPeriod, setSelectedPeriod] = useState<'month' | 'quarter' | 'half_year' | 'year'>('month')
   const [checkingSubscription, setCheckingSubscription] = useState(false)
 
+  // 构建可选的计费周期
+  const availablePeriods = [
+    ...(initialProduct.month_price ? [{ value: 'month', label: t.product.billing.monthly, price: initialProduct.month_price / 100, unit: t.product.billing.perMonth }] : []),
+    ...(initialProduct.quarter_price ? [{ value: 'quarter', label: t.product.billing.perQuarter, price: initialProduct.quarter_price / 100, unit: t.product.billing.perQuarter }] : []),
+    ...(initialProduct.half_year_price ? [{ value: 'half_year', label: t.product.billing.perSemiAnnual, price: initialProduct.half_year_price / 100, unit: t.product.billing.perSemiAnnual }] : []),
+    ...(initialProduct.year_price ? [{ value: 'year', label: t.product.billing.annual, price: initialProduct.year_price / 100, unit: t.product.billing.perYear }] : [])
+  ];
+
   const handleCheckCoupon = async () => {
     try {
       setCouponError('')
       setDiscount(0)
       setDiscountValue(0)
       const result = await checkCoupon(couponCode)
-      
       
       if (result.status === 'success' && result.data) {
         const discountVal = Number(result.data.value)
@@ -58,13 +66,13 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
           }  
         }
       } else {
-        alert(result.message || 'Invalid coupon code')
-        setCouponError(result.message || 'Invalid coupon code')
+        alert(result.message || '无效的优惠码')
+        setCouponError(result.message || '无效的优惠码')
       }
     } catch (error: any) {
-      console.error('Failed to verify coupon:', error)
-      alert(error.message || 'Failed to verify coupon')
-      setCouponError('Coupon verification failed')
+      console.error('优惠码验证失败:', error)
+      alert(error.message || '优惠码验证失败')
+      setCouponError('优惠码验证失败')
       setDiscount(0)
       setDiscountValue(0)
     }
@@ -76,7 +84,7 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
       const response = await getSubscription()
       
       if (response.data?.plan_id) {
-        const confirmed = window.confirm('Note: Changing subscription will override your current subscription.')
+        const confirmed = window.confirm('注意：更改订阅将覆盖您当前的订阅计划。')
         if (!confirmed) return;
       }
 
@@ -90,11 +98,11 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
       if (orderResponse.status === 'success' && orderResponse.data) {
         window.location.href = `/product/payment?trade_no=${orderResponse.data}`
       } else {
-        alert(orderResponse.message || 'Failed to create order')
+        alert(orderResponse.message || '创建订单失败')
       }
     } catch (error: any) {
-      console.error('Failed to process order:', error)
-      alert(error.message || 'Failed to process order')
+      console.error('处理订单失败:', error)
+      alert(error.message || '处理订单失败')
     } finally {
       setCheckingSubscription(false)
     }
@@ -251,68 +259,34 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                   {/* Billing Period Selection */}
                   <div className="p-8">
                     <h2 className="text-xl font-semibold text-gray-900 mb-6">{t.product.billing.period}</h2>
-                    <div className="grid grid-cols-2 gap-4">
-                      {initialProduct.month_price && (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedPeriod('month')}
-                          className={classNames(
-                            selectedPeriod === 'month' 
-                              ? 'border-indigo-600 bg-indigo-50 text-indigo-900' 
-                              : 'border-gray-200 text-gray-700 hover:border-gray-300',
-                            'flex flex-col items-center justify-center rounded-xl border-2 p-4 text-sm transition-colors'
-                          )}
-                        >
-                          <span className="font-medium">{t.product.billing.monthly}</span>
-                          <span className="mt-1">¥{initialProduct.month_price / 100}{t.product.billing.perMonth}</span>
-                        </button>
-                      )}
-                      {initialProduct.quarter_price && (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedPeriod('quarter')}
-                          className={classNames(
-                            selectedPeriod === 'quarter' 
-                              ? 'border-indigo-600 bg-indigo-50 text-indigo-900' 
-                              : 'border-gray-200 text-gray-700 hover:border-gray-300',
-                            'flex flex-col items-center justify-center rounded-xl border-2 p-4 text-sm transition-colors'
-                          )}
-                        >
-                          <span className="font-medium">{t.product.billing.perQuarter}</span>
-                          <span className="mt-1">¥{initialProduct.quarter_price / 100}{t.product.billing.perQuarter}</span>
-                        </button>
-                      )}
-                      {initialProduct.half_year_price && (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedPeriod('half_year')}
-                          className={classNames(
-                            selectedPeriod === 'half_year' 
-                              ? 'border-indigo-600 bg-indigo-50 text-indigo-900' 
-                              : 'border-gray-200 text-gray-700 hover:border-gray-300',
-                            'flex flex-col items-center justify-center rounded-xl border-2 p-4 text-sm transition-colors'
-                          )}
-                        >
-                          <span className="font-medium">{t.product.billing.perSemiAnnual}</span>
-                          <span className="mt-1">¥{initialProduct.half_year_price / 100}{t.product.billing.perSemiAnnual}</span>
-                        </button>
-                      )}
-                      {initialProduct.year_price && (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedPeriod('year')}
-                          className={classNames(
-                            selectedPeriod === 'year' 
-                              ? 'border-indigo-600 bg-indigo-50 text-indigo-900' 
-                              : 'border-gray-200 text-gray-700 hover:border-gray-300',
-                            'flex flex-col items-center justify-center rounded-xl border-2 p-4 text-sm transition-colors'
-                          )}
-                        >
-                          <span className="font-medium">{t.product.billing.annual}</span>
-                          <span className="mt-1">¥{initialProduct.year_price / 100}{t.product.billing.perYear}</span>
-                        </button>
-                      )}
-                    </div>
+                    <RadioGroup value={selectedPeriod} onChange={setSelectedPeriod}>
+                      <RadioGroup.Label className="sr-only">计费周期</RadioGroup.Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        {availablePeriods.map((period) => (
+                          <RadioGroup.Option
+                            key={period.value}
+                            value={period.value}
+                            className={({ checked }) =>
+                              classNames(
+                                checked ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-gray-200 text-gray-700 hover:border-gray-300',
+                                'flex flex-col items-center justify-center rounded-xl border-2 p-4 text-sm transition-colors cursor-pointer'
+                              )
+                            }
+                          >
+                            {({ checked }) => (
+                              <>
+                                <RadioGroup.Label as="span" className="font-medium">
+                                  {period.label}
+                                </RadioGroup.Label>
+                                <RadioGroup.Description as="span" className="mt-1">
+                                  ¥{period.price}{period.unit}
+                                </RadioGroup.Description>
+                              </>
+                            )}
+                          </RadioGroup.Option>
+                        ))}
+                      </div>
+                    </RadioGroup>
                   </div>
 
                   {/* Order Summary Section */}
