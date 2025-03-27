@@ -2,17 +2,17 @@ import { NextRequest } from 'next/server';
 import { env } from '@/env.config';
 
 export async function GET(request: NextRequest) {
-  try {
+  try { 
     const baseUrl = env.SUB_API_URL;
     const searchParams = request.nextUrl.searchParams.toString();
     const subscribeUrl = searchParams 
       ? `${baseUrl}/api/v1/client/subscribe?${searchParams}`
       : `${baseUrl}/api/v1/client/subscribe`;
       
-    const token = request.cookies.get('auth_data');
+    const userAgent = request.headers.get('user-agent') || '';
     const subscription = await fetch(subscribeUrl, {
       headers: {
-        ...(token && { Authorization: token.value })
+        'User-Agent': userAgent
       }
     });
 
