@@ -4,7 +4,7 @@ import { Bars3Icon, BellIcon, XMarkIcon, ChevronDownIcon, CheckIcon, Exclamation
 import { useEffect, useState } from 'react'
 import md5 from 'md5'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
-import type { UserInfoResponse, TrafficLog, Subscription } from '@/lib/api'
+import type { UserInfoResponse, TrafficLog, Subscription } from '@/lib/types'
 import { processTrafficData, formatBytes } from '@/lib/api'
 import { 
   getUserInfo, 

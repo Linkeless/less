@@ -49,7 +49,8 @@ export interface SubscriptionResponse extends BaseResponse {
   data: SubscriptionData;
 }
 
-// 删除冗余的Subscription接口，直接使用SubscriptionResponse
+// 添加 Subscription 类型别名
+export type Subscription = SubscriptionResponse;
 
 export interface TrafficLog {
   created_at: number;
