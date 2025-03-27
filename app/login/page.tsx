@@ -1,7 +1,7 @@
 'use client';
 import { useState, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
-import { Dialog, Transition, Switch } from '@headlessui/react';
+import { Dialog, Transition } from '@headlessui/react';
 import { login } from '@/lib/auth';
 
 export default function LoginPage() {
@@ -11,7 +11,6 @@ export default function LoginPage() {
         password: ''
     });
     const [error, setError] = useState('');
-    const [rememberMe, setRememberMe] = useState(false);
     const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
 
@@ -106,26 +105,6 @@ export default function LoginPage() {
                     className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                   />
                 </div>
-              </div>
-
-              <div className="flex items-center">
-                <Switch
-                  checked={rememberMe}
-                  onChange={setRememberMe}
-                  className={`${
-                    rememberMe ? 'bg-indigo-600' : 'bg-gray-200'
-                  } relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`}
-                >
-                  <span className="sr-only">Remember me</span>
-                  <span
-                    className={`${
-                      rememberMe ? 'translate-x-5' : 'translate-x-1'
-                    } inline-block h-3 w-3 transform rounded-full bg-white transition-transform`}
-                  />
-                </Switch>
-                <label htmlFor="remember-me" className="ml-3 block text-sm/6 text-gray-900">
-                  Remember me
-                </label>
               </div>
   
               <div>
