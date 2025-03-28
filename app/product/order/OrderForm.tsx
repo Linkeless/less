@@ -38,16 +38,26 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
   const [discountType, setDiscountType] = useState(0) // 2: percent, 1: fixed
   const [discountValue, setDiscountValue] = useState(0)
   const [couponError, setCouponError] = useState('')
-  const [selectedPeriod, setSelectedPeriod] = useState<'month' | 'quarter' | 'half_year' | 'year'>('month')
-  const [checkingSubscription, setCheckingSubscription] = useState(false)
-
+  
   // 构建可选的计费周期
   const availablePeriods = [
     ...(initialProduct.month_price ? [{ value: 'month', label: t.product.billing.monthly, price: initialProduct.month_price / 100, unit: t.product.billing.perMonth }] : []),
-    ...(initialProduct.quarter_price ? [{ value: 'quarter', label: t.product.billing.perQuarter, price: initialProduct.quarter_price / 100, unit: t.product.billing.perQuarter }] : []),
-    ...(initialProduct.half_year_price ? [{ value: 'half_year', label: t.product.billing.perSemiAnnual, price: initialProduct.half_year_price / 100, unit: t.product.billing.perSemiAnnual }] : []),
+    ...(initialProduct.quarter_price ? [{ value: 'quarter', label: t.product.billing.quarterly, price: initialProduct.quarter_price / 100, unit: t.product.billing.perQuarter }] : []),
+    ...(initialProduct.half_year_price ? [{ value: 'half_year', label: t.product.billing.semiAnnual, price: initialProduct.half_year_price / 100, unit: t.product.billing.perSemiAnnual }] : []),
     ...(initialProduct.year_price ? [{ value: 'year', label: t.product.billing.annual, price: initialProduct.year_price / 100, unit: t.product.billing.perYear }] : [])
   ];
+  
+  // 默认选择存在的最小周期
+  const getDefaultPeriod = (): 'month' | 'quarter' | 'half_year' | 'year' => {
+    if (initialProduct.month_price) return 'month';
+    if (initialProduct.quarter_price) return 'quarter';
+    if (initialProduct.half_year_price) return 'half_year';
+    if (initialProduct.year_price) return 'year';
+    return 'month'; // 默认月付，虽然可能不存在
+  };
+  
+  const [selectedPeriod, setSelectedPeriod] = useState<'month' | 'quarter' | 'half_year' | 'year'>(getDefaultPeriod());
+  const [checkingSubscription, setCheckingSubscription] = useState(false)
 
   const handleCheckCoupon = async () => {
     try {
@@ -296,26 +306,31 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
 
                     {/* Coupon Input */}
                     <div className="mt-6 pt-6 border-t border-gray-200">
-                      <label htmlFor="coupon" className="block text-sm font-medium text-gray-700 mb-3">
+                      <label htmlFor="coupon-code" className="block text-sm font-medium text-gray-700 mb-3">
                         {t.product.order.coupon.title}
                       </label>
                       <div className="flex space-x-4">
-                        <input
-                          type="text"
-                          value={couponCode}
-                          onChange={(e) => setCouponCode(e.target.value)}
-                          className="block flex-1 rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                          placeholder={t.product.order.coupon.placeholder}
-                        />
+                        <div className="relative flex-1">
+                          <input
+                            id="coupon-code"
+                            type="text"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value)}
+                            className="block w-full pl-4 py-2 h-10 rounded-lg border-gray-300 shadow-sm 
+                                      focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            placeholder={t.product.order.coupon.placeholder}
+                          />
+                        </div>
                         <button
                           onClick={handleCheckCoupon}
-                          className="rounded-lg bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 border border-gray-300"
+                          className="rounded-lg bg-gray-50 px-4 py-2 h-10 text-sm font-medium 
+                                   text-gray-700 hover:bg-gray-100 border border-gray-300"
                         >
                           {t.product.order.coupon.verify}
                         </button>
                       </div>
                       {couponError && (
-                        <p className="mt-2 text-sm text-red-600">{couponError}</p>
+                        <p className="mt-2 text-sm text-red-600 pl-4">{couponError}</p>
                       )}
                     </div>
 

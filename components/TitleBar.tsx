@@ -67,8 +67,14 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
     if (href === '#') return;
 
     // 针对登录相关的路由进行特殊处理
-    if (href === '/login' || href === '/logout') {
+    if (href === '/logout') {
       handleLogout();
+      return;
+    }
+    
+    // If it's the login page, don't trigger logout, just navigate
+    if (href === '/login') {
+      router.push(href);
       return;
     }
 

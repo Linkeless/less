@@ -15,6 +15,7 @@ import {
 import { useLanguage } from '@/lib/i18n/hooks';
 import TitleBar from '@/components/TitleBar'
 import { useRouter } from 'next/navigation';
+import SignOutButton from '@/components/SignOutButton';
 
 const getGravatarUrl = (email: string) => {
   const hash = md5(email.trim().toLowerCase());
@@ -218,12 +219,7 @@ export default function Example() {
   ]
 
   const userNavigation = [
-    { 
-      name: t.common.signOut, 
-      onClick: () => {
-        router.push('/login');
-      }
-    },
+    { name: t.common.signOut, component: <SignOutButton /> }
   ]
 
   return (

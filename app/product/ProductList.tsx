@@ -8,6 +8,7 @@ import md5 from 'md5'
 import type { PurchasePlan, UserInfo } from '@/lib/types'
 import { useLanguage } from '@/lib/i18n/hooks';
 import TitleBar from '@/components/TitleBar'
+import SignOutButton from '@/components/SignOutButton'
 
 interface ProductListProps {
   initialProducts: PurchasePlan[]
@@ -99,13 +100,7 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
   ]
 
   const userNavigation = [
-    { 
-      name: t.common.signOut, 
-      onClick: () => {
-        localStorage.clear();
-        router.push('/login');
-      }
-    },
+    { name: t.common.signOut, component: <SignOutButton /> }
   ]
 
   const user = {
