@@ -259,16 +259,26 @@ export default function Example() {
                                 <h2 className="text-xl font-semibold text-gray-900 leading-7 truncate">
                                   {subscription.data?.plan?.name || t.dashboard.subscription.noActive}
                                 </h2>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 mt-1">
                                   <p className="text-sm font-medium text-gray-600">
                                     {t.dashboard.subscription.expires}: {formatDate(subscription.data.expired_at)}
                                   </p>
-                                  <a 
-                                    href={`/product/order?id=${subscription.data.plan_id}`}
-                                    className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
-                                  >
-                                    {t.dashboard.subscription.renew}
-                                  </a>
+                                  <div className="flex gap-2">
+                                    <a 
+                                      href={`/product/order?id=${subscription.data.plan_id}`}
+                                      className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-indigo-600 hover:text-indigo-500 hover:bg-indigo-50 transition-colors duration-150"
+                                    >
+                                      {t.dashboard.subscription.renew}
+                                    </a>
+                                    {subscription.data.plan.reset_price !== null && subscription.data.plan.reset_price !== undefined && (
+                                      <a 
+                                        href={`/product/order?id=${subscription.data.plan_id}&reset=1`}
+                                        className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-indigo-600 hover:text-indigo-500 hover:bg-indigo-50 transition-colors duration-150"
+                                      >
+                                        {t.dashboard.subscription.reset}
+                                      </a>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                           </div>

@@ -29,10 +29,7 @@ export interface UserInfoResponse extends BaseResponse {
 
 // 移除多余定义，直接使用接口扩展
 export interface SubscriptionData {
-  plan: { 
-    name: string;
-    id: number;
-  };
+  plan: PurchasePlan;
   plan_id: number;
   email: string;
   u: number;

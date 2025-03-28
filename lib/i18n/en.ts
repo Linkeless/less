@@ -36,6 +36,7 @@ export default {
       noActive: 'No active subscription',
       expires: 'Expires',
       renew: 'Renew',
+      reset: 'Reset',
       trafficUsage: 'Traffic Usage',
       used: 'Used',
       transfer: {

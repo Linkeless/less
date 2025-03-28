@@ -36,6 +36,7 @@ export default {
       noActive: '无有效订阅',
       expires: '到期时间',
       renew: '续费',
+      reset: '重置',
       trafficUsage: '流量使用情况',
       used: '已使用',
       transfer: {
