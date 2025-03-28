@@ -144,6 +144,7 @@ export interface OrderDetailResponse extends BaseResponse {
       name: string;
       content: string;
       transfer_enable: number;
+      onetime_price: number | null;
     };
   };
 }

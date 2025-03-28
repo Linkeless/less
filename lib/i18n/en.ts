@@ -1,3 +1,5 @@
+import { on } from "events";
+
 export default {
   common: {
     dashboard: 'Dashboard',
@@ -93,16 +95,24 @@ export default {
       perQuarter: '/quarter',
       perSemiAnnual: '/semi-annual',
       perYear: '/year',
+      oneTime: 'One-Time',
     },
     price: {
       monthlyPrice: 'Monthly Price',
+      quarterlyPrice: 'Quarterly Price',
+      semiAnnualPrice: 'Semi-Annual Price',
       yearlyPrice: 'Yearly Price',
+      twoYearPrice: '2-Year Price',
+      threeYearPrice: '3-Year Price',
+      oneTimePrice: 'One-Time Price',
     },
     order: {
       details: 'Product Details',
       traffic: 'Traffic Package',
       now: 'Order Now',
       selectedPlan: 'Selected Plan',
+      duration: 'Duration',
+      unlimited: 'Unlimited',
       coupon: {
         title: 'Have a coupon?',
         placeholder: 'Enter coupon code',

@@ -44,19 +44,21 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
     ...(initialProduct.month_price ? [{ value: 'month', label: t.product.billing.monthly, price: initialProduct.month_price / 100, unit: t.product.billing.perMonth }] : []),
     ...(initialProduct.quarter_price ? [{ value: 'quarter', label: t.product.billing.quarterly, price: initialProduct.quarter_price / 100, unit: t.product.billing.perQuarter }] : []),
     ...(initialProduct.half_year_price ? [{ value: 'half_year', label: t.product.billing.semiAnnual, price: initialProduct.half_year_price / 100, unit: t.product.billing.perSemiAnnual }] : []),
-    ...(initialProduct.year_price ? [{ value: 'year', label: t.product.billing.annual, price: initialProduct.year_price / 100, unit: t.product.billing.perYear }] : [])
+    ...(initialProduct.year_price ? [{ value: 'year', label: t.product.billing.annual, price: initialProduct.year_price / 100, unit: t.product.billing.perYear }] : []),
+    ...(initialProduct.onetime_price ? [{ value: 'onetime', label: t.product.billing.oneTime, price: initialProduct.onetime_price / 100, unit: '' }] : [])
   ];
   
-  // 默认选择存在的最小周期
-  const getDefaultPeriod = (): 'month' | 'quarter' | 'half_year' | 'year' => {
+  // 默认选择存在的最小周期，包括一次性选项
+  const getDefaultPeriod = (): 'month' | 'quarter' | 'half_year' | 'year' | 'onetime' => {
     if (initialProduct.month_price) return 'month';
     if (initialProduct.quarter_price) return 'quarter';
     if (initialProduct.half_year_price) return 'half_year';
     if (initialProduct.year_price) return 'year';
+    if (initialProduct.onetime_price) return 'onetime';
     return 'month'; // 默认月付，虽然可能不存在
   };
   
-  const [selectedPeriod, setSelectedPeriod] = useState<'month' | 'quarter' | 'half_year' | 'year'>(getDefaultPeriod());
+  const [selectedPeriod, setSelectedPeriod] = useState<'month' | 'quarter' | 'half_year' | 'year' | 'onetime'>(getDefaultPeriod());
   const [checkingSubscription, setCheckingSubscription] = useState(false)
 
   const handleCheckCoupon = async () => {
@@ -91,14 +93,21 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
   const handleConfirmPayment = async () => {
     try {
       setCheckingSubscription(true)
-      const response = await getSubscription()
       
-      if (response.data?.plan_id) {
-        const confirmed = window.confirm('注意：更改订阅将覆盖您当前的订阅计划。')
-        if (!confirmed) return;
+      // 如果不是一次性购买，则需要检查当前订阅
+      if (selectedPeriod !== 'onetime') {
+        const response = await getSubscription()
+        
+        if (response.data?.plan_id) {
+          const confirmed = window.confirm('注意：更改订阅将覆盖您当前的订阅计划。')
+          if (!confirmed) {
+            setCheckingSubscription(false);
+            return;
+          }
+        }
       }
 
-      const period = `${selectedPeriod}_price`
+      const period = selectedPeriod === 'onetime' ? 'onetime_price' : `${selectedPeriod}_price`;
       const orderResponse = await createOrder({
         period,
         plan_id: initialProduct.id,
@@ -129,6 +138,8 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
         return initialProduct.half_year_price || 0;
       case 'year':
         return initialProduct.year_price || 0;
+      case 'onetime':
+        return initialProduct.onetime_price || 0;
       default:
         return 0;
     }
@@ -152,11 +163,12 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
 
   const getPeriodText = () => {
     switch (selectedPeriod) {
-      case 'month': return 'Monthly';
-      case 'quarter': return 'Quarterly';
-      case 'half_year': return 'Semi-Annual';
-      case 'year': return 'Annual';
-      default: return 'Monthly';
+      case 'month': return t.product.billing.monthly;
+      case 'quarter': return t.product.billing.quarterly;
+      case 'half_year': return t.product.billing.semiAnnual;
+      case 'year': return t.product.billing.annual;
+      case 'onetime': return t.product.billing.oneTime;
+      default: return t.product.billing.monthly;
     }
   }
 
@@ -164,11 +176,16 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
     if (!initialProduct) return '';
     const GB = initialProduct.transfer_enable;
     
-    if (initialProduct.reset_traffic_method === 4) {
-      return GB >= 1024 ? `${(GB / 1024).toFixed(0)}TB/Annual` : `${GB}GB/Annual`;
+    // 为一次性产品添加特殊处理
+    if (initialProduct.onetime_price) {
+      return GB >= 1024 ? `${(GB / 1024).toFixed(0)}TB/${t.product.billing.oneTime}` : `${GB}GB/${t.product.billing.oneTime}`;
     }
     
-    return GB >= 1024 ? `${(GB / 1024).toFixed(0)}TB/Month` : `${GB}GB/Month`;
+    if (initialProduct.reset_traffic_method === 4) {
+      return GB >= 1024 ? `${(GB / 1024).toFixed(0)}TB/${t.product.billing.annual}` : `${GB}GB/${t.product.billing.annual}`;
+    }
+    
+    return GB >= 1024 ? `${(GB / 1024).toFixed(0)}TB/${t.product.billing.monthly}` : `${GB}GB/${t.product.billing.monthly}`;
   }
 
   const navigation = [
@@ -254,6 +271,22 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                         <div className="flex justify-between text-gray-600">
                           <span>{t.product.price.yearlyPrice}:</span>
                           <span className="font-medium">¥{initialProduct.year_price / 100}</span>
+                        </div>
+                      )}
+                      {initialProduct.onetime_price && (
+                        <div className="flex justify-between text-gray-600">
+                          <span>{t.product.price.oneTimePrice}:</span>
+                          <span className="font-medium">¥{initialProduct.onetime_price / 100}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-gray-600">
+                        <span>{t.product.order.traffic}:</span>
+                        <span className="font-medium">{getTrafficText()}</span>
+                      </div>
+                      {(initialProduct.onetime_price) && (
+                        <div className="flex justify-between text-gray-600">
+                          <span>{t.product.order.duration}:</span>
+                          <span className="font-medium text-green-600">{t.product.order.unlimited}</span>
                         </div>
                       )}
                     </div>

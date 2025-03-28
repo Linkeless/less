@@ -1,3 +1,5 @@
+import { on } from "events";
+
 export default {
   common: {
     dashboard: '仪表盘',
@@ -93,16 +95,24 @@ export default {
       perQuarter: '/季',
       perSemiAnnual: '/半年',
       perYear: '/年',
+      oneTime: '一次性',
     },
     price: {
       monthlyPrice: '月付价格',
+      quarterlyPrice: '季付价格',
+      semiAnnualPrice: '半年付价格',
       yearlyPrice: '年付价格',
+      twoYearPrice: '两年付价格',
+      threeYearPrice: '三年付价格',
+      oneTimePrice: '一次性价格',
     },
     order: {
       details: '产品详情',
       traffic: '流量包',
       now: '立即购买',
       selectedPlan: '已选套餐',
+      duration: '时长',
+      unlimited: '无限制',
       coupon: {
         title: '使用优惠码',
         placeholder: '请输入优惠码',

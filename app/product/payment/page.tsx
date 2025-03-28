@@ -38,11 +38,23 @@ async function PaymentPageContent({
     getUserInfo().catch(() => null),
   ]);
 
+  // 确保有订单数据
+  if (!orderResponse.data) {
+    return <div>Order not found</div>;
+  }
+
+  // 如果是一次性订单，确保使用 onetime_price
+  const orderData = {
+    ...orderResponse.data,
+    is_onetime: orderResponse.data.period === 'onetime_price' && 
+                orderResponse.data.plan?.onetime_price ? true : false
+  };
+
   return (
     <PaymentForm
-      initialOrder={orderResponse.data}
+      initialOrder={orderData}
       paymentMethods={methodsResponse.data}
-      user={userResponse?.data || null} // Convert undefined to null
+      user={userResponse?.data || null}
     />
   );
 }

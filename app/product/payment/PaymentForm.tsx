@@ -16,10 +16,12 @@ interface PaymentFormProps {
     discount_amount: number | null;
     balance_amount: number;
     period: string;
+    is_onetime?: boolean;
     plan: {
       name: string;
       content: string;
       transfer_enable: number;
+      onetime_price?: number | null;
     };
   };
   paymentMethods: Array<{
@@ -118,14 +120,45 @@ export default function PaymentForm({ initialOrder, paymentMethods, user }: Paym
                     <Content html={initialOrder.plan.content} />
                   </div>
                   <div className="pt-4 border-t border-gray-200">
-                    <div className="flex justify-between text-gray-600">
-                      <span>{t.product.order.traffic}:</span>
-                      <span className="font-medium">
-                        {initialOrder.plan.transfer_enable >= 1024 
-                          ? `${(initialOrder.plan.transfer_enable / 1024).toFixed(0)}TB` 
-                          : `${initialOrder.plan.transfer_enable}GB`
-                        }
-                      </span>
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-gray-600">
+                        <span>{t.product.order.traffic}:</span>
+                        <span className="font-medium">
+                          {initialOrder.plan.transfer_enable >= 1024 
+                            ? `${(initialOrder.plan.transfer_enable / 1024).toFixed(0)}TB` 
+                            : `${initialOrder.plan.transfer_enable}GB`
+                          }
+                          {initialOrder.period === 'onetime_price' || initialOrder.is_onetime 
+                            ? `/${t.product.billing.oneTime}` 
+                            : initialOrder.period === 'year_price' 
+                              ? `/${t.product.billing.perYear}` 
+                              : `/${t.product.billing.perMonth}`
+                          }
+                        </span>
+                      </div>
+                      {/* 显示付款类型 */}
+                      <div className="flex justify-between text-gray-600">
+                        <span>{t.product.billing.period}:</span>
+                        <span className="font-medium">
+                          {initialOrder.period === 'onetime_price' || initialOrder.is_onetime 
+                            ? t.product.billing.oneTime
+                            : initialOrder.period === 'month_price' 
+                              ? t.product.billing.monthly
+                              : initialOrder.period === 'quarter_price'
+                                ? t.product.billing.quarterly
+                                : initialOrder.period === 'half_year_price'
+                                  ? t.product.billing.semiAnnual
+                                  : t.product.billing.annual
+                          }
+                        </span>
+                      </div>
+                      {/* 对于一次性订单，显示无限期标记 */}
+                      {(initialOrder.period === 'onetime_price' || initialOrder.is_onetime || initialOrder.plan.onetime_price) && (
+                        <div className="flex justify-between text-gray-600">
+                          <span>{t.product.order.duration}:</span>
+                          <span className="font-medium text-green-600">{t.product.order.unlimited}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

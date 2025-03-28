@@ -53,21 +53,34 @@ const LanguageSwitch = () => {
 export default function ProductList({ initialProducts, initialUser }: ProductListProps) {
   const router = useRouter();
   const { t } = useLanguage();
-  const [periodType, setPeriodType] = useState<'monthly' | 'yearly'>('monthly')
+  const [periodType, setPeriodType] = useState<'monthly' | 'yearly' | 'onetime'>('monthly')
   const [showAuthModal, setShowAuthModal] = useState(!initialUser)
   
+  // 检查是否有一次性套餐可用
+  const hasMonthlyPlans = initialProducts.some(plan => plan.month_price !== null && plan.show === 1);
+  const hasYearlyPlans = initialProducts.some(plan => plan.year_price !== null && plan.show === 1);
+  const hasOnetimePlans = initialProducts.some(plan => plan.onetime_price !== null && plan.show === 1);
+  
+  // 如果没有月付套餐但有年付或一次性套餐，则默认显示年付或一次性套餐
   useEffect(() => {
-    if (!initialUser) {
-      setShowAuthModal(true);
+    if (!hasMonthlyPlans) {
+      if (hasYearlyPlans) {
+        setPeriodType('yearly');
+      } else if (hasOnetimePlans) {
+        setPeriodType('onetime');
+      }
     }
-  }, [initialUser]);
+  }, [hasMonthlyPlans, hasYearlyPlans, hasOnetimePlans]);
 
   const filteredPlans = initialProducts.filter(plan => {
     if (periodType === 'monthly') {
       return plan.month_price !== null;
-    } else {
+    } else if (periodType === 'yearly') {
       return plan.year_price !== null && plan.month_price === null;
+    } else if (periodType === 'onetime') {
+      return plan.onetime_price !== null;
     }
+    return false;
   }).filter(plan => plan.show === 1)
     .sort((a, b) => a.sort - b.sort);
 
@@ -189,24 +202,39 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
             <h1 className="text-base font-semibold leading-7 text-indigo-600">{t.product.title}</h1>
             <div className="mt-8 flex justify-center">
               <div className="relative rounded-full p-0.5 bg-gray-200">
-                <button
-                  onClick={() => setPeriodType('monthly')}
-                  className={classNames(
-                    periodType === 'monthly' ? 'bg-white shadow' : '',
-                    'px-4 py-2 rounded-full text-sm font-semibold'
-                  )}
-                >
-                  {t.product.billing.monthly}
-                </button>
-                <button
-                  onClick={() => setPeriodType('yearly')}
-                  className={classNames(
-                    periodType === 'yearly' ? 'bg-white shadow' : '',
-                    'px-4 py-2 rounded-full text-sm font-semibold'
-                  )}
-                >
-                  {t.product.billing.annual}
-                </button>
+                {hasMonthlyPlans && (
+                  <button
+                    onClick={() => setPeriodType('monthly')}
+                    className={classNames(
+                      periodType === 'monthly' ? 'bg-white shadow' : '',
+                      'px-4 py-2 rounded-full text-sm font-semibold'
+                    )}
+                  >
+                    {t.product.billing.monthly}
+                  </button>
+                )}
+                {hasYearlyPlans && (
+                  <button
+                    onClick={() => setPeriodType('yearly')}
+                    className={classNames(
+                      periodType === 'yearly' ? 'bg-white shadow' : '',
+                      'px-4 py-2 rounded-full text-sm font-semibold'
+                    )}
+                  >
+                    {t.product.billing.annual}
+                  </button>
+                )}
+                {hasOnetimePlans && (
+                  <button
+                    onClick={() => setPeriodType('onetime')}
+                    className={classNames(
+                      periodType === 'onetime' ? 'bg-white shadow' : '',
+                      'px-4 py-2 rounded-full text-sm font-semibold'
+                    )}
+                  >
+                    {t.product.billing.oneTime}
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -224,11 +252,15 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
                   <span className="text-4xl font-bold">
                     ¥{periodType === 'monthly' ? 
                       (plan.month_price ? plan.month_price / 100 : 0) : 
-                      (plan.year_price ? plan.year_price / 100 : 0)
+                      periodType === 'yearly' ?
+                      (plan.year_price ? plan.year_price / 100 : 0) :
+                      (plan.onetime_price ? plan.onetime_price / 100 : 0)
                     }
                   </span>
                   <span className="text-sm font-semibold text-gray-400">
-                    /{periodType === 'monthly' ? 'month' : 'year'}
+                    {periodType === 'monthly' ? '/' + t.product.billing.monthly : 
+                     periodType === 'yearly' ? '/' + t.product.billing.annual : 
+                     '/' + t.product.billing.oneTime}
                   </span>
                 </p>
                 <Content html={plan.content} />
@@ -242,6 +274,19 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
                   <div className="flex justify-between text-gray-600">
                     <span>{t.product.price.yearlyPrice}:</span>
                     <span className="font-medium">¥{plan.year_price / 100}{t.product.billing.perYear}</span>
+                  </div>
+                )}
+                {periodType === 'onetime' && plan.onetime_price && (
+                  <div className="flex justify-between text-gray-600">
+                    <span>{t.product.price.oneTimePrice}:</span>
+                    <span className="font-medium">¥{plan.onetime_price / 100}</span>
+                  </div>
+                )}
+                {plan.onetime_price && (
+                  <div className="mt-2">
+                    <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                      {t.product.order.unlimited}
+                    </span>
                   </div>
                 )}
                 <a
