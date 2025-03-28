@@ -41,6 +41,12 @@ export async function serverFetch<T = any>(path: string, init?: RequestInit): Pr
     }
     // 特殊处理优惠券校验接口
     if (path === '/api/v1/user/coupon/check' && data && data.status === 'fail') {
+      console.log('检测到优惠券无效，直接返回消息而不抛出错误');
+      console.log('优惠券无效响应数据:', {
+        message: data.message,
+        status: data.status,
+        fullResponse: data
+      });
       return { message: data.message, valid: false } as unknown as T;
     }
     if (!response.ok || data.status === 'fail') {
