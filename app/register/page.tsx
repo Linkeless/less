@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { register, sendVerificationEmail } from '@/lib/actions';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
+import { EnvelopeIcon, KeyIcon, LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
 
 export default function Register() {
     const [formData, setFormData] = useState({
@@ -66,8 +67,18 @@ export default function Register() {
                 setIsErrorOpen(true);
             }
         } catch (err: any) {
-            setError(err.message || '注册失败');
-            setIsErrorOpen(true);
+            // 检查是否为未登录错误
+            if (err.message?.includes('未登录') || err.message?.includes('unauthorized') || err.status === 401) {
+                setError('请先登录后再访问此功能');
+                setIsErrorOpen(true);
+                // 可以在几秒后自动跳转到登录页面
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 3000);
+            } else {
+                setError(err.message || '注册失败');
+                setIsErrorOpen(true);
+            }
         }
     };
 
@@ -150,19 +161,26 @@ export default function Register() {
                             邮箱地址
                         </label>
                         <div className="mt-2 flex gap-2">
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                required
-                                value={formData.email}
-                                onChange={(e) => setFormData(prev => ({...prev, email: e.target.value}))}
-                                className="block w-full rounded-md px-3 py-1.5 text-gray-900 outline-1 outline-gray-300 focus:outline-2 focus:outline-indigo-600"
-                            />
+                            <div className="relative flex-grow">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <EnvelopeIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                </div>
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    autoComplete="email"
+                                    required
+                                    placeholder="请输入您的邮箱地址"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData(prev => ({...prev, email: e.target.value}))}
+                                    className="block w-full rounded-md pl-10 px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                />
+                            </div>
                             <button
                                 type="button"
                                 onClick={handleSendVerification}
-                                className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
+                                className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 transition-colors"
                                 disabled={verificationSent}
                             >
                                 {verificationSent ? '已发送' : '发送验证码'}
@@ -174,15 +192,20 @@ export default function Register() {
                         <label htmlFor="verify_code" className="block text-sm font-medium text-gray-900">
                             验证码
                         </label>
-                        <div className="mt-2">
+                        <div className="mt-2 relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <KeyIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                            </div>
                             <input
                                 id="verify_code"
                                 name="verify_code"
                                 type="text"
+                                autoComplete="one-time-code"
                                 required
+                                placeholder="请输入验证码"
                                 value={formData.verify_code}
                                 onChange={(e) => setFormData(prev => ({...prev, verify_code: e.target.value}))}
-                                className="block w-full rounded-md px-3 py-1.5 text-gray-900 outline-1 outline-gray-300 focus:outline-2 focus:outline-indigo-600"
+                                className="block w-full rounded-md pl-10 px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                             />
                         </div>
                     </div>
@@ -191,14 +214,18 @@ export default function Register() {
                         <label htmlFor="invite_code" className="block text-sm font-medium text-gray-900">
                             邀请码（可选）
                         </label>
-                        <div className="mt-2">
+                        <div className="mt-2 relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <UserIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                            </div>
                             <input
                                 id="invite_code"
                                 name="invite_code"
                                 type="text"
+                                placeholder="如有邀请码请在此输入"
                                 value={formData.invite_code}
                                 onChange={(e) => setFormData(prev => ({...prev, invite_code: e.target.value}))}
-                                className="block w-full rounded-md px-3 py-1.5 text-gray-900 outline-1 outline-gray-300 focus:outline-2 focus:outline-indigo-600"
+                                className="block w-full rounded-md pl-10 px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                             />
                         </div>
                     </div>
@@ -207,23 +234,28 @@ export default function Register() {
                         <label htmlFor="password" className="block text-sm font-medium text-gray-900">
                             密码
                         </label>
-                        <div className="mt-2">
+                        <div className="mt-2 relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <LockClosedIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                            </div>
                             <input
                                 id="password"
                                 name="password"
                                 type="password"
+                                autoComplete="new-password"
                                 required
+                                placeholder="请设置您的密码"
                                 value={formData.password}
                                 onChange={handlePasswordChange}
-                                className="block w-full rounded-md px-3 py-1.5 text-gray-900 outline-1 outline-gray-300 focus:outline-2 focus:outline-indigo-600"
+                                className="block w-full rounded-md pl-10 px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                             />
                         </div>
                         <div className="mt-1">
                             <div className="flex h-2 gap-1">
-                                <div className={`h-full w-1/4 rounded-sm ${passwordStrength >= 1 ? 'bg-red-500' : 'bg-gray-200'}`}></div>
-                                <div className={`h-full w-1/4 rounded-sm ${passwordStrength >= 2 ? 'bg-yellow-500' : 'bg-gray-200'}`}></div>
-                                <div className={`h-full w-1/4 rounded-sm ${passwordStrength >= 3 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
-                                <div className={`h-full w-1/4 rounded-sm ${passwordStrength >= 4 ? 'bg-green-700' : 'bg-gray-200'}`}></div>
+                                <div className={`h-full w-1/4 rounded-sm transition-colors ${passwordStrength >= 1 ? 'bg-red-500' : 'bg-gray-200'}`}></div>
+                                <div className={`h-full w-1/4 rounded-sm transition-colors ${passwordStrength >= 2 ? 'bg-yellow-500' : 'bg-gray-200'}`}></div>
+                                <div className={`h-full w-1/4 rounded-sm transition-colors ${passwordStrength >= 3 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
+                                <div className={`h-full w-1/4 rounded-sm transition-colors ${passwordStrength >= 4 ? 'bg-green-700' : 'bg-gray-200'}`}></div>
                             </div>
                             <p className="text-xs text-gray-500 mt-1">密码应包含大小写字母、数字和特殊字符</p>
                         </div>
@@ -231,7 +263,7 @@ export default function Register() {
 
                     <button
                         type="submit"
-                        className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
+                        className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 transition-colors"
                     >
                         注册
                     </button>

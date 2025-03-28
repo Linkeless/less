@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
@@ -55,6 +55,12 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
   const [periodType, setPeriodType] = useState<'monthly' | 'yearly'>('monthly')
   const [showAuthModal, setShowAuthModal] = useState(!initialUser)
   
+  useEffect(() => {
+    if (!initialUser) {
+      setShowAuthModal(true);
+    }
+  }, [initialUser]);
+
   const filteredPlans = initialProducts.filter(plan => {
     if (periodType === 'monthly') {
       return plan.month_price !== null;
@@ -144,7 +150,7 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
                     <div className="mt-4 flex md:ml-6 md:mt-0">
                       <button
                         type="button"
-                        onClick={() => window.location.href = '/login'}
+                        onClick={() => router.push('/login')}
                         className="text-sm font-medium text-yellow-600 hover:text-yellow-500"
                       >
                         Login
@@ -160,6 +166,14 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
       </div>
     );
   }
+
+  const handleOrderClick = (planId: number) => {
+    if (!initialUser) {
+      setShowAuthModal(true);
+      return;
+    }
+    router.push(`/product/order?id=${planId}`);
+  };
 
   return (
     <div className="min-h-[100dvh] flex flex-col">
@@ -236,7 +250,11 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
                   </div>
                 )}
                 <a
-                  href={`/product/order?id=${plan.id}`}
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleOrderClick(plan.id);
+                  }}
                   className="mt-6 block rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 bg-white text-indigo-600 ring-1 ring-inset ring-indigo-200 hover:ring-indigo-300"
                 >
                   {t.product.order.now}

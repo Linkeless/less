@@ -3,9 +3,10 @@ import { getProducts, getUserInfo } from '@/lib/actions'
 import ProductList from './ProductList'
 
 export default async function ProductPage() {
-  const [productsResponse, userResponse] = await Promise.all([
-    getProducts(),
-    getUserInfo().catch(() => null)
+  // Get products and user info, handling any auth errors gracefully
+  const [productsResponse, userInfo] = await Promise.all([
+    getProducts().catch(() => ({ data: [] })),
+    getUserInfo().catch(() => ({ data: null }))
   ]);
 
   return (
@@ -15,8 +16,8 @@ export default async function ProductPage() {
       </div>
     }>
       <ProductList 
-        initialProducts={productsResponse.data} 
-        initialUser={userResponse?.data || null}
+        initialProducts={productsResponse.data || []} 
+        initialUser={userInfo?.data || null}
       />
     </Suspense>
   )
