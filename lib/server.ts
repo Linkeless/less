@@ -39,7 +39,10 @@ export async function serverFetch<T = any>(path: string, init?: RequestInit): Pr
       (await cookies()).delete('auth_data');
       redirect('/login');
     }
-
+    // 特殊处理优惠券校验接口
+    if (path === '/api/v1/user/coupon/check' && data && data.status === 'fail') {
+      return { message: data.message, valid: false } as unknown as T;
+    }
     if (!response.ok || data.status === 'fail') {
       throw new APIError(
         response.status,
