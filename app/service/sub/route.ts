@@ -10,9 +10,11 @@ export async function GET(request: NextRequest) {
       : `${baseUrl}/api/v1/client/subscribe`;
       
     const userAgent = request.headers.get('user-agent') || '';
+    const host = request.headers.get('host') || '';
     const subscription = await fetch(subscribeUrl, {
       headers: {
-        'User-Agent': userAgent
+        'User-Agent': userAgent,
+        'authority': host
       }
     });
 
@@ -21,7 +23,6 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await subscription.text();
-    const host = request.headers.get('host') || '';
     const webPageUrl = `${request.nextUrl.protocol}//${host}`;
 
     return new Response(data, {
