@@ -235,25 +235,40 @@ export default function Example() {
   return (
     <>
       <style jsx global>{globalStyles}</style>
-      <div className="min-h-[100dvh] flex flex-col">
-        <TitleBar 
-          user={user}
-          navigation={navigation}
-          userNavigation={userNavigation}
-          showLanguageSwitch={true}
-        />
-        <main className="flex-1 flex flex-col">
-          <div className="flex-1 bg-gray-50">
+      <div className="min-h-[100dvh] flex flex-col bg-white dark:bg-gray-900">
+        <div className="relative isolate">
+          <div
+            aria-hidden="true"
+            className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
+          >
+            <div
+              style={{
+                clipPath:
+                  'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
+              }}
+              className="relative left-[calc(50%-11rem)] aspect-1155/678 w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+            />
+          </div>
+
+          <TitleBar 
+            user={user}
+            navigation={navigation}
+            userNavigation={userNavigation}
+            showLanguageSwitch={true}
+          />
+
+          <main className="flex-1">
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
               <div className="grid gap-6 lg:grid-cols-2">
+                {/* Update all card backgrounds to support dark mode */}
                 <div className="relative">
-                  <div className="absolute inset-px rounded-2xl bg-white"></div>
+                  <div className="absolute inset-px rounded-2xl bg-white dark:bg-gray-800"></div>
                   <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(2rem+1px)]">
                     <div className="px-8 pt-6 pb-3 sm:px-10 sm:pt-8">
                       {loading ? (
                         <div className="flex flex-col items-center justify-center py-12">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                          <p className="mt-4 text-sm text-gray-500">{t.dashboard.traffic.loading}</p>
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
+                          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">{t.dashboard.traffic.loading}</p>
                         </div>
                       ) : subscription ? (
                         <div className="space-y-6">
@@ -266,25 +281,25 @@ export default function Example() {
                               </div>
                             </div>
                               <div className="flex-1 min-w-0">
-                                <h2 className="text-xl font-semibold text-gray-900 leading-7 truncate">
+                                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7 truncate">
                                   {subscription.data?.plan?.name || t.dashboard.subscription.noActive}
                                 </h2>
                                 <div className="flex items-center gap-2 mt-1">
-                                  <p className="text-sm font-medium text-gray-600">
+                                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
                                     {t.dashboard.subscription.expires}: {formatDate(subscription.data.expired_at)}
                                   </p>
                                   {subscription.data?.plan && (
                                     <div className="flex gap-2">
                                       <a 
                                         href={`/product/order?id=${subscription.data.plan_id}`}
-                                        className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-indigo-600 hover:text-indigo-500 hover:bg-indigo-50 transition-colors duration-150"
+                                        className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 transition-colors duration-150"
                                       >
                                         {t.dashboard.subscription.renew}
                                       </a>
                                       {subscription.data.plan.reset_price !== null && subscription.data.plan.reset_price !== undefined && (
                                         <a 
                                           href={`/product/order?id=${subscription.data.plan_id}&reset=1`}
-                                          className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-indigo-600 hover:text-indigo-500 hover:bg-indigo-50 transition-colors duration-150"
+                                          className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 transition-colors duration-150"
                                         >
                                           {t.dashboard.subscription.reset}
                                         </a>
@@ -297,39 +312,39 @@ export default function Example() {
 
                           {subscription.data?.plan ? (
                             <div className="space-y-6">
-                              <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
-                                <p className="text-base font-semibold text-gray-700">{t.dashboard.subscription.trafficUsage}</p>
+                              <div className="rounded-xl bg-gradient-to-br from-indigo-50 dark:from-indigo-950 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
+                                <p className="text-base font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.subscription.trafficUsage}</p>
                                 <div className="mt-4">
                                   <div className="flex items-center justify-between mb-3">
-                                    <span className="text-2xl font-bold text-indigo-600 tabular-nums">
+                                    <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
                                       {formatBytes(subscription.data.u + subscription.data.d)}
                                     </span>
-                                    <span className="text-2xl font-bold text-gray-900 tabular-nums">
+                                    <span className="text-2xl font-bold text-gray-900 dark:text-gray-100 tabular-nums">
                                       {formatBytes(subscription.data.transfer_enable)}
                                     </span>
                                   </div>
-                                  <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                                  <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
                                     <div 
-                                      className="h-full rounded-full bg-indigo-600 transition-all duration-300" 
+                                      className="h-full rounded-full bg-indigo-600 dark:bg-indigo-500 transition-all duration-300" 
                                       style={{ 
                                         width: `${Math.min(((subscription.data.u + subscription.data.d) / subscription.data.transfer_enable * 100), 100)}%` 
                                       }}
                                     />
                                   </div>
-                                  <p className="mt-2 text-sm font-medium text-gray-600 text-right">
+                                  <p className="mt-2 text-sm font-medium text-gray-600 dark:text-gray-400 text-right">
                                     {((subscription.data.u + subscription.data.d) / subscription.data.transfer_enable * 100).toFixed(1)}% {t.dashboard.subscription.used}
                                   </p>
                                 </div>
                               </div>
 
-                              <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-4 space-y-4 shadow-sm ring-1 ring-gray-950/5">
+                              <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-4 space-y-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
                                 <div className="space-y-2">
-                                  <h3 className="text-base font-semibold text-gray-700">{t.dashboard.nodes.title}</h3>
+                                  <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.nodes.title}</h3>
                                   <Listbox value={selectedNodes} onChange={setSelectedNodes} multiple>
                                     {({ open }) => (
                                       <div className="relative mt-1">
-                                        <ListboxButton className="relative w-full cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left border focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm">
-                                          <span className="block truncate">
+                                        <ListboxButton className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-800 py-2 pl-3 pr-10 text-left border dark:border-gray-700 focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm">
+                                          <span className="block truncate text-gray-900 dark:text-gray-100">
                                             {selectedNodes.length 
                                               ? t.dashboard.nodes.selectedCount.replace('{count}', selectedNodes.length.toString())
                                               : t.dashboard.nodes.selectRegion
@@ -346,14 +361,14 @@ export default function Example() {
                                           leaveFrom="opacity-100"
                                           leaveTo="opacity-0"
                                         >
-                                          <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                          <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                                             {nodeOptions.map((node) => (
                                               <ListboxOption
                                                 key={node.id}
                                                 value={node}
                                                 className={({ active }) =>
                                                   `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                                                    active ? 'bg-indigo-100 text-indigo-900' : 'text-gray-900'
+                                                    active ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-900 dark:text-indigo-100' : 'text-gray-900 dark:text-gray-100'
                                                   }`
                                                 }
                                               >
@@ -363,7 +378,7 @@ export default function Example() {
                                                       {node.name}
                                                     </span>
                                                     {selected ? (
-                                                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600">
+                                                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600 dark:text-indigo-400">
                                                         <CheckIcon className="h-5 w-5" aria-hidden="true" />
                                                       </span>
                                                     ) : null}
@@ -376,14 +391,14 @@ export default function Example() {
                                       </div>
                                     )}
                                   </Listbox>
-                                  <p className="text-xs text-gray-500">{t.dashboard.nodes.selectHint}</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">{t.dashboard.nodes.selectHint}</p>
                                   
-                                  <h3 className="text-base font-semibold text-gray-700 mt-4">协议筛选</h3>
+                                  <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mt-4">协议筛选</h3>
                                   <Listbox value={selectedProtocols} onChange={setSelectedProtocols} multiple>
                                     {({ open }) => (
                                       <div className="relative mt-1">
-                                        <ListboxButton className="relative w-full cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left border focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm">
-                                          <span className="block truncate">
+                                        <ListboxButton className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-800 py-2 pl-3 pr-10 text-left border dark:border-gray-700 focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm">
+                                          <span className="block truncate text-gray-900 dark:text-gray-100">
                                             {selectedProtocols.length 
                                               ? `已选择 ${selectedProtocols.length} 个协议`
                                               : '选择协议'
@@ -400,14 +415,14 @@ export default function Example() {
                                           leaveFrom="opacity-100"
                                           leaveTo="opacity-0"
                                         >
-                                          <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                          <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                                             {protocolOptions.map((protocol) => (
                                               <ListboxOption
                                                 key={protocol.id}
                                                 value={protocol}
                                                 className={({ active }) =>
                                                   `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                                                    active ? 'bg-indigo-100 text-indigo-900' : 'text-gray-900'
+                                                    active ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-900 dark:text-indigo-100' : 'text-gray-900 dark:text-gray-100'
                                                   }`
                                                 }
                                               >
@@ -417,7 +432,7 @@ export default function Example() {
                                                       {protocol.name}
                                                     </span>
                                                     {selected ? (
-                                                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600">
+                                                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600 dark:text-indigo-400">
                                                         <CheckIcon className="h-5 w-5" aria-hidden="true" />
                                                       </span>
                                                     ) : null}
@@ -430,7 +445,7 @@ export default function Example() {
                                       </div>
                                     )}
                                   </Listbox>
-                                  <p className="text-xs text-gray-500">选择需要的协议进行筛选,默认为Shadowsocks</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">选择需要的协议进行筛选,默认为Shadowsocks</p>
                                 </div>
                                 
                                 <div className="space-y-3 pt-2">
@@ -468,12 +483,12 @@ export default function Example() {
                                           href={item.href}
                                           className={`flex items-center justify-center gap-1.5 px-2.5 py-2 text-sm font-medium ${
                                             ['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x'].includes(item.id)
-                                              ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                              ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                                           } rounded-lg transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                                             ['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x'].includes(item.id)
-                                              ? 'focus:ring-gray-500'
-                                              : 'focus:ring-gray-500'
+                                              ? 'focus:ring-gray-500 dark:focus:ring-gray-400'
+                                              : 'focus:ring-gray-500 dark:focus:ring-gray-400'
                                           }`}
                                         >
                                           <img 
@@ -490,8 +505,8 @@ export default function Example() {
                               </div>
                             </div>
                           ) : (
-                            <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-6 text-center shadow-sm ring-1 ring-gray-950/5">
-                              <p className="text-sm text-gray-500">{t.dashboard.purchase.needSubscription}</p>
+                            <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-6 text-center shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{t.dashboard.purchase.needSubscription}</p>
                               <a href="/product" className="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
                                 {t.dashboard.purchase.purchaseNow}
                               </a>
@@ -509,20 +524,20 @@ export default function Example() {
                 </div>
 
                 <div className="relative">
-                  <div className="absolute inset-px rounded-2xl bg-white"></div>
+                  <div className="absolute inset-px rounded-2xl bg-white dark:bg-gray-800"></div>
                   <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(2rem+1px)]">
                     <div className="px-8 pt-8 pb-3 sm:px-10">
                       <div className="flex items-center gap-3 mb-8">
                         <img 
                           src={userInfo ? getGravatarUrl(userInfo.data.email) : user.imageUrl} 
                           alt="" 
-                          className="h-16 w-16 rounded-full ring-4 ring-gray-50" 
+                          className="h-16 w-16 rounded-full ring-4 ring-gray-50 dark:ring-gray-800" 
                         />
                         <div className="flex-1 min-w-0">
-                          <h2 className="text-xl font-semibold text-gray-900 leading-7">
+                          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7">
                             {t.dashboard.userInfo}
                           </h2>
-                          <p className="text-sm font-medium text-gray-600">
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
                             {userInfo?.data.email}
                           </p>
                         </div>
@@ -535,47 +550,47 @@ export default function Example() {
                           </div>
                         ) : userInfo ? (
                           <div className="space-y-6">
-                            <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
+                            <div className="rounded-xl bg-gradient-to-br from-indigo-50 dark:from-indigo-950 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
                               <div className="flex items-center justify-between mb-4">
-                                <p className="text-base font-semibold text-gray-700">UUID</p>
+                                <p className="text-base font-semibold text-gray-700 dark:text-gray-300">UUID</p>
                                 <button
                                   onClick={() => setShowUUID(!showUUID)}
-                                  className="inline-flex items-center gap-x-1.5 rounded-md bg-gradient-to-br from-indigo-50 to-white px-2.5 py-1.5 text-xs font-medium text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                  className="inline-flex items-center gap-x-1.5 rounded-md bg-gradient-to-br from-indigo-50 dark:from-indigo-950 to-white dark:to-gray-800 px-2.5 py-1.5 text-xs font-medium text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                                 >
                                   {showUUID ? t.dashboard.uuid.hide : t.dashboard.uuid.show}
                                 </button>
                               </div>
-                              <p className="text-base font-medium text-gray-900 tracking-wide break-all font-mono">
+                              <p className="text-base font-medium text-gray-900 dark:text-gray-100 tracking-wide break-all font-mono">
                                 {showUUID ? userInfo.data.uuid : '••••••••-••••-••••-••••-••••••••••••'}
                               </p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                              <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
-                                <p className="text-base font-semibold text-gray-700">{t.dashboard.balance}</p>
-                                <p className="mt-2 text-2xl font-bold text-indigo-600 tabular-nums">
+                              <div className="rounded-xl bg-gradient-to-br from-indigo-50 dark:from-indigo-950 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
+                                <p className="text-base font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.balance}</p>
+                                <p className="mt-2 text-2xl font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
                                   ¥{(userInfo.data.balance / 100).toFixed(2)}
                                 </p>
                               </div>
-                              <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
-                                <p className="text-base font-semibold text-gray-700">{t.dashboard.commission}</p>
-                                <p className="mt-2 text-2xl font-bold text-indigo-600 tabular-nums">
+                              <div className="rounded-xl bg-gradient-to-br from-indigo-50 dark:from-indigo-950 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
+                                <p className="text-base font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.commission}</p>
+                                <p className="mt-2 text-2xl font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
                                   ¥{(userInfo.data.commission_balance / 100).toFixed(2)}
                                 </p>
                               </div>
                             </div>
                             
-                            <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-4 space-y-3 shadow-sm ring-1 ring-gray-950/5">
+                            <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-4 space-y-3 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
                               <div className="flex justify-between text-sm">
-                                <span className="font-medium text-gray-600">{t.dashboard.memberSince}</span>
-                                <span className="font-semibold text-gray-900">
+                                <span className="font-medium text-gray-600 dark:text-gray-400">{t.dashboard.memberSince}</span>
+                                <span className="font-semibold text-gray-900 dark:text-gray-100">
                                   {new Date(userInfo.data.created_at * 1000).toLocaleDateString()}
                                 </span>
                               </div>
                               {userInfo.data.telegram_id && (
                                 <div className="flex justify-between text-sm">
-                                  <span className="font-medium text-gray-600">{t.common.telegram}</span>
-                                  <span className="font-semibold text-gray-900">{t.common.connected}</span>
+                                  <span className="font-medium text-gray-600 dark:text-gray-400">{t.common.telegram}</span>
+                                  <span className="font-semibold text-gray-900 dark:text-gray-100">{t.common.connected}</span>
                                 </div>
                               )}
                             </div>
@@ -590,16 +605,16 @@ export default function Example() {
                 </div>
 
                 <div className="lg:col-span-2 relative">
-                  <div className="absolute inset-px rounded-2xl bg-white"></div>
+                  <div className="absolute inset-px rounded-2xl bg-white dark:bg-gray-800"></div>
                   <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(2rem+1px)]">
                     <div className="px-8 pt-6 pb-3 sm:px-10 sm:pt-8">
-                      <h3 className="text-xl font-semibold text-gray-900 leading-7 mb-6">{t.dashboard.trafficStats}</h3>
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7 mb-6">{t.dashboard.trafficStats}</h3>
                       {loadingTraffic ? (
                         <div className="flex justify-center py-4">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
                         </div>
                       ) : trafficLog.length > 0 ? (
-                        <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-2 shadow-sm ring-1 ring-gray-950/5">
+                        <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-2 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
                           <div className="h-[400px] md:h-[400px]">
                             <ResponsiveContainer width="100%" height="100%">
                               <BarChart
@@ -621,7 +636,7 @@ export default function Example() {
                                   tickLine={false}
                                   axisLine={{ stroke: '#E5E7EB' }}
                                   dy={10}
-                                  tick={{ transform: 'translate(0, 6)' }}
+                                  tick={{ transform: 'translate(0, 6)', fill: '#6B7280' }}
                                 />
                                 <YAxis 
                                   stroke="#6B7280"
@@ -629,10 +644,10 @@ export default function Example() {
                                   tickLine={false}
                                   axisLine={{ stroke: '#E5E7EB' }}
                                   tickFormatter={formatTraffic}
-                                  width={isMobile ? 50 : 60} // 稍微减小宽度
-                                  dx={-4} // 向左移动文字
+                                  width={isMobile ? 50 : 60}
+                                  dx={-4}
                                   allowDecimals={false}
-                                  tick={{ transform: 'translate(-3, 0)' }}
+                                  tick={{ transform: 'translate(-3, 0)', fill: '#6B7280' }}
                                 />
                                 <Tooltip
                                   cursor={{ fill: '#E5E7EB', opacity: 0.1 }}
@@ -643,6 +658,7 @@ export default function Example() {
                                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                                     padding: '0.75rem 1rem',
                                     fontSize: isMobile ? '0.75rem' : '0.875rem',
+                                    color: '#111827'
                                   }}
                                   formatter={(value: number, name: string) => [
                                     formatTraffic(value),
@@ -667,8 +683,8 @@ export default function Example() {
                           </div>
                         </div>
                       ) : (
-                        <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-6 text-center shadow-sm ring-1 ring-gray-950/5">
-                          <p className="text-sm text-gray-500">No traffic data available</p>
+                        <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-6 text-center shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">No traffic data available</p>
                         </div>
                       )}
                     </div>
@@ -677,10 +693,9 @@ export default function Example() {
                 </div>
               </div>
             </div>
-          </div>
-        </main>
+          </main>
+        </div>
       </div>
-      
 
       <Dialog 
         open={isResetDialogOpen} 
@@ -689,33 +704,33 @@ export default function Example() {
       >
         <DialogBackdrop
           transition
-          className="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
+          className="fixed inset-0 bg-gray-500/75 dark:bg-gray-950/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
         />
 
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <DialogPanel
               transition
-              className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-lg data-closed:sm:translate-y-0 data-closed:sm:scale-95"
+              className="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-lg data-closed:sm:translate-y-0 data-closed:sm:scale-95"
             >
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
                   <div className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-yellow-100 sm:mx-0 sm:size-10">
                     <ExclamationTriangleIcon aria-hidden="true" className="size-6 text-yellow-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <DialogTitle as="h3" className="text-base font-semibold text-gray-900">
+                    <DialogTitle as="h3" className="text-base font-semibold text-gray-900 dark:text-gray-100">
                       {t.dashboard.uuid.reset}
                     </DialogTitle>
                     <div className="mt-2">
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {t.dashboard.uuid.confirmReset}
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+              <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                 <button
                   type="button"
                   onClick={handleResetUUID}
@@ -727,7 +742,7 @@ export default function Example() {
                   type="button"
                   data-autofocus
                   onClick={() => setIsResetDialogOpen(false)}
-                  className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                  className="mt-3 inline-flex w-full justify-center rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 shadow-xs ring-gray-300 dark:ring-gray-700 ring-inset hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:w-auto"
                 >
                   {t.dashboard.uuid.cancel}
                 </button>

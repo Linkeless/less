@@ -89,192 +89,208 @@ export default function Register() {
     };
 
     return (
-        <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-                <img
-                    alt="Linkeless"
-                    src="/Linkeless.png"
-                    className="mx-auto h-10 w-auto"
-                />
-                <h2 className="mt-10 text-center text-2xl font-bold text-gray-900">
-                    创建您的账户
-                </h2>
-            </div>
+        <div className="bg-white dark:bg-gray-900">
+            <div className="relative isolate min-h-screen px-6 pt-14 lg:px-8">
+                <div
+                    aria-hidden="true"
+                    className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
+                >
+                    <div
+                        style={{
+                            clipPath:
+                                'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
+                        }}
+                        className="relative left-[calc(50%-11rem)] aspect-1155/678 w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+                    />
+                </div>
+                <div className="flex min-h-full flex-1 flex-col justify-center sm:mx-auto sm:w-full sm:max-w-sm">
+                    <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+                        <img
+                            alt="Linkeless"
+                            src="/Linkeless.png"
+                            className="mx-auto h-10 w-auto dark:invert"
+                        />
+                        <h2 className="mt-10 text-center text-2xl font-bold text-gray-900 dark:text-white">
+                            创建您的账户
+                        </h2>
+                    </div>
 
-            {/* 错误提示对话框 */}
-            <Transition appear show={isErrorOpen} as={Fragment}>
-                <Dialog as="div" className="relative z-10" onClose={() => setIsErrorOpen(false)}>
-                    <Transition.Child
-                        as={Fragment}
-                        enter="ease-out duration-300"
-                        enterFrom="opacity-0"
-                        enterTo="opacity-100"
-                        leave="ease-in duration-200"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
-                    >
-                        <div className="fixed inset-0 bg-black bg-opacity-25" />
-                    </Transition.Child>
-
-                    <div className="fixed inset-0 overflow-y-auto">
-                        <div className="flex min-h-full items-center justify-center p-4 text-center">
+                    {/* 错误提示对话框 */}
+                    <Transition appear show={isErrorOpen} as={Fragment}>
+                        <Dialog as="div" className="relative z-10" onClose={() => setIsErrorOpen(false)}>
                             <Transition.Child
                                 as={Fragment}
                                 enter="ease-out duration-300"
-                                enterFrom="opacity-0 scale-95"
-                                enterTo="opacity-100 scale-100"
+                                enterFrom="opacity-0"
+                                enterTo="opacity-100"
                                 leave="ease-in duration-200"
-                                leaveFrom="opacity-100 scale-100"
-                                leaveTo="opacity-0 scale-95"
+                                leaveFrom="opacity-100"
+                                leaveTo="opacity-0"
                             >
-                                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                                    <Dialog.Title
-                                        as="h3"
-                                        className="text-lg font-medium leading-6 text-gray-900"
-                                    >
-                                        {verificationSent ? '通知' : '错误'}
-                                    </Dialog.Title>
-                                    <div className="mt-2">
-                                        <p className="text-sm text-gray-500">{error}</p>
-                                    </div>
-
-                                    <div className="mt-4">
-                                        <button
-                                            type="button"
-                                            className="inline-flex justify-center rounded-md border border-transparent bg-indigo-100 px-4 py-2 text-sm font-medium text-indigo-900 hover:bg-indigo-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
-                                            onClick={() => setIsErrorOpen(false)}
-                                        >
-                                            确定
-                                        </button>
-                                    </div>
-                                </Dialog.Panel>
+                                <div className="fixed inset-0 bg-black bg-opacity-25" />
                             </Transition.Child>
-                        </div>
-                    </div>
-                </Dialog>
-            </Transition>
 
-            <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-900">
-                            邮箱地址
-                        </label>
-                        <div className="mt-2 flex gap-2">
-                            <div className="relative flex-grow">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <EnvelopeIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                            <div className="fixed inset-0 overflow-y-auto">
+                                <div className="flex min-h-full items-center justify-center p-4 text-center">
+                                    <Transition.Child
+                                        as={Fragment}
+                                        enter="ease-out duration-300"
+                                        enterFrom="opacity-0 scale-95"
+                                        enterTo="opacity-100 scale-100"
+                                        leave="ease-in duration-200"
+                                        leaveFrom="opacity-100 scale-100"
+                                        leaveTo="opacity-0 scale-95"
+                                    >
+                                        <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
+                                            <Dialog.Title
+                                                as="h3"
+                                                className="text-lg font-medium leading-6 text-gray-900 dark:text-white"
+                                            >
+                                                {verificationSent ? '通知' : '错误'}
+                                            </Dialog.Title>
+                                            <div className="mt-2">
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">{error}</p>
+                                            </div>
+
+                                            <div className="mt-4">
+                                                <button
+                                                    type="button"
+                                                    className="inline-flex justify-center rounded-md border border-transparent bg-indigo-100 dark:bg-indigo-900 px-4 py-2 text-sm font-medium text-indigo-900 dark:text-indigo-100 hover:bg-indigo-200 dark:hover:bg-indigo-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                                                    onClick={() => setIsErrorOpen(false)}
+                                                >
+                                                    确定
+                                                </button>
+                                            </div>
+                                        </Dialog.Panel>
+                                    </Transition.Child>
                                 </div>
-                                <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    autoComplete="email"
-                                    required
-                                    placeholder="请输入您的邮箱地址"
-                                    value={formData.email}
-                                    onChange={(e) => setFormData(prev => ({...prev, email: e.target.value}))}
-                                    className="block w-full rounded-md pl-10 px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                                />
                             </div>
+                        </Dialog>
+                    </Transition>
+
+                    <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div>
+                                <label htmlFor="email" className="block text-sm font-medium text-gray-900 dark:text-white">
+                                    邮箱地址
+                                </label>
+                                <div className="mt-2 flex gap-2">
+                                    <div className="relative flex-grow">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <EnvelopeIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                        </div>
+                                        <input
+                                            id="email"
+                                            name="email"
+                                            type="email"
+                                            autoComplete="email"
+                                            required
+                                            placeholder="请输入您的邮箱地址"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData(prev => ({...prev, email: e.target.value}))}
+                                            className="block w-full rounded-md pl-10 px-3 py-1.5 text-base text-gray-900 dark:text-white bg-white dark:bg-gray-800 outline-1 -outline-offset-1 outline-gray-300 dark:outline-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleSendVerification}
+                                        className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 transition-colors"
+                                        disabled={verificationSent}
+                                    >
+                                        {verificationSent ? '已发送' : '发送验证码'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="verify_code" className="block text-sm font-medium text-gray-900 dark:text-white">
+                                    验证码
+                                </label>
+                                <div className="mt-2 relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <KeyIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                    </div>
+                                    <input
+                                        id="verify_code"
+                                        name="verify_code"
+                                        type="text"
+                                        autoComplete="one-time-code"
+                                        required
+                                        placeholder="请输入验证码"
+                                        value={formData.verify_code}
+                                        onChange={(e) => setFormData(prev => ({...prev, verify_code: e.target.value}))}
+                                        className="block w-full rounded-md pl-10 px-3 py-1.5 text-base text-gray-900 dark:text-white bg-white dark:bg-gray-800 outline-1 -outline-offset-1 outline-gray-300 dark:outline-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="invite_code" className="block text-sm font-medium text-gray-900 dark:text-white">
+                                    邀请码（可选）
+                                </label>
+                                <div className="mt-2 relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <UserIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                    </div>
+                                    <input
+                                        id="invite_code"
+                                        name="invite_code"
+                                        type="text"
+                                        placeholder="如有邀请码请在此输入"
+                                        value={formData.invite_code}
+                                        onChange={(e) => setFormData(prev => ({...prev, invite_code: e.target.value}))}
+                                        className="block w-full rounded-md pl-10 px-3 py-1.5 text-base text-gray-900 dark:text-white bg-white dark:bg-gray-800 outline-1 -outline-offset-1 outline-gray-300 dark:outline-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="password" className="block text-sm font-medium text-gray-900 dark:text-white">
+                                    密码
+                                </label>
+                                <div className="mt-2 relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <LockClosedIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                    </div>
+                                    <input
+                                        id="password"
+                                        name="password"
+                                        type="password"
+                                        autoComplete="new-password"
+                                        required
+                                        placeholder="请设置您的密码"
+                                        value={formData.password}
+                                        onChange={handlePasswordChange}
+                                        className="block w-full rounded-md pl-10 px-3 py-1.5 text-base text-gray-900 dark:text-white bg-white dark:bg-gray-800 outline-1 -outline-offset-1 outline-gray-300 dark:outline-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    />
+                                </div>
+                                <div className="mt-1">
+                                    <div className="flex h-2 gap-1">
+                                        <div className={`h-full w-1/4 rounded-sm transition-colors ${passwordStrength >= 1 ? 'bg-red-500' : 'bg-gray-200'}`}></div>
+                                        <div className={`h-full w-1/4 rounded-sm transition-colors ${passwordStrength >= 2 ? 'bg-yellow-500' : 'bg-gray-200'}`}></div>
+                                        <div className={`h-full w-1/4 rounded-sm transition-colors ${passwordStrength >= 3 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
+                                        <div className={`h-full w-1/4 rounded-sm transition-colors ${passwordStrength >= 4 ? 'bg-green-700' : 'bg-gray-200'}`}></div>
+                                    </div>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">密码应包含大小写字母、数字和特殊字符</p>
+                                </div>
+                            </div>
+
                             <button
-                                type="button"
-                                onClick={handleSendVerification}
-                                className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 transition-colors"
-                                disabled={verificationSent}
+                                type="submit"
+                                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 transition-colors"
                             >
-                                {verificationSent ? '已发送' : '发送验证码'}
+                                注册
                             </button>
-                        </div>
+                        </form>
+
+                        <p className="mt-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                            已有账户？{' '}
+                            <a href="/login" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300">
+                                登录
+                            </a>
+                        </p>
                     </div>
-
-                    <div>
-                        <label htmlFor="verify_code" className="block text-sm font-medium text-gray-900">
-                            验证码
-                        </label>
-                        <div className="mt-2 relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <KeyIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                            </div>
-                            <input
-                                id="verify_code"
-                                name="verify_code"
-                                type="text"
-                                autoComplete="one-time-code"
-                                required
-                                placeholder="请输入验证码"
-                                value={formData.verify_code}
-                                onChange={(e) => setFormData(prev => ({...prev, verify_code: e.target.value}))}
-                                className="block w-full rounded-md pl-10 px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label htmlFor="invite_code" className="block text-sm font-medium text-gray-900">
-                            邀请码（可选）
-                        </label>
-                        <div className="mt-2 relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <UserIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                            </div>
-                            <input
-                                id="invite_code"
-                                name="invite_code"
-                                type="text"
-                                placeholder="如有邀请码请在此输入"
-                                value={formData.invite_code}
-                                onChange={(e) => setFormData(prev => ({...prev, invite_code: e.target.value}))}
-                                className="block w-full rounded-md pl-10 px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-900">
-                            密码
-                        </label>
-                        <div className="mt-2 relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <LockClosedIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                            </div>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                autoComplete="new-password"
-                                required
-                                placeholder="请设置您的密码"
-                                value={formData.password}
-                                onChange={handlePasswordChange}
-                                className="block w-full rounded-md pl-10 px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                            />
-                        </div>
-                        <div className="mt-1">
-                            <div className="flex h-2 gap-1">
-                                <div className={`h-full w-1/4 rounded-sm transition-colors ${passwordStrength >= 1 ? 'bg-red-500' : 'bg-gray-200'}`}></div>
-                                <div className={`h-full w-1/4 rounded-sm transition-colors ${passwordStrength >= 2 ? 'bg-yellow-500' : 'bg-gray-200'}`}></div>
-                                <div className={`h-full w-1/4 rounded-sm transition-colors ${passwordStrength >= 3 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
-                                <div className={`h-full w-1/4 rounded-sm transition-colors ${passwordStrength >= 4 ? 'bg-green-700' : 'bg-gray-200'}`}></div>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1">密码应包含大小写字母、数字和特殊字符</p>
-                        </div>
-                    </div>
-
-                    <button
-                        type="submit"
-                        className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 transition-colors"
-                    >
-                        注册
-                    </button>
-                </form>
-
-                <p className="mt-10 text-center text-sm text-gray-500">
-                    已有账户？{' '}
-                    <a href="/login" className="font-semibold text-indigo-600 hover:text-indigo-500">
-                        登录
-                    </a>
-                </p>
+                </div>
             </div>
         </div>
     );
