@@ -22,11 +22,15 @@ const getGravatarUrl = (email: string) => {
   return `https://www.gravatar.com/avatar/${hash}?s=256&d=monsterid`;
 };
 
-const getFilteredUrl = (token: string, nodes: Array<{id: string}>) => {
+const getFilteredUrl = (token: string, nodes: Array<{id: string}>, protocols: Array<{id: string}>) => {
   const baseUrl = process.env.NEXT_PUBLIC_SUB_API_URL || `${window.location.protocol}//${window.location.host}`;
   let url = `${baseUrl}/service/sub?token=${token}`;
   if (nodes.length) {
     url += `&filter=${nodes.map(node => node.id).join('|')}`;
+  }
+  // Only add ss2022=true parameter when ss2022 is selected
+  if (protocols.some(p => p.id === 'ss2022')) {
+    url += '&ss2022=true';
   }
   return url;
 };
@@ -62,6 +66,11 @@ const nodeOptions = [
   { id: 'N2', name: '京德-北京入口' },
   { id: 'W1', name: '成港-成都入口' },
   { id: 'Special', name: '直连线路' },  
+]
+
+const protocolOptions = [
+  { id: 'ss', name: 'Shadowsocks' },
+  { id: 'ss2022', name: 'SS-2022' }
 ]
 
 // Add global styles at the top
@@ -124,6 +133,7 @@ export default function Example() {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedNodes, setSelectedNodes] = useState<typeof nodeOptions>([])
+  const [selectedProtocols, setSelectedProtocols] = useState<typeof protocolOptions>([])
   const [userInfo, setUserInfo] = useState<UserInfoResponse | null>(null)
   const [loadingUserInfo, setLoadingUserInfo] = useState(true)
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
@@ -367,17 +377,71 @@ export default function Example() {
                                     )}
                                   </Listbox>
                                   <p className="text-xs text-gray-500">{t.dashboard.nodes.selectHint}</p>
+                                  
+                                  <h3 className="text-base font-semibold text-gray-700 mt-4">协议筛选</h3>
+                                  <Listbox value={selectedProtocols} onChange={setSelectedProtocols} multiple>
+                                    {({ open }) => (
+                                      <div className="relative mt-1">
+                                        <ListboxButton className="relative w-full cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left border focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm">
+                                          <span className="block truncate">
+                                            {selectedProtocols.length 
+                                              ? `已选择 ${selectedProtocols.length} 个协议`
+                                              : '选择协议'
+                                            }
+                                          </span>
+                                          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                            <ChevronDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                          </span>
+                                        </ListboxButton>
+                                        <Transition
+                                          show={open}
+                                          as="div"
+                                          leave="transition ease-in duration-100"
+                                          leaveFrom="opacity-100"
+                                          leaveTo="opacity-0"
+                                        >
+                                          <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                            {protocolOptions.map((protocol) => (
+                                              <ListboxOption
+                                                key={protocol.id}
+                                                value={protocol}
+                                                className={({ active }) =>
+                                                  `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                                                    active ? 'bg-indigo-100 text-indigo-900' : 'text-gray-900'
+                                                  }`
+                                                }
+                                              >
+                                                {({ selected, active }) => (
+                                                  <>
+                                                    <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                                      {protocol.name}
+                                                    </span>
+                                                    {selected ? (
+                                                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600">
+                                                        <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                      </span>
+                                                    ) : null}
+                                                  </>
+                                                )}
+                                              </ListboxOption>
+                                            ))}
+                                          </ListboxOptions>
+                                        </Transition>
+                                      </div>
+                                    )}
+                                  </Listbox>
+                                  <p className="text-xs text-gray-500">选择需要的协议进行筛选,默认为Shadowsocks</p>
                                 </div>
                                 
                                 <div className="space-y-3 pt-2">
                                   <div className="grid grid-cols-1 gap-2">
                                     {[
-                                      { id: 'copy', name: t.dashboard.traffic.copyUrl, onClick: () => handleCopyUrl(getFilteredUrl(subscription.data.token, selectedNodes)) },
+                                      { id: 'copy', name: t.dashboard.traffic.copyUrl, onClick: () => handleCopyUrl(getFilteredUrl(subscription.data.token, selectedNodes, selectedProtocols)) },
                                       ...(['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x', 'loon'] as const).map(client => ({
                                         id: client,
                                         name: client === 'quantumult-x' ? 'Quantumult X' : client.charAt(0).toUpperCase() + client.slice(1),
                                         href: (() => {
-                                          const url = getFilteredUrl(subscription.data.token, selectedNodes);
+                                          const url = getFilteredUrl(subscription.data.token, selectedNodes, selectedProtocols);
                                           const clientUrls = {
                                             'clash': `clash://install-config?url=${encodeURIComponent(url + '&flag=clash')}`,
                                             'surge': `surge:///install-config?url=${encodeURIComponent(url + '&flag=surge')}`,
