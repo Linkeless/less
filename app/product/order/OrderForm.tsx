@@ -25,7 +25,7 @@ interface ContentProps {
 function Content({ html }: ContentProps) {
   return (
     <div 
-      className="mt-4 [&_.t4]:mb-4 [&_.tit]:font-medium [&_.tit]:text-gray-900 [&_.desc]:mt-2 [&_.desc]:text-gray-600 [&_i.gou]:mr-2 [&_i.gou]:inline-block [&_i.gou]:h-4 [&_i.gou]:w-4 [&_i.gou]:rounded-full [&_i.gou]:bg-blue-50 [&_i.gou]:text-blue-500 [&_i.gou:before]:content-['✓']" 
+      className="mt-4 [&_.t4]:mb-4 [&_.tit]:font-medium [&_.tit]:text-gray-900 dark:[&_.tit]:text-gray-100 [&_.desc]:mt-2 [&_.desc]:text-gray-600 dark:[&_.desc]:text-gray-400 [&_i.gou]:mr-2 [&_i.gou]:inline-block [&_i.gou]:h-4 [&_i.gou]:w-4 [&_i.gou]:rounded-full [&_i.gou]:bg-blue-50 dark:[&_i.gou]:bg-blue-900/50 [&_i.gou]:text-blue-500 dark:[&_i.gou]:text-blue-300 [&_i.gou:before]:content-['✓']" 
       dangerouslySetInnerHTML={{ __html: html }} 
     />
   );
@@ -210,15 +210,15 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
     return (
       <dl className="space-y-4">
         <div className="flex items-center justify-between">
-          <dt className="text-gray-600">{t.product.order.selectedPlan}</dt>
-          <dd className="font-medium text-gray-900">{initialProduct.name} ({getPeriodText()})</dd>
+          <dt className="text-gray-600 dark:text-gray-400">{t.product.order.selectedPlan}</dt>
+          <dd className="font-medium text-gray-900 dark:text-gray-100">{initialProduct.name} ({getPeriodText()})</dd>
         </div>
         <div className="flex items-center justify-between">
-          <dt className="text-gray-600">{t.product.payment.originalPrice}</dt>
-          <dd className="font-medium text-gray-900">¥{basePrice.toFixed(2)}</dd>
+          <dt className="text-gray-600 dark:text-gray-400">{t.product.payment.originalPrice}</dt>
+          <dd className="font-medium text-gray-900 dark:text-gray-100">¥{basePrice.toFixed(2)}</dd>
         </div>
         {discountValue > 0 && (
-          <div className="flex items-center justify-between text-green-600">
+          <div className="flex items-center justify-between text-green-600 dark:text-green-400">
             <dt>
               {discountType === 2
                 ? `${t.product.payment.discount} (${discountValue}%)`
@@ -227,16 +227,16 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
             <dd className="font-medium">-¥{discountAmount.toFixed(2)}</dd>
           </div>
         )}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-          <dt className="text-lg font-medium text-gray-900">{t.product.payment.totalPayment}</dt>
-          <dd className="text-xl font-semibold text-gray-900">¥{finalPrice.toFixed(2)}</dd>
+        <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+          <dt className="text-lg font-medium text-gray-900 dark:text-gray-100">{t.product.payment.totalPayment}</dt>
+          <dd className="text-xl font-semibold text-gray-900 dark:text-gray-100">¥{finalPrice.toFixed(2)}</dd>
         </div>
       </dl>
     )
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col">
+    <div className="min-h-[100dvh] flex flex-col dark:bg-gray-900 dark:text-gray-100">
       <TitleBar 
         user={{
           name: user?.email.split('@')[0] || 'User',
@@ -247,46 +247,46 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
         userNavigation={userNavigation} 
       />
 
-      <div className="flex-1 bg-gray-50">
+      <div className="flex-1 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="md:grid md:grid-cols-2 md:gap-x-8 lg:gap-x-12">
             {/* Left side - Product Information */}
             <div className="mb-8 md:mb-0">
-              <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5 p-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">{t.product.order.details}</h2>
+              <div className="rounded-2xl bg-white dark:bg-gray-800 shadow-sm ring-1 ring-gray-900/5 dark:ring-gray-700 p-8">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">{t.product.order.details}</h2>
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">{initialProduct.name}</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{initialProduct.name}</h3>
                     <Content html={initialProduct.content} />
                   </div>
-                  <div className="pt-4 border-t border-gray-200">
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                     <div className="space-y-3">
                       {initialProduct.month_price && (
-                        <div className="flex justify-between text-gray-600">
+                        <div className="flex justify-between text-gray-600 dark:text-gray-400">
                           <span>{t.product.price.monthlyPrice}:</span>
                           <span className="font-medium">¥{initialProduct.month_price / 100}</span>
                         </div>
                       )}
                       {initialProduct.year_price && (
-                        <div className="flex justify-between text-gray-600">
+                        <div className="flex justify-between text-gray-600 dark:text-gray-400">
                           <span>{t.product.price.yearlyPrice}:</span>
                           <span className="font-medium">¥{initialProduct.year_price / 100}</span>
                         </div>
                       )}
                       {initialProduct.onetime_price && (
-                        <div className="flex justify-between text-gray-600">
+                        <div className="flex justify-between text-gray-600 dark:text-gray-400">
                           <span>{t.product.price.oneTimePrice}:</span>
                           <span className="font-medium">¥{initialProduct.onetime_price / 100}</span>
                         </div>
                       )}
-                      <div className="flex justify-between text-gray-600">
+                      <div className="flex justify-between text-gray-600 dark:text-gray-400">
                         <span>{t.product.order.traffic}:</span>
                         <span className="font-medium">{getTrafficText()}</span>
                       </div>
                       {(initialProduct.onetime_price) && (
-                        <div className="flex justify-between text-gray-600">
+                        <div className="flex justify-between text-gray-600 dark:text-gray-400">
                           <span>{t.product.order.duration}:</span>
-                          <span className="font-medium text-green-600">{t.product.order.unlimited}</span>
+                          <span className="font-medium text-green-600 dark:text-green-400">{t.product.order.unlimited}</span>
                         </div>
                       )}
                     </div>
@@ -298,10 +298,10 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
             {/* Right side - Order Summary */}
             <div>
               <div className="sticky top-8 space-y-6">
-                <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+                <div className="rounded-2xl bg-white dark:bg-gray-800 shadow-sm ring-1 ring-gray-900/5 dark:ring-gray-700">
                   {/* Billing Period Selection */}
                   <div className="p-8">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6">{t.product.billing.period}</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">{t.product.billing.period}</h2>
                     <RadioGroup value={selectedPeriod} onChange={setSelectedPeriod}>
                       <RadioGroup.Label className="sr-only">计费周期</RadioGroup.Label>
                       <div className="grid grid-cols-2 gap-4">
@@ -311,7 +311,9 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                             value={period.value}
                             className={({ checked }) =>
                               classNames(
-                                checked ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-gray-200 text-gray-700 hover:border-gray-300',
+                                checked 
+                                  ? 'border-indigo-600 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-900/50 text-indigo-900 dark:text-indigo-100' 
+                                  : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600',
                                 'flex flex-col items-center justify-center rounded-xl border-2 p-4 text-sm transition-colors cursor-pointer'
                               )
                             }
@@ -321,7 +323,7 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                                 <RadioGroup.Label as="span" className="font-medium">
                                   {period.label}
                                 </RadioGroup.Label>
-                                <RadioGroup.Description as="span" className="mt-1">
+                                <RadioGroup.Description as="span" className="mt-1 text-gray-600 dark:text-gray-400">
                                   ¥{period.price}{period.unit}
                                 </RadioGroup.Description>
                               </>
@@ -333,13 +335,13 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                   </div>
 
                   {/* Order Summary Section */}
-                  <div className="border-t border-gray-900/5 p-8">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6">{t.product.payment.summary}</h2>
+                  <div className="border-t border-gray-900/5 dark:border-gray-700 p-8">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">{t.product.payment.summary}</h2>
                     {renderOrderSummary()}
 
                     {/* Coupon Input */}
-                    <div className="mt-6 pt-6 border-t border-gray-200">
-                      <label htmlFor="coupon-code" className="block text-sm font-medium text-gray-700 mb-3">
+                    <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                      <label htmlFor="coupon-code" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                         {t.product.order.coupon.title}
                       </label>
                       <div className="flex space-x-4">
@@ -349,34 +351,38 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                             type="text"
                             value={couponCode}
                             onChange={(e) => setCouponCode(e.target.value)}
-                            className="block w-full pl-4 py-2 h-10 rounded-lg border-gray-300 shadow-sm 
-                                      focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            className="block w-full pl-4 py-2 h-10 rounded-lg border-gray-300 dark:border-gray-600 
+                                      dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-indigo-500 
+                                      dark:focus:border-indigo-400 focus:ring-indigo-500 dark:focus:ring-indigo-400 sm:text-sm"
                             placeholder={t.product.order.coupon.placeholder}
                           />
                         </div>
                         <button
                           onClick={handleCheckCoupon}
-                          className="rounded-lg bg-gray-50 px-4 py-2 h-10 text-sm font-medium 
-                                   text-gray-700 hover:bg-gray-100 border border-gray-300"
+                          className="rounded-lg bg-gray-50 dark:bg-gray-700 px-4 py-2 h-10 text-sm font-medium 
+                                   text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 
+                                   border border-gray-300 dark:border-gray-600"
                         >
                           {t.product.order.coupon.verify}
                         </button>
                       </div>
                       {couponError && (
-                        <p className="mt-2 text-sm text-red-600 pl-4">{couponError}</p>
+                        <p className="mt-2 text-sm text-red-600 dark:text-red-400 pl-4">{couponError}</p>
                       )}
                     </div>
 
                     {/* Final Price and Confirm Button */}
                     <div className="mt-8 space-y-4">
                       <div className="flex items-center justify-between">
-                        <dt className="text-lg font-medium text-gray-900">{t.product.payment.totalPayment}</dt>
-                        <dd className="text-xl font-semibold text-gray-900">¥{calculatePrices().finalPrice.toFixed(2)}</dd>
+                        <dt className="text-lg font-medium text-gray-900 dark:text-gray-100">{t.product.payment.totalPayment}</dt>
+                        <dd className="text-xl font-semibold text-gray-900 dark:text-gray-100">¥{calculatePrices().finalPrice.toFixed(2)}</dd>
                       </div>
                       <button
                         onClick={handleConfirmPayment}
                         disabled={checkingSubscription}
-                        className="w-full rounded-xl bg-indigo-600 px-6 py-4 text-base font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full rounded-xl bg-indigo-600 dark:bg-indigo-500 px-6 py-4 text-base font-semibold 
+                                 text-white shadow-sm hover:bg-indigo-700 dark:hover:bg-indigo-600 
+                                 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {checkingSubscription ? t.product.payment.processing : t.product.payment.payNow}
                       </button>
