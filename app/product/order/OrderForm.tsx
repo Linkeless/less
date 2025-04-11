@@ -38,6 +38,7 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
   const [discountType, setDiscountType] = useState(0) // 2: percent, 1: fixed
   const [discountValue, setDiscountValue] = useState(0)
   const [couponError, setCouponError] = useState('')
+  const [orderError, setOrderError] = useState('') // 新增订单错误信息状态
   
   // 构建可选的计费周期
   const availablePeriods = [
@@ -93,6 +94,7 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
   const handleConfirmPayment = async () => {
     try {
       setCheckingSubscription(true)
+      setOrderError('') // 清空之前的错误
       
       // 如果不是一次性购买，则需要检查当前订阅
       if (selectedPeriod !== 'onetime') {
@@ -117,11 +119,11 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
       if (orderResponse.status === 'success' && orderResponse.data) {
         window.location.href = `/product/payment?trade_no=${orderResponse.data}`
       } else {
-        alert(orderResponse.message || '创建订单失败')
+        setOrderError(orderResponse.message || '创建订单失败')
       }
     } catch (error: any) {
       console.error('处理订单失败:', error)
-      alert(error.message || '处理订单失败')
+      setOrderError(error.message || '处理订单失败')
     } finally {
       setCheckingSubscription(false)
     }
@@ -377,6 +379,12 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                         <dt className="text-lg font-medium text-gray-900 dark:text-gray-100">{t.product.payment.totalPayment}</dt>
                         <dd className="text-xl font-semibold text-gray-900 dark:text-gray-100">¥{calculatePrices().finalPrice.toFixed(2)}</dd>
                       </div>
+                      
+                      {/* 显示订单错误信息 */}
+                      {orderError && (
+                        <p className="mt-2 text-sm text-red-600 dark:text-red-400 pl-4">{orderError}</p>
+                      )}
+                      
                       <button
                         onClick={handleConfirmPayment}
                         disabled={checkingSubscription}
@@ -386,6 +394,18 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                       >
                         {checkingSubscription ? t.product.payment.processing : t.product.payment.payNow}
                       </button>
+                      
+                      {/* 如果有未付款订单错误，显示前往订单列表的链接 */}
+                      {orderError && orderError.includes('未付款') && (
+                        <div className="mt-2 text-center">
+                          <a 
+                            href="/orders" 
+                            className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                          >
+                            {t.product.order.viewPendingOrders || '查看未完成订单'}
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

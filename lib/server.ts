@@ -43,6 +43,18 @@ export async function serverFetch<T = any>(path: string, init?: RequestInit): Pr
     if (path === '/api/v1/user/coupon/check' && data && data.status === 'fail') {
       return { message: data.message, valid: false } as unknown as T;
     }
+    
+    // 特殊处理订单创建接口，如果是未付款订单错误，返回适合的格式便于前端处理
+    if (path.startsWith('/api/v1/user/order/save') && data && data.status === 'fail' && 
+        (data.message?.includes('未付款') || data.message?.includes('开通中的订单'))) {
+      return { 
+        status: 'fail', 
+        message: data.message,
+        data: null,
+        error: 'EXISTING_UNPAID_ORDER' 
+      } as unknown as T;
+    }
+    
     if (!response.ok || data.status === 'fail') {
       throw new APIError(
         response.status,

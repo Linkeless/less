@@ -123,6 +123,8 @@ export default {
         success: 'Coupon applied successfully',
       },
       confirmChange: 'Note: Changing subscription will override your current subscription.',
+      subscriptionChangeWarning: 'Changing your subscription will override your current plan. Are you sure you want to proceed?',
+      viewPendingOrders: 'View Pending Orders',
     },
     payment: {
       methods: 'Payment Methods',

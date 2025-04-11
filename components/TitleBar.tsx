@@ -86,7 +86,7 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
   };
 
   return (
-    <Disclosure as="nav" className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 flex-none">
+    <Disclosure as="nav" className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 flex-none transition-colors duration-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
@@ -169,9 +169,9 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
               onClick={(e) => handleNavigation(item.href, e)}
               className={classNames(
                 item.current 
-                  ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' 
-                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100',
-                'block rounded-md px-3 py-2 text-base font-medium'
+                  ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' 
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-white',
+                'block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200'
               )}
             >
               {item.name}
@@ -196,11 +196,17 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
             {userNavigation.map((item) => (
               <DisclosureButton
                 key={item.name}
-                as="button"
-                onClick={item.onClick}
-                className="block w-full rounded-md px-3 py-2 text-base font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
+                as="div"
+                className="w-full"
               >
-                {item.name}
+                {item.component || (
+                  <button
+                    onClick={item.onClick}
+                    className="block w-full rounded-md px-3 py-2 text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-white text-left transition-colors duration-200"
+                  >
+                    {item.name}
+                  </button>
+                )}
               </DisclosureButton>
             ))}
           </div>

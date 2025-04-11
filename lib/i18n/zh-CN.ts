@@ -123,6 +123,8 @@ export default {
         success: '优惠码应用成功',
       },
       confirmChange: '注意：更改订阅将覆盖当前订阅。',
+      subscriptionChangeWarning: '更改订阅将覆盖当前订阅。',
+      viewPendingOrders: '查看待处理订单',
     },
     payment: {
       methods: '支付方式',
