@@ -184,7 +184,7 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
   };
 
   return (
-    <div className="min-h-[100dvh] flex flex-col dark:bg-gray-900 dark:text-gray-100">
+    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
       <AuthModal 
         isOpen={showAuthModal} 
         onClose={() => setShowAuthModal(false)} 
@@ -196,111 +196,132 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
         showLanguageSwitch={true}
       />
       
-      <main className="flex-1 bg-gray-50 dark:bg-gray-900">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <h1 className="text-base font-semibold leading-7 text-indigo-600 dark:text-indigo-400">{t.product.title}</h1>
-            <div className="mt-8 flex justify-center">
-              <div className="relative rounded-full p-0.5 bg-gray-200 dark:bg-gray-700">
-                {hasMonthlyPlans && (
-                  <button
-                    onClick={() => setPeriodType('monthly')}
-                    className={classNames(
-                      periodType === 'monthly' ? 'bg-white dark:bg-gray-800 shadow' : '',
-                      'px-4 py-2 rounded-full text-sm font-semibold dark:text-gray-200'
-                    )}
-                  >
-                    {t.product.billing.monthly}
-                  </button>
-                )}
-                {hasYearlyPlans && (
-                  <button
-                    onClick={() => setPeriodType('yearly')}
-                    className={classNames(
-                      periodType === 'yearly' ? 'bg-white dark:bg-gray-800 shadow' : '',
-                      'px-4 py-2 rounded-full text-sm font-semibold dark:text-gray-200'
-                    )}
-                  >
-                    {t.product.billing.annual}
-                  </button>
-                )}
-                {hasOnetimePlans && (
-                  <button
-                    onClick={() => setPeriodType('onetime')}
-                    className={classNames(
-                      periodType === 'onetime' ? 'bg-white dark:bg-gray-800 shadow' : '',
-                      'px-4 py-2 rounded-full text-sm font-semibold dark:text-gray-200'
-                    )}
-                  >
-                    {t.product.billing.oneTime}
-                  </button>
-                )}
-              </div>
-            </div>
+      <main className="flex-1">
+        <div className="relative isolate">
+          {/* Background Gradient */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
+          >
+            <div
+              style={{
+                clipPath:
+                  'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
+              }}
+              className="relative left-[calc(50%-11rem)] aspect-1155/678 w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+            />
           </div>
 
-          <div className="mx-auto mt-16 grid max-w-lg gap-8 lg:max-w-none lg:grid-cols-3">
-            {filteredPlans.map((plan) => (
-              <div
-                key={plan.id}
-                className="rounded-3xl p-8 ring-1 ring-gray-200 dark:ring-gray-700 dark:bg-gray-800 xl:p-10"
-              >
-                <h3 className="text-lg font-semibold leading-8 text-gray-900 dark:text-gray-100">
-                  {plan.name}
-                </h3>
-                <p className="mt-6 flex items-baseline gap-x-1 text-gray-900 dark:text-gray-100">
-                  <span className="text-4xl font-bold">
-                    ¥{periodType === 'monthly' ? 
-                      (plan.month_price ? plan.month_price / 100 : 0) : 
-                      periodType === 'yearly' ?
-                      (plan.year_price ? plan.year_price / 100 : 0) :
-                      (plan.onetime_price ? plan.onetime_price / 100 : 0)
-                    }
-                  </span>
-                  <span className="text-sm font-semibold text-gray-400 dark:text-gray-500">
-                    {periodType === 'monthly' ? '/' + t.product.billing.monthly : 
-                     periodType === 'yearly' ? '/' + t.product.billing.annual : 
-                     '/' + t.product.billing.oneTime}
-                  </span>
-                </p>
-                <Content html={plan.content} />
-                {periodType === 'monthly' && plan.month_price && (
-                  <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                    <span>{t.product.price.monthlyPrice}:</span>
-                    <span className="font-medium">¥{plan.month_price / 100}{t.product.billing.perMonth}</span>
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <h1 className="text-base font-semibold leading-7 text-indigo-600 dark:text-indigo-400">{t.product.title}</h1>
+              <div className="mt-8 flex justify-center">
+                <div className="relative rounded-full p-0.5 bg-gradient-to-r from-indigo-500 to-purple-500">
+                  <div className="relative rounded-full bg-white dark:bg-gray-900 p-0.5">
+                    {hasMonthlyPlans && (
+                      <button
+                        onClick={() => setPeriodType('monthly')}
+                        className={classNames(
+                          periodType === 'monthly' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white' : 'text-gray-900 dark:text-gray-100',
+                          'px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200'
+                        )}
+                      >
+                        {t.product.billing.monthly}
+                      </button>
+                    )}
+                    {hasYearlyPlans && (
+                      <button
+                        onClick={() => setPeriodType('yearly')}
+                        className={classNames(
+                          periodType === 'yearly' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white' : 'text-gray-900 dark:text-gray-100',
+                          'px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200'
+                        )}
+                      >
+                        {t.product.billing.annual}
+                      </button>
+                    )}
+                    {hasOnetimePlans && (
+                      <button
+                        onClick={() => setPeriodType('onetime')}
+                        className={classNames(
+                          periodType === 'onetime' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white' : 'text-gray-900 dark:text-gray-100',
+                          'px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200'
+                        )}
+                      >
+                        {t.product.billing.oneTime}
+                      </button>
+                    )}
                   </div>
-                )}
-                {periodType === 'yearly' && plan.year_price && (
-                  <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                    <span>{t.product.price.yearlyPrice}:</span>
-                    <span className="font-medium">¥{plan.year_price / 100}{t.product.billing.perYear}</span>
-                  </div>
-                )}
-                {periodType === 'onetime' && plan.onetime_price && (
-                  <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                    <span>{t.product.price.oneTimePrice}:</span>
-                    <span className="font-medium">¥{plan.onetime_price / 100}</span>
-                  </div>
-                )}
-                {plan.onetime_price && (
-                  <div className="mt-2">
-                    <span className="inline-flex items-center rounded-md bg-green-50 dark:bg-green-900 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-300 ring-1 ring-inset ring-green-600/20">
-                      {t.product.order.unlimited}
-                    </span>
-                  </div>
-                )}
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleOrderClick(plan.id);
-                  }}
-                  className="mt-6 block rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 ring-1 ring-inset ring-indigo-200 dark:ring-indigo-500 hover:ring-indigo-300 dark:hover:ring-indigo-400"
-                >
-                  {t.product.order.now}
-                </a>
+                </div>
               </div>
-            ))}
+            </div>
+
+            <div className="mx-auto mt-16 grid max-w-lg gap-8 lg:max-w-none lg:grid-cols-3">
+              {filteredPlans.map((plan) => (
+                <div
+                  key={plan.id}
+                  className="relative group"
+                >
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-3xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                  <div className="relative rounded-3xl bg-white dark:bg-gray-800 p-8 ring-1 ring-gray-200 dark:ring-gray-700 xl:p-10">
+                    <h3 className="text-lg font-semibold leading-8 text-gray-900 dark:text-gray-100">
+                      {plan.name}
+                    </h3>
+                    <p className="mt-6 flex items-baseline gap-x-1 text-gray-900 dark:text-gray-100">
+                      <span className="text-4xl font-bold">
+                        ¥{periodType === 'monthly' ? 
+                          (plan.month_price ? plan.month_price / 100 : 0) : 
+                          periodType === 'yearly' ?
+                          (plan.year_price ? plan.year_price / 100 : 0) :
+                          (plan.onetime_price ? plan.onetime_price / 100 : 0)
+                        }
+                      </span>
+                      <span className="text-sm font-semibold text-gray-400 dark:text-gray-500">
+                        {periodType === 'monthly' ? '/' + t.product.billing.monthly : 
+                         periodType === 'yearly' ? '/' + t.product.billing.annual : 
+                         '/' + t.product.billing.oneTime}
+                      </span>
+                    </p>
+                    <Content html={plan.content} />
+                    {periodType === 'monthly' && plan.month_price && (
+                      <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                        <span>{t.product.price.monthlyPrice}:</span>
+                        <span className="font-medium">¥{plan.month_price / 100}{t.product.billing.perMonth}</span>
+                      </div>
+                    )}
+                    {periodType === 'yearly' && plan.year_price && (
+                      <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                        <span>{t.product.price.yearlyPrice}:</span>
+                        <span className="font-medium">¥{plan.year_price / 100}{t.product.billing.perYear}</span>
+                      </div>
+                    )}
+                    {periodType === 'onetime' && plan.onetime_price && (
+                      <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                        <span>{t.product.price.oneTimePrice}:</span>
+                        <span className="font-medium">¥{plan.onetime_price / 100}</span>
+                      </div>
+                    )}
+                    {plan.onetime_price && (
+                      <div className="mt-2">
+                        <span className="inline-flex items-center rounded-md bg-green-50 dark:bg-green-900 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-300 ring-1 ring-inset ring-green-600/20">
+                          {t.product.order.unlimited}
+                        </span>
+                      </div>
+                    )}
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleOrderClick(plan.id);
+                      }}
+                      className="mt-6 block rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-sm hover:from-indigo-500 hover:to-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all duration-200"
+                    >
+                      {t.product.order.now}
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </main>

@@ -1,9 +1,13 @@
 'use client';
 
 import { handleLogout } from '@/lib/authUtils';
+import { useLanguage } from '@/lib/i18n/hooks';
+import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 
 export default function SignOutButton() {
-  // 简化登出处理函数，移除冗余的错误处理
+  const { language } = useLanguage();
+  const signOutText = language === 'zh-CN' ? '退出登录' : 'Sign out';
+
   const handleSignOut = () => {
     handleLogout();
   };
@@ -11,9 +15,10 @@ export default function SignOutButton() {
   return (
     <button
       onClick={handleSignOut}
-      className="block w-full px-4 py-2 text-sm text-left text-gray-700"
+      className="flex w-full items-center gap-2 rounded-md px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
     >
-      Sign out
+      <ArrowRightOnRectangleIcon className="size-4" />
+      <span>{signOutText}</span>
     </button>
   );
 }

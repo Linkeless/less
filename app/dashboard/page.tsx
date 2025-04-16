@@ -127,7 +127,7 @@ const LanguageSwitch = () => {
   );
 };
 
-export default function Example() {
+export default function Dashboard() {
   const router = useRouter();
   const { t } = useLanguage();
   const [subscription, setSubscription] = useState<Subscription | null>(null)
@@ -235,8 +235,9 @@ export default function Example() {
   return (
     <>
       <style jsx global>{globalStyles}</style>
-      <div className="min-h-[100dvh] flex flex-col bg-white dark:bg-gray-900">
+      <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
         <div className="relative isolate">
+          {/* Background Gradient */}
           <div
             aria-hidden="true"
             className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
@@ -260,10 +261,10 @@ export default function Example() {
           <main className="flex-1">
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
               <div className="grid gap-6 lg:grid-cols-2">
-                {/* Update all card backgrounds to support dark mode */}
-                <div className="relative">
-                  <div className="absolute inset-px rounded-2xl bg-white dark:bg-gray-800"></div>
-                  <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(2rem+1px)]">
+                {/* Subscription Card */}
+                <div className="relative group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                  <div className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800">
                     <div className="px-8 pt-6 pb-3 sm:px-10 sm:pt-8">
                       {loading ? (
                         <div className="flex flex-col items-center justify-center py-12">
@@ -274,44 +275,45 @@ export default function Example() {
                         <div className="space-y-6">
                           <div className="flex items-center gap-3 mb-6">
                             <div className="size-16 rounded-xl bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
-                              <div className="size-full bg-indigo-600 rounded-lg flex items-center justify-center">
+                              <div className="size-full bg-gradient-to-br from-indigo-600 to-indigo-500 rounded-lg flex items-center justify-center">
                                 <span className="text-lg font-semibold text-white">
                                   {subscription.data?.plan?.name?.[0]?.toUpperCase() || '?'}
                                 </span>
                               </div>
                             </div>
-                              <div className="flex-1 min-w-0">
-                                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7 truncate">
-                                  {subscription.data?.plan?.name || t.dashboard.subscription.noActive}
-                                </h2>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                    {t.dashboard.subscription.expires}: {formatDate(subscription.data.expired_at)}
-                                  </p>
-                                  {subscription.data?.plan && (
-                                    <div className="flex gap-2">
+                            <div className="flex-1 min-w-0">
+                              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7 truncate">
+                                {subscription.data?.plan?.name || t.dashboard.subscription.noActive}
+                              </h2>
+                              <div className="flex items-center gap-2 mt-1">
+                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                  {t.dashboard.subscription.expires}: {formatDate(subscription.data.expired_at)}
+                                </p>
+                                {subscription.data?.plan && (
+                                  <div className="flex gap-2">
+                                    <a 
+                                      href={`/product/order?id=${subscription.data.plan_id}`}
+                                      className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 transition-all duration-200"
+                                    >
+                                      {t.dashboard.subscription.renew}
+                                    </a>
+                                    {subscription.data.plan.reset_price !== null && subscription.data.plan.reset_price !== undefined && (
                                       <a 
-                                        href={`/product/order?id=${subscription.data.plan_id}`}
-                                        className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 transition-colors duration-150"
+                                        href={`/product/order?id=${subscription.data.plan_id}&reset=1`}
+                                        className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 transition-all duration-200"
                                       >
-                                        {t.dashboard.subscription.renew}
+                                        {t.dashboard.subscription.reset}
                                       </a>
-                                      {subscription.data.plan.reset_price !== null && subscription.data.plan.reset_price !== undefined && (
-                                        <a 
-                                          href={`/product/order?id=${subscription.data.plan_id}&reset=1`}
-                                          className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 transition-colors duration-150"
-                                        >
-                                          {t.dashboard.subscription.reset}
-                                        </a>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
+                                    )}
+                                  </div>
+                                )}
                               </div>
+                            </div>
                           </div>
 
                           {subscription.data?.plan ? (
                             <div className="space-y-6">
+                              {/* Traffic Usage Card */}
                               <div className="rounded-xl bg-gradient-to-br from-indigo-50 dark:from-indigo-950 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
                                 <p className="text-base font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.subscription.trafficUsage}</p>
                                 <div className="mt-4">
@@ -325,7 +327,7 @@ export default function Example() {
                                   </div>
                                   <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
                                     <div 
-                                      className="h-full rounded-full bg-indigo-600 dark:bg-indigo-500 transition-all duration-300" 
+                                      className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-500 dark:from-indigo-500 dark:to-indigo-400 transition-all duration-300" 
                                       style={{ 
                                         width: `${Math.min(((subscription.data.u + subscription.data.d) / subscription.data.transfer_enable * 100), 100)}%` 
                                       }}
@@ -337,6 +339,7 @@ export default function Example() {
                                 </div>
                               </div>
 
+                              {/* Node Selection Card */}
                               <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-4 space-y-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
                                 <div className="space-y-2">
                                   <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.nodes.title}</h3>
@@ -473,7 +476,7 @@ export default function Example() {
                                         <button
                                           key={item.id}
                                           onClick={item.onClick}
-                                          className="flex items-center justify-center gap-1.5 px-2.5 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                          className="flex items-center justify-center gap-1.5 px-2.5 py-2 text-sm font-medium bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-lg hover:from-indigo-500 hover:to-indigo-400 transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                                         >
                                           {item.name}
                                         </button>
@@ -507,7 +510,7 @@ export default function Example() {
                           ) : (
                             <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-6 text-center shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
                               <p className="text-sm text-gray-500 dark:text-gray-400">{t.dashboard.purchase.needSubscription}</p>
-                              <a href="/product" className="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                              <a href="/product" className="mt-4 inline-block px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-lg hover:from-indigo-500 hover:to-indigo-400 transition-colors">
                                 {t.dashboard.purchase.purchaseNow}
                               </a>
                             </div>
@@ -520,12 +523,12 @@ export default function Example() {
                       )}
                     </div>
                   </div>
-                  <div className="pointer-events-none absolute inset-px rounded-2xl ring-1 shadow-sm ring-black/5"></div>
                 </div>
 
-                <div className="relative">
-                  <div className="absolute inset-px rounded-2xl bg-white dark:bg-gray-800"></div>
-                  <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(2rem+1px)]">
+                {/* User Info Card */}
+                <div className="relative group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                  <div className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800">
                     <div className="px-8 pt-8 pb-3 sm:px-10">
                       <div className="flex items-center gap-3 mb-8">
                         <img 
@@ -550,6 +553,7 @@ export default function Example() {
                           </div>
                         ) : userInfo ? (
                           <div className="space-y-6">
+                            {/* UUID Card */}
                             <div className="rounded-xl bg-gradient-to-br from-indigo-50 dark:from-indigo-950 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
                               <div className="flex items-center justify-between mb-4">
                                 <p className="text-base font-semibold text-gray-700 dark:text-gray-300">UUID</p>
@@ -565,6 +569,7 @@ export default function Example() {
                               </p>
                             </div>
 
+                            {/* Balance Cards */}
                             <div className="grid grid-cols-2 gap-4">
                               <div className="rounded-xl bg-gradient-to-br from-indigo-50 dark:from-indigo-950 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
                                 <p className="text-base font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.balance}</p>
@@ -580,6 +585,7 @@ export default function Example() {
                               </div>
                             </div>
                             
+                            {/* User Details Card */}
                             <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-4 space-y-3 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
                               <div className="flex justify-between text-sm">
                                 <span className="font-medium text-gray-600 dark:text-gray-400">{t.dashboard.memberSince}</span>
@@ -601,12 +607,12 @@ export default function Example() {
                       </div>
                     </div>
                   </div>
-                  <div className="pointer-events-none absolute inset-px rounded-2xl ring-1 shadow-sm ring-black/5"></div>
                 </div>
 
-                <div className="lg:col-span-2 relative">
-                  <div className="absolute inset-px rounded-2xl bg-white dark:bg-gray-800"></div>
-                  <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(2rem+1px)]">
+                {/* Traffic Stats Card */}
+                <div className="lg:col-span-2 relative group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                  <div className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800">
                     <div className="px-8 pt-6 pb-3 sm:px-10 sm:pt-8">
                       <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7 mb-6">{t.dashboard.trafficStats}</h3>
                       {loadingTraffic ? (
@@ -689,7 +695,6 @@ export default function Example() {
                       )}
                     </div>
                   </div>
-                  <div className="pointer-events-none absolute inset-px rounded-2xl ring-1 shadow-sm ring-black/5"></div>
                 </div>
               </div>
             </div>
@@ -697,6 +702,7 @@ export default function Example() {
         </div>
       </div>
 
+      {/* Reset UUID Dialog */}
       <Dialog 
         open={isResetDialogOpen} 
         onClose={() => setIsResetDialogOpen(false)}
@@ -704,7 +710,7 @@ export default function Example() {
       >
         <DialogBackdrop
           transition
-          className="fixed inset-0 bg-gray-500/75 dark:bg-gray-950/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
+          className="fixed inset-0 bg-gray-500/75 dark:bg-gray-950/75 backdrop-blur-sm transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
         />
 
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
@@ -734,7 +740,7 @@ export default function Example() {
                 <button
                   type="button"
                   onClick={handleResetUUID}
-                  className="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 sm:ml-3 sm:w-auto"
+                  className="inline-flex w-full justify-center rounded-md bg-gradient-to-r from-indigo-600 to-indigo-500 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:from-indigo-500 hover:to-indigo-400 sm:ml-3 sm:w-auto transition-all duration-200"
                 >
                   {t.dashboard.uuid.reset}
                 </button>
@@ -742,7 +748,7 @@ export default function Example() {
                   type="button"
                   data-autofocus
                   onClick={() => setIsResetDialogOpen(false)}
-                  className="mt-3 inline-flex w-full justify-center rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 shadow-xs ring-gray-300 dark:ring-gray-700 ring-inset hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:w-auto"
+                  className="mt-3 inline-flex w-full justify-center rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 shadow-xs ring-gray-300 dark:ring-gray-700 ring-inset hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:w-auto transition-all duration-200"
                 >
                   {t.dashboard.uuid.cancel}
                 </button>
@@ -752,6 +758,7 @@ export default function Example() {
         </div>
       </Dialog>
 
+      {/* Copy Notification */}
       <div 
         aria-live="assertive" 
         className="fixed bottom-4 right-4 z-50 pointer-events-none flex items-end px-4 py-6"
