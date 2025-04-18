@@ -274,13 +274,6 @@ export default function Dashboard() {
                       ) : subscription ? (
                         <div className="space-y-6">
                           <div className="flex items-center gap-3 mb-6">
-                            <div className="size-16 rounded-xl bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm ring-1 ring-gray-950/5">
-                              <div className="size-full bg-gradient-to-br from-indigo-600 to-indigo-500 rounded-lg flex items-center justify-center">
-                                <span className="text-lg font-semibold text-white">
-                                  {subscription.data?.plan?.name?.[0]?.toUpperCase() || '?'}
-                                </span>
-                              </div>
-                            </div>
                             <div className="flex-1 min-w-0">
                               <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7 truncate">
                                 {subscription.data?.plan?.name || t.dashboard.subscription.noActive}
@@ -530,13 +523,7 @@ export default function Dashboard() {
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
                   <div className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800">
                     <div className="px-8 pt-8 pb-3 sm:px-10">
-                      <div className="flex items-center gap-3 mb-8">
-                        <img 
-                          src={userInfo ? getGravatarUrl(userInfo.data.email) : user.imageUrl} 
-                          alt="" 
-                          className="h-16 w-16 rounded-full ring-4 ring-gray-50 dark:ring-gray-800" 
-                        />
-                        <div className="flex-1 min-w-0">
+                      <div className="mb-8">
                           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7">
                             {t.dashboard.userInfo}
                           </h2>
@@ -544,7 +531,6 @@ export default function Dashboard() {
                             {userInfo?.data.email}
                           </p>
                         </div>
-                      </div>
 
                       <div className="mt-6">
                         {loadingUserInfo ? (
