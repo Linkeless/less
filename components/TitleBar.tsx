@@ -24,6 +24,7 @@ interface TitleBarProps {
     component?: React.ReactNode;
   }>;
   showLanguageSwitch?: boolean;
+  rightExtra?: React.ReactNode;
 }
 
 function classNames(...classes: string[]) {
@@ -64,7 +65,7 @@ const LanguageSwitch = () => {
   );
 };
 
-export default function TitleBar({ user, navigation, userNavigation, showLanguageSwitch }: TitleBarProps) {
+export default function TitleBar({ user, navigation, userNavigation, showLanguageSwitch, rightExtra }: TitleBarProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -124,21 +125,16 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
           <div className="hidden md:block">
             <div className="ml-4 flex items-center gap-4">
               {showLanguageSwitch && <LanguageSwitch />}
-              <button className="relative rounded-full p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200">
-                <BellIcon className="size-5" />
-                <span className="absolute -top-1 -right-1 flex size-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full size-3 bg-blue-500"></span>
-                </span>
-              </button>
-
+              {rightExtra}
               <Menu as="div" className="relative">
                 <MenuButton className="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">
-                  <img 
-                    alt="" 
-                    src={user.imageUrl}
-                    className="size-8 rounded-full" 
-                  />
+                  {user.imageUrl ? (
+                    <img 
+                      alt="" 
+                      src={user.imageUrl}
+                      className="size-8 rounded-full" 
+                    />
+                  ) : null}
                   <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-200">{user.name}</span>
                 </MenuButton>
                 <MenuItems className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-lg bg-white dark:bg-gray-800 py-1 shadow-lg ring-1 ring-black/5 dark:ring-white/5 focus:outline-none">
@@ -195,11 +191,13 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
         <div className="border-t border-gray-200 dark:border-gray-700 pb-3 pt-4">
           <div className="flex items-center px-5">
             <div className="shrink-0">
-              <img
-                alt=""
-                src={user.imageUrl}
-                className="size-10 rounded-full"
-              />
+              {user.imageUrl ? (
+                <img
+                  alt=""
+                  src={user.imageUrl}
+                  className="size-10 rounded-full"
+                />
+              ) : null}
             </div>
             <div className="ml-3">
               <div className="text-base font-medium text-gray-800 dark:text-gray-200">{user.name}</div>

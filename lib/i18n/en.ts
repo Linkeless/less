@@ -181,5 +181,16 @@ export default {
     status: 'Status',
     createdAt: 'Created At',
     noOrdersFound: 'No orders found',
-  }
+  },
+  invite: {
+    title: 'Invite Friends',
+    link: 'Invite Link',
+    invitedCount: 'Invited',
+    rewardTotal: 'Total Reward',
+    myCodes: 'My Invite Codes',
+    copy: 'Copy',
+    copied: 'Copied',
+    loading: 'Loading...',
+    loadFailed: 'Failed to load',
+  },
 } as const;

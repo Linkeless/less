@@ -1,7 +1,7 @@
 'use client';
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems, Listbox, ListboxButton, ListboxOptions, ListboxOption, Dialog, DialogPanel, DialogTitle, DialogBackdrop, Transition } from '@headlessui/react'
-import { Bars3Icon, BellIcon, XMarkIcon, ChevronDownIcon, CheckIcon, ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
-import { useEffect, useState } from 'react'
+import { Bars3Icon, BellIcon, XMarkIcon, ChevronDownIcon, CheckIcon, ExclamationTriangleIcon, ArrowPathIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline'
+import { useEffect, useState, Fragment } from 'react'
 import md5 from 'md5'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 import type { UserInfoResponse, TrafficLog, Subscription } from '@/lib/types'
@@ -10,12 +10,14 @@ import {
   getUserInfo, 
   getSubscription, 
   getTrafficLog, 
-  resetUUID
+  resetUUID,
+  getUserNotices
 } from '@/lib/actions'
 import { useLanguage } from '@/lib/i18n/hooks';
 import TitleBar from '@/components/TitleBar'
 import { useRouter } from 'next/navigation';
 import SignOutButton from '@/components/SignOutButton';
+import { Dialog as HeadlessDialog, Transition as HeadlessTransition } from '@headlessui/react';
 
 const getGravatarUrl = (email: string) => {
   const hash = md5(email.trim().toLowerCase());
@@ -133,7 +135,7 @@ export default function Dashboard() {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedNodes, setSelectedNodes] = useState<typeof nodeOptions>([])
-  const [selectedProtocols, setSelectedProtocols] = useState<typeof protocolOptions>([])
+  const [selectedProtocol, setSelectedProtocol] = useState(protocolOptions[0])
   const [userInfo, setUserInfo] = useState<UserInfoResponse | null>(null)
   const [loadingUserInfo, setLoadingUserInfo] = useState(true)
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
@@ -142,6 +144,10 @@ export default function Dashboard() {
   const [trafficLog, setTrafficLog] = useState<TrafficLog[]>([])
   const [loadingTraffic, setLoadingTraffic] = useState(true)
   const [isMobile, setIsMobile] = useState(false);
+  const [notices, setNotices] = useState<any[]>([]);
+  const [showNotices, setShowNotices] = useState(false);
+  const [showPopupNotice, setShowPopupNotice] = useState(false);
+  const [popupNotice, setPopupNotice] = useState<any | null>(null);
 
   // Move user object inside component
   const user = {
@@ -156,11 +162,13 @@ export default function Dashboard() {
         const [
           subscriptionData,
           userInfoData,
-          trafficData
+          trafficData,
+          noticesData
         ] = await Promise.all([
           getSubscription(),
           getUserInfo(),
-          getTrafficLog()
+          getTrafficLog(),
+          getUserNotices(),
         ]);
 
         setSubscription(subscriptionData as unknown as Subscription);
@@ -168,6 +176,15 @@ export default function Dashboard() {
           setUserInfo(userInfoData as unknown as UserInfoResponse);
         }
         setTrafficLog(trafficData.data || []);
+        setNotices(noticesData.data || []);
+        // 检查是否有 tags 包含"弹窗"的通知
+        if (noticesData.data && Array.isArray(noticesData.data)) {
+          const popup = noticesData.data.find((n: any) => Array.isArray(n.tags) && n.tags.includes('弹窗'));
+          if (popup) {
+            setPopupNotice(popup);
+            setShowPopupNotice(true);
+          }
+        }
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
       } finally {
@@ -226,6 +243,7 @@ export default function Dashboard() {
     { name: t.common.dashboard, href: '#', current: true },
     { name: t.common.product, href: '/product', current: false },
     { name: t.common.orders, href: '/orders', current: false },
+    { name: t.invite.title, href: '/invite', current: false },
   ]
 
   const userNavigation = [
@@ -256,6 +274,21 @@ export default function Dashboard() {
             navigation={navigation}
             userNavigation={userNavigation}
             showLanguageSwitch={true}
+            rightExtra={
+              <button
+                className="relative rounded-full p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                onClick={() => setShowNotices(true)}
+                aria-label="查看通知"
+              >
+                <BellIcon className="size-5" />
+                {notices.length > 0 && (
+                  <span className="absolute -top-1 -right-1 flex size-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full size-3 bg-yellow-500"></span>
+                  </span>
+                )}
+              </button>
+            }
           />
 
           <main className="flex-1">
@@ -389,16 +422,14 @@ export default function Dashboard() {
                                   </Listbox>
                                   <p className="text-xs text-gray-500 dark:text-gray-400">{t.dashboard.nodes.selectHint}</p>
                                   
+                                  {/* 协议筛选 */}
                                   <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mt-4">协议筛选</h3>
-                                  <Listbox value={selectedProtocols} onChange={setSelectedProtocols} multiple>
+                                  <Listbox value={selectedProtocol} onChange={setSelectedProtocol}>
                                     {({ open }) => (
                                       <div className="relative mt-1">
                                         <ListboxButton className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-800 py-2 pl-3 pr-10 text-left border dark:border-gray-700 focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm">
                                           <span className="block truncate text-gray-900 dark:text-gray-100">
-                                            {selectedProtocols.length 
-                                              ? `已选择 ${selectedProtocols.length} 个协议`
-                                              : '选择协议'
-                                            }
+                                            {selectedProtocol.name}
                                           </span>
                                           <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                                             <ChevronDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -447,12 +478,12 @@ export default function Dashboard() {
                                 <div className="space-y-3 pt-2">
                                   <div className="grid grid-cols-1 gap-2">
                                     {[
-                                      { id: 'copy', name: t.dashboard.traffic.copyUrl, onClick: () => handleCopyUrl(getFilteredUrl(subscription.data.token, selectedNodes, selectedProtocols)) },
+                                      { id: 'copy', name: t.dashboard.traffic.copyUrl, onClick: () => handleCopyUrl(getFilteredUrl(subscription.data.token, selectedNodes, [selectedProtocol])) },
                                       ...(['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x', 'loon'] as const).map(client => ({
                                         id: client,
                                         name: client === 'quantumult-x' ? 'Quantumult X' : client.charAt(0).toUpperCase() + client.slice(1),
                                         href: (() => {
-                                          const url = getFilteredUrl(subscription.data.token, selectedNodes, selectedProtocols);
+                                          const url = getFilteredUrl(subscription.data.token, selectedNodes, [selectedProtocol]);
                                           const clientUrls = {
                                             'clash': `clash://install-config?url=${encodeURIComponent(url + '&flag=clash')}`,
                                             'surge': `surge:///install-config?url=${encodeURIComponent(url + '&flag=surge')}`,
@@ -768,6 +799,115 @@ export default function Dashboard() {
           </div>
         </Transition>
       </div>
+
+      {/* 通知弹窗 */}
+      <HeadlessTransition appear show={showNotices} as={Fragment}>
+        <HeadlessDialog as="div" className="relative z-50" onClose={() => setShowNotices(false)}>
+          <HeadlessTransition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/30" />
+          </HeadlessTransition.Child>
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <HeadlessTransition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <HeadlessDialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
+                  <HeadlessDialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4">
+                    通知
+                  </HeadlessDialog.Title>
+                  {notices.length === 0 ? (
+                    <div className="text-gray-500 dark:text-gray-400 text-center py-8">暂无通知</div>
+                  ) : (
+                    <ul className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                      {notices.map((notice: any) => (
+                        <li key={notice.id} className="bg-yellow-50 dark:bg-yellow-900/60 border border-yellow-200 dark:border-yellow-700 rounded px-4 py-2 text-sm text-yellow-800 dark:text-yellow-100 font-medium">
+                          {notice.content}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="mt-6 flex justify-end">
+                    <button
+                      className="inline-flex justify-center rounded-md border border-transparent bg-indigo-100 dark:bg-indigo-900 px-4 py-2 text-sm font-medium text-indigo-900 dark:text-indigo-100 hover:bg-indigo-200 dark:hover:bg-indigo-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                      onClick={() => setShowNotices(false)}
+                    >
+                      关闭
+                    </button>
+                  </div>
+                </HeadlessDialog.Panel>
+              </HeadlessTransition.Child>
+            </div>
+          </div>
+        </HeadlessDialog>
+      </HeadlessTransition>
+
+      {/* 通知弹窗（自动弹窗，仅显示 tags 含"弹窗"的一条） */}
+      <HeadlessTransition appear show={showPopupNotice} as={Fragment}>
+        <HeadlessDialog as="div" className="relative z-50" onClose={() => setShowPopupNotice(false)}>
+          <HeadlessTransition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/30" />
+          </HeadlessTransition.Child>
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <HeadlessTransition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <HeadlessDialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-0 text-left align-middle shadow-xl transition-all">
+                  <div className="flex items-start gap-4 p-4 sm:p-6">
+                    <span className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900">
+                      <ExclamationCircleIcon className="h-7 w-7 text-yellow-600 dark:text-yellow-300" aria-hidden="true" />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <HeadlessDialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900 dark:text-gray-100">
+                        {popupNotice?.title || '通知'}
+                      </HeadlessDialog.Title>
+                      <div className="mt-2 text-sm text-gray-700 dark:text-gray-200 whitespace-pre-line">
+                        {popupNotice?.content}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end px-4 pb-4">
+                    <button
+                      className="inline-flex justify-center rounded-md border border-transparent bg-indigo-100 dark:bg-indigo-900 px-4 py-2 text-sm font-medium text-indigo-900 dark:text-indigo-100 hover:bg-indigo-200 dark:hover:bg-indigo-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                      onClick={() => setShowPopupNotice(false)}
+                    >
+                      关闭
+                    </button>
+                  </div>
+                </HeadlessDialog.Panel>
+              </HeadlessTransition.Child>
+            </div>
+          </div>
+        </HeadlessDialog>
+      </HeadlessTransition>
     </>
   )
 }

@@ -110,6 +110,7 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
     { name: t.common.dashboard, href: '/dashboard', current: false },
     { name: t.common.product, href: '/product', current: true },
     { name: t.common.orders, href: '/orders', current: false },  
+    { name: t.invite.title, href: '/invite', current: false },
   ]
 
   const userNavigation = [

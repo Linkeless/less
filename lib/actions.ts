@@ -163,3 +163,19 @@ export async function checkUserSubscription() {
     return null;
   }
 }
+
+export async function getInviteInfo() {
+  return serverFetch('/api/v1/user/invite/fetch');
+}
+
+export async function createInviteCode() {
+  return serverFetch('/api/v1/user/invite/save', { method: 'GET' });
+}
+
+export async function getInviteCommissionRecords() {
+  return serverFetch('/api/v1/user/invite/details?page_size=999');
+}
+
+export async function getUserNotices() {
+  return serverFetch('/api/v1/user/notice/fetch');
+}

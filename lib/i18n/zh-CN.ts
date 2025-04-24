@@ -182,5 +182,16 @@ export default {
     status: '状态',
     createdAt: '创建时间',
     noOrdersFound: '未找到订单',
-  }
+  },
+  invite: {
+    title: '邀请好友',
+    link: '邀请链接',
+    invitedCount: '已邀请人数',
+    rewardTotal: '累计奖励',
+    myCodes: '我的邀请码',
+    copy: '复制',
+    copied: '复制成功',
+    loading: '加载中...',
+    loadFailed: '加载失败',
+  },
 } as const;

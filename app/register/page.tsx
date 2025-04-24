@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { register, sendVerificationEmail } from '@/lib/actions';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
@@ -10,12 +10,25 @@ export default function Register() {
         email: '',
         password: '',
         invite_code: '',
-        verify_code: ''
+        verify_code: '',
+        confirm_password: '',
     });
     const [error, setError] = useState('');
     const [verificationSent, setVerificationSent] = useState(false);
     const [isErrorOpen, setIsErrorOpen] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState(0);
+    const [inviteCodeLocked, setInviteCodeLocked] = useState(false);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const url = new URL(window.location.href);
+            const code = url.searchParams.get('invite_code');
+            if (code) {
+                setFormData(prev => ({ ...prev, invite_code: code }));
+                setInviteCodeLocked(true);
+            }
+        }
+    }, []);
 
     const checkPasswordStrength = (password: string) => {
         let strength = 0;
@@ -49,6 +62,11 @@ export default function Register() {
         
         if (passwordStrength < 3) {
             setError('密码强度不足，请包含大写字母、数字和特殊字符');
+            setIsErrorOpen(true);
+            return;
+        }
+        if (formData.password !== formData.confirm_password) {
+            setError('两次输入的密码不一致');
             setIsErrorOpen(true);
             return;
         }
@@ -226,7 +244,7 @@ export default function Register() {
 
                             <div>
                                 <label htmlFor="invite_code" className="block text-sm font-medium text-gray-900 dark:text-white">
-                                    邀请码（可选）
+                                    {inviteCodeLocked ? '邀请码' : '邀请码（可选）'}
                                 </label>
                                 <div className="mt-2 relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -240,6 +258,7 @@ export default function Register() {
                                         value={formData.invite_code}
                                         onChange={(e) => setFormData(prev => ({...prev, invite_code: e.target.value}))}
                                         className="block w-full rounded-md pl-10 px-3 py-1.5 text-base text-gray-900 dark:text-white bg-white dark:bg-gray-800 outline-1 -outline-offset-1 outline-gray-300 dark:outline-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                        disabled={inviteCodeLocked}
                                     />
                                 </div>
                             </div>
@@ -272,6 +291,27 @@ export default function Register() {
                                         <div className={`h-full w-1/4 rounded-sm transition-colors ${passwordStrength >= 4 ? 'bg-green-700' : 'bg-gray-200'}`}></div>
                                     </div>
                                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">密码应包含大小写字母、数字和特殊字符</p>
+                                </div>
+                            </div>
+                            <div>
+                                <label htmlFor="confirm_password" className="block text-sm font-medium text-gray-900 dark:text-white">
+                                    确认密码
+                                </label>
+                                <div className="mt-2 relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <LockClosedIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                    </div>
+                                    <input
+                                        id="confirm_password"
+                                        name="confirm_password"
+                                        type="password"
+                                        autoComplete="new-password"
+                                        required
+                                        placeholder="请再次输入您的密码"
+                                        value={formData.confirm_password}
+                                        onChange={e => setFormData(prev => ({ ...prev, confirm_password: e.target.value }))}
+                                        className="block w-full rounded-md pl-10 px-3 py-1.5 text-base text-gray-900 dark:text-white bg-white dark:bg-gray-800 outline-1 -outline-offset-1 outline-gray-300 dark:outline-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    />
                                 </div>
                             </div>
 

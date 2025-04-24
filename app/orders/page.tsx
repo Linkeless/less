@@ -27,6 +27,7 @@ export default function OrdersPage() {
     { name: t.common.dashboard, href: '/dashboard', current: false },
     { name: t.common.product, href: '/product', current: false },
     { name: t.common.orders, href: '/orders', current: true },
+    { name: t.invite.title, href: '/invite', current: false },
   ]
 
   const user = {
