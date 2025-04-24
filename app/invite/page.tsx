@@ -180,10 +180,10 @@ export default function InvitePage() {
                 <table className="min-w-full divide-y divide-gray-300">
                   <thead>
                     <tr>
-                      <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">订单号</th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">订单金额</th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">获得佣金</th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">发放时间</th>
+                      <th className="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">订单号</th>
+                      <th className="whitespace-nowrap px-3 py-3.5 text-left text-sm font-semibold text-gray-900">订单金额</th>
+                      <th className="whitespace-nowrap px-3 py-3.5 text-left text-sm font-semibold text-gray-900">获得佣金</th>
+                      <th className="whitespace-nowrap px-3 py-3.5 text-left text-sm font-semibold text-gray-900">发放时间</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
