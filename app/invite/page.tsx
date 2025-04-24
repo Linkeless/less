@@ -109,35 +109,8 @@ export default function InvitePage() {
         <main className="flex-1">
           <div className="mx-auto w-full max-w-3xl px-2 py-4 sm:px-6 lg:px-8">
             <div className="grid gap-6">
-              {/* 手机端统计卡片：一列自动换行，无横向滚动条 */}
-              <div className="grid grid-cols-1 gap-4 sm:hidden mb-4">
-                {/* 邀请人数 */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 flex flex-col items-center text-center">
-                  <div className="mb-2 flex items-center justify-center h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900">
-                    <UsersIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{stat[0] ?? 0}</div>
-                  <div className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">{t.invite.invitedCount}</div>
-                </div>
-                {/* 佣金比例 */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 flex flex-col items-center text-center">
-                  <div className="mb-2 flex items-center justify-center h-10 w-10 rounded-full bg-green-100 dark:bg-green-900">
-                    <ArrowTrendingUpIcon className="h-6 w-6 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stat[3] ? `${stat[3]}%` : '--'}</div>
-                  <div className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">佣金比例</div>
-                </div>
-                {/* 累计佣金 */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 flex flex-col items-center text-center">
-                  <div className="mb-2 flex items-center justify-center h-10 w-10 rounded-full bg-yellow-100 dark:bg-yellow-900">
-                    <CurrencyDollarIcon className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-                  </div>
-                  <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">¥{stat[1] ? (stat[1] / 100).toFixed(2) : '0.00'}</div>
-                  <div className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">{t.invite.rewardTotal}</div>
-                </div>
-              </div>
-              {/* 桌面端三列统计卡片 */}
-              <div className="hidden sm:grid grid-cols-3 gap-4 mb-4">
+              {/* 统计卡片：所有屏幕三列横排，无横向滚动条 */}
+              <div className="grid grid-cols-3 gap-4 mb-4">
                 {/* 邀请人数 */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 flex flex-col items-center text-center">
                   <div className="mb-2 flex items-center justify-center h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900">
