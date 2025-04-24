@@ -98,7 +98,7 @@ export default function OrdersTable() {
             <tr>
               <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">{t?.orders?.orderNumber || 'Order Number'}</th>
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{t?.orders?.period || 'Period'}</th>
-              <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{t?.orders?.amount || 'Amount'} (¥)</th>
+              <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{t?.orders?.amount || 'Amount'}</th>
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{t?.orders?.status || 'Status'}</th>
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{t?.orders?.createdAt || 'Created At'}</th>
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{t?.orders?.actions || 'Actions'}</th>

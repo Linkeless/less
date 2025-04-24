@@ -107,133 +107,109 @@ export default function InvitePage() {
         </div>
         <TitleBar user={user} navigation={navigation} userNavigation={userNavigation} showLanguageSwitch={true} />
         <main className="flex-1">
-          <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-            <div className="grid gap-8 sm:gap-8">
-              {/* 邀请链接卡片 */}
+          <div className="mx-auto w-full max-w-3xl px-2 py-4 sm:px-6 lg:px-8">
+            <div className="grid gap-6">
+              {/* 统计卡片 */}
               <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                <div className="relative flex flex-col overflow-hidden rounded-2xl sm:rounded-2xl bg-white dark:bg-gray-800 shadow-lg p-4 sm:p-8">
-                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">{t.invite.title}</h2>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-2">
-                    <span className="text-gray-700 dark:text-gray-200 font-medium whitespace-nowrap">{t.invite.link}：</span>
-                    <input
-                      className="flex-1 bg-transparent border-none outline-none text-indigo-600 dark:text-indigo-400 font-mono text-sm truncate"
-                      value={inviteLink}
-                      readOnly
-                    />
-                    <button
-                      onClick={() => handleCopy(inviteLink)}
-                      className="sm:ml-2 p-2 rounded hover:bg-indigo-100 dark:hover:bg-indigo-700 transition"
-                      title={t.invite.copy}
-                    >
-                      {copiedCode === inviteLink ? (
-                        <CheckIcon className="w-5 h-5 text-green-500" />
-                      ) : (
-                        <ClipboardIcon className="w-5 h-5 text-gray-500 dark:text-gray-300" />
-                      )}
-                    </button>
-                    {copiedCode === inviteLink && <span className="ml-2 text-green-500 text-xs">{t.invite.copied}</span>}
+                <div className="relative rounded-2xl bg-white dark:bg-gray-800 ring-1 ring-gray-950/5 dark:ring-white/5 overflow-hidden p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="flex flex-col items-center text-center">
+                    <dt className="mb-2 flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-indigo-100 dark:bg-indigo-900">
+                      <UsersIcon className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600 dark:text-indigo-400" />
+                    </dt>
+                    <dd className="text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400">{stat[0] ?? 0}</dd>
+                    <dt className="mt-1 text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">{t.invite.invitedCount}</dt>
+                  </div>
+                  <div className="flex flex-col items-center text-center border-t border-gray-100 dark:border-gray-700 sm:border-t-0 sm:border-l sm:border-r-0 sm:border-b-0">
+                    <dt className="mb-2 flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-green-100 dark:bg-green-900">
+                      <ArrowTrendingUpIcon className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 dark:text-green-400" />
+                    </dt>
+                    <dd className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">{stat[3] ? `${stat[3]}%` : '--'}</dd>
+                    <dt className="mt-1 text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">佣金比例</dt>
+                  </div>
+                  <div className="flex flex-col items-center text-center border-t border-gray-100 dark:border-gray-700 sm:border-t-0 sm:border-l">
+                    <dt className="mb-2 flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-yellow-100 dark:bg-yellow-900">
+                      <CurrencyDollarIcon className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600 dark:text-yellow-400" />
+                    </dt>
+                    <dd className="text-xl sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400">¥{stat[1] ? (stat[1] / 100).toFixed(2) : '0.00'}</dd>
+                    <dt className="mt-1 text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">{t.invite.rewardTotal}</dt>
                   </div>
                 </div>
-              </div>
-              {/* 统计卡片+佣金比例 */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-8">
-                <dl className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-                  <div className="flex flex-col items-center text-center">
-                    <dt className="mb-2 flex items-center justify-center h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900">
-                      <UsersIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
-                    </dt>
-                    <dd className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{stat[0] ?? 0}</dd>
-                    <dt className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">{t.invite.invitedCount}</dt>
-                  </div>
-                  <div className="flex flex-col items-center text-center border-t border-gray-200 dark:border-gray-700 sm:border-t-0 sm:border-l sm:border-r-0 sm:border-b-0">
-                    <dt className="mb-2 flex items-center justify-center h-10 w-10 rounded-full bg-green-100 dark:bg-green-900">
-                      <ArrowTrendingUpIcon className="h-6 w-6 text-green-600 dark:text-green-400" />
-                    </dt>
-                    <dd className="text-2xl font-bold text-green-600 dark:text-green-400">{stat[3] ? `${stat[3]}%` : '--'}</dd>
-                    <dt className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">佣金比例</dt>
-                  </div>
-                  <div className="flex flex-col items-center text-center border-t border-gray-200 dark:border-gray-700 sm:border-t-0 sm:border-l">
-                    <dt className="mb-2 flex items-center justify-center h-10 w-10 rounded-full bg-yellow-100 dark:bg-yellow-900">
-                      <CurrencyDollarIcon className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-                    </dt>
-                    <dd className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">¥{stat[1] ? (stat[1] / 100).toFixed(2) : '0.00'}</dd>
-                    <dt className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">{t.invite.rewardTotal}</dt>
-                  </div>
-                </dl>
               </div>
               {/* 所有邀请码卡片 */}
               {codes.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-2xl shadow-lg p-4 sm:p-8">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-gray-700 dark:text-gray-200 font-medium">{t.invite.myCodes}：</div>
-                    <button
-                      onClick={handleCreateInvite}
-                      disabled={creating}
-                      className="inline-flex items-center gap-1 rounded bg-indigo-600 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400 px-3 py-1.5 text-xs sm:text-sm font-semibold text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      {creating ? (
-                        <svg className="animate-spin h-4 w-4 mr-1" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>
-                      ) : null}
-                      生成邀请码
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-2 sm:gap-3">
-                    {codes.map((c, i) => (
-                      <span key={c.code} className="flex items-center gap-1 px-2 sm:px-3 py-1 rounded bg-indigo-100 dark:bg-indigo-700 text-indigo-700 dark:text-indigo-200 text-xs sm:text-sm font-mono">
-                        {c.code}
-                        <button
-                          onClick={() => handleCopy(`${typeof window !== 'undefined' ? window.location.origin : ''}/register?invite_code=${c.code}`)}
-                          className="ml-1 p-1 rounded hover:bg-indigo-200 dark:hover:bg-indigo-600 transition"
-                          title={t.invite.copy}
-                        >
-                          {copiedCode === `${typeof window !== 'undefined' ? window.location.origin : ''}/register?invite_code=${c.code}` ? (
-                            <CheckIcon className="w-4 h-4 text-green-500" />
-                          ) : (
-                            <ClipboardIcon className="w-4 h-4 text-gray-500 dark:text-gray-300" />
-                          )}
-                        </button>
-                        {copiedCode === `${typeof window !== 'undefined' ? window.location.origin : ''}/register?invite_code=${c.code}` && <span className="ml-1 text-green-500 text-xs">{t.invite.copied}</span>}
-                      </span>
-                    ))}
+                <div className="relative group">
+                  <div className="relative rounded-2xl bg-white dark:bg-gray-800 ring-1 ring-gray-950/5 dark:ring-white/5 overflow-hidden p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2 gap-2 sm:gap-0">
+                      <div className="text-gray-700 dark:text-gray-200 font-medium text-xs sm:text-base">{t.invite.myCodes}：</div>
+                      <button
+                        onClick={handleCreateInvite}
+                        disabled={creating}
+                        className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 dark:bg-indigo-500 dark:hover:bg-indigo-400 px-3 py-2 text-xs sm:text-sm font-semibold text-white shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed w-full sm:w-auto mt-2 sm:mt-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                      >
+                        {creating ? (
+                          <svg className="animate-spin h-4 w-4 mr-1" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>
+                        ) : null}
+                        生成邀请码
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2 sm:gap-3">
+                      {codes.map((c, i) => (
+                        <span key={c.code} className="flex items-center gap-1 px-2 sm:px-3 py-1 rounded bg-indigo-100 dark:bg-indigo-700 text-indigo-700 dark:text-indigo-200 text-xs sm:text-sm font-mono break-all">
+                          {c.code}
+                          <button
+                            onClick={() => handleCopy(`${typeof window !== 'undefined' ? window.location.origin : ''}/register?invite_code=${c.code}`)}
+                            className="ml-1 p-1 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 text-white hover:from-indigo-500 hover:to-indigo-400 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                            title={t.invite.copy}
+                          >
+                            {copiedCode === `${typeof window !== 'undefined' ? window.location.origin : ''}/register?invite_code=${c.code}` ? (
+                              <CheckIcon className="w-4 h-4 text-green-500" />
+                            ) : (
+                              <ClipboardIcon className="w-4 h-4 text-white" />
+                            )}
+                          </button>
+                          {copiedCode === `${typeof window !== 'undefined' ? window.location.origin : ''}/register?invite_code=${c.code}` && <span className="ml-1 text-green-500 text-xs">{t.invite.copied}</span>}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
-              {/* 佣金发放记录表格 */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-2xl shadow-lg p-4 sm:p-8 mt-8">
-                <div className="text-gray-700 dark:text-gray-200 font-medium mb-4">佣金发放记录</div>
-                {loadingRecords ? (
-                  <div className="text-center text-gray-500 dark:text-gray-400 py-8">加载中...</div>
-                ) : commissionRecords.length === 0 ? (
-                  <div className="text-center text-gray-500 dark:text-gray-400 py-8">暂无记录</div>
-                ) : (
-                  <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                    <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                      <div className="overflow-hidden rounded-xl ring-1 ring-gray-200 dark:ring-gray-700">
-                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-xs sm:text-sm">
-                          <thead className="bg-gray-50 dark:bg-gray-900">
-                            <tr>
-                              <th scope="col" className="px-2 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">订单号</th>
-                              <th scope="col" className="px-2 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">订单金额</th>
-                              <th scope="col" className="px-2 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">获得佣金</th>
-                              <th scope="col" className="px-2 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">发放时间</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-100 dark:divide-gray-700 bg-white dark:bg-gray-800">
-                            {commissionRecords.map((rec, idx) => (
-                              <tr key={rec.id} className="hover:bg-gray-50 dark:hover:bg-gray-900 transition">
-                                <td className="px-2 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-mono text-gray-900 dark:text-gray-100">{rec.trade_no}</td>
-                                <td className="px-2 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-mono text-gray-900 dark:text-gray-100">¥{(rec.order_amount / 100).toFixed(2)}</td>
-                                <td className="px-2 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-mono text-green-600 dark:text-green-400">¥{(rec.get_amount / 100).toFixed(2)}</td>
-                                <td className="px-2 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-700 dark:text-gray-300">{new Date(rec.created_at * 1000).toLocaleString()}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                )}
+              {/* 佣金发放记录表格卡片 */}
+              <div className="overflow-x-auto mt-4 sm:mt-8">
+                <table className="min-w-full divide-y divide-gray-300">
+                  <thead>
+                    <tr>
+                      <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">订单号</th>
+                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">订单金额</th>
+                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">获得佣金</th>
+                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">发放时间</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {loadingRecords ? (
+                      <tr>
+                        <td colSpan={4} className="py-4 pl-4 pr-3 text-sm text-center text-gray-500 sm:pl-6">
+                          加载中...
+                        </td>
+                      </tr>
+                    ) : commissionRecords.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="py-4 pl-4 pr-3 text-sm text-center text-gray-500 sm:pl-6">
+                          暂无记录
+                        </td>
+                      </tr>
+                    ) : (
+                      commissionRecords.map((rec) => (
+                        <tr key={rec.id}>
+                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900 sm:pl-6">{rec.trade_no}</td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">¥{(rec.order_amount / 100).toFixed(2)}</td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-green-600">¥{(rec.get_amount / 100).toFixed(2)}</td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{new Date(rec.created_at * 1000).toLocaleString()}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
