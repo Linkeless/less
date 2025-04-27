@@ -205,6 +205,12 @@ export default function Dashboard() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  useEffect(() => {
+    if (!loadingUserInfo && (!userInfo || userInfo.status !== 'success')) {
+      router.push('/login');
+    }
+  }, [userInfo, loadingUserInfo, router]);
+
   const getFilteredTrafficData = () => {
     const data = processTrafficData(trafficLog);
     if (isMobile) {
@@ -367,7 +373,18 @@ export default function Dashboard() {
                               <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-4 space-y-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
                                 <div className="space-y-2">
                                   <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.nodes.title}</h3>
-                                  <Listbox value={selectedNode} onChange={setSelectedNode}>
+                                  <Listbox
+                                    value={selectedNode}
+                                    onChange={node => {
+                                      if (!node) {
+                                        setSelectedNode(null);
+                                      } else if (selectedNode?.id === node.id) {
+                                        setSelectedNode(null);
+                                      } else {
+                                        setSelectedNode(node);
+                                      }
+                                    }}
+                                  >
                                     {({ open }) => (
                                       <div className="relative mt-1">
                                         <ListboxButton className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-800 py-2 pl-3 pr-10 text-left border dark:border-gray-700 focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm">
