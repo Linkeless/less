@@ -24,11 +24,11 @@ const getGravatarUrl = (email: string) => {
   return `https://www.gravatar.com/avatar/${hash}?s=256&d=monsterid`;
 };
 
-const getFilteredUrl = (token: string, nodes: Array<{id: string}>, protocols: Array<{id: string}>) => {
+const getFilteredUrl = (token: string, node: {id: number} | null, protocols: Array<{id: string}>) => {
   const baseUrl = process.env.NEXT_PUBLIC_SUB_API_URL || `${window.location.protocol}//${window.location.host}`;
   let url = `${baseUrl}/service/sub?token=${token}`;
-  if (nodes.length) {
-    url += `&filter=${nodes.map(node => node.id).join('|')}`;
+  if (node) {
+    url += `&inbound=${node.id}`;
   }
   // Only add ss2022=true parameter when ss2022 is selected
   if (protocols.some(p => p.id === 'ss2022')) {
@@ -61,13 +61,11 @@ const copyToClipboard = async (text: string) => {
 };
 
 const nodeOptions = [
-  { id: 'S1', name: '广港-广州入口' },
-  { id: 'E1', name: '沪港-上海入口' },
-  { id: 'E2', name: '沪日-上海入口' },
-  { id: 'N1', name: '京港-北京入口' },
-  { id: 'N2', name: '京德-北京入口' },
-  { id: 'W1', name: '成港-成都入口' },
-  { id: 'Special', name: '直连线路' },  
+  { id: 1, name: '广州' },
+  { id: 2, name: '上海' },
+  { id: 3, name: '北京' },
+  { id: 4, name: '成都' },
+  // 如有更多节点，继续添加
 ]
 
 const protocolOptions = [
@@ -134,7 +132,7 @@ export default function Dashboard() {
   const { t } = useLanguage();
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
-  const [selectedNodes, setSelectedNodes] = useState<typeof nodeOptions>([])
+  const [selectedNode, setSelectedNode] = useState<typeof nodeOptions[0] | null>(null)
   const [selectedProtocol, setSelectedProtocol] = useState(protocolOptions[0])
   const [userInfo, setUserInfo] = useState<UserInfoResponse | null>(null)
   const [loadingUserInfo, setLoadingUserInfo] = useState(true)
@@ -369,13 +367,13 @@ export default function Dashboard() {
                               <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-4 space-y-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
                                 <div className="space-y-2">
                                   <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.nodes.title}</h3>
-                                  <Listbox value={selectedNodes} onChange={setSelectedNodes} multiple>
+                                  <Listbox value={selectedNode} onChange={setSelectedNode}>
                                     {({ open }) => (
                                       <div className="relative mt-1">
                                         <ListboxButton className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-800 py-2 pl-3 pr-10 text-left border dark:border-gray-700 focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm">
                                           <span className="block truncate text-gray-900 dark:text-gray-100">
-                                            {selectedNodes.length 
-                                              ? t.dashboard.nodes.selectedCount.replace('{count}', selectedNodes.length.toString())
+                                            {selectedNode
+                                              ? selectedNode.name
                                               : t.dashboard.nodes.selectRegion
                                             }
                                           </span>
@@ -478,12 +476,12 @@ export default function Dashboard() {
                                 <div className="space-y-3 pt-2">
                                   <div className="grid grid-cols-1 gap-2">
                                     {[
-                                      { id: 'copy', name: t.dashboard.traffic.copyUrl, onClick: () => handleCopyUrl(getFilteredUrl(subscription.data.token, selectedNodes, [selectedProtocol])) },
+                                      { id: 'copy', name: t.dashboard.traffic.copyUrl, onClick: () => handleCopyUrl(getFilteredUrl(subscription.data.token, selectedNode, [selectedProtocol])) },
                                       ...(['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x', 'loon'] as const).map(client => ({
                                         id: client,
                                         name: client === 'quantumult-x' ? 'Quantumult X' : client.charAt(0).toUpperCase() + client.slice(1),
                                         href: (() => {
-                                          const url = getFilteredUrl(subscription.data.token, selectedNodes, [selectedProtocol]);
+                                          const url = getFilteredUrl(subscription.data.token, selectedNode, [selectedProtocol]);
                                           const clientUrls = {
                                             'clash': `clash://install-config?url=${encodeURIComponent(url + '&flag=clash')}`,
                                             'surge': `surge:///install-config?url=${encodeURIComponent(url + '&flag=surge')}`,

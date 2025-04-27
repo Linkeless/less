@@ -58,7 +58,7 @@ export default {
       title: 'Subscribe Methods',
       selectRegion: 'Select Regional Entrance',
       selectedCount: '{count} Regional Entrance Selected',
-      selectHint: 'Select Entry Region, default to all',
+      selectHint: 'Select Entry Region, default to Shenzhen',
     },
     traffic: {
       loading: 'Loading subscription info...',

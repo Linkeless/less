@@ -58,7 +58,7 @@ export default {
       title: '订阅方式',
       selectRegion: '选择入口区域',
       selectedCount: '已选择 {count} 个入口区域',
-      selectHint: '选择入口区域，默认全部',
+      selectHint: '选择入口区域，默认深圳',
     },
     traffic: {
       loading: '正在加载订阅信息...',
