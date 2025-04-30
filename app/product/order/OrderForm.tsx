@@ -67,8 +67,7 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
       setCouponError('')
       setDiscount(0)
       setDiscountValue(0)
-      const result = await checkCoupon(couponCode)
-      
+      const result = await checkCoupon(couponCode, initialProduct.id)
       if (result.status === 'success' && result.data) {
         const discountVal = Number(result.data.value)
         if (!isNaN(discountVal)) {
@@ -79,13 +78,23 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
           }  
         }
       } else {
-        alert(result.message || '无效的优惠码')
         setCouponError(result.message || '无效的优惠码')
+        setDiscount(0)
+        setDiscountValue(0)
       }
     } catch (error: any) {
-      console.error('优惠码验证失败:', error)
-      alert(error.message || '优惠码验证失败')
-      setCouponError('优惠码验证失败')
+      // 优化：尽量提取后端返回的message
+      let msg = '优惠码验证失败'
+      if (error?.message) {
+        msg = error.message
+      }
+      if (error?.response?.message) {
+        msg = error.response.message
+      }
+      if (error?.data?.message) {
+        msg = error.data.message
+      }
+      setCouponError(msg)
       setDiscount(0)
       setDiscountValue(0)
     }

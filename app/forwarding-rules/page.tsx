@@ -645,9 +645,12 @@ export default function ForwardingRulesPage() {
                       const config = JSON.parse(rule.config);
                       const deviceGroup = getDeviceGroupInfo(rule.device_group_in);
                       return (
-                        <div key={rule.id} className="rounded-xl border border-indigo-100 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 p-5 shadow-xl ring-1 ring-indigo-100/30 dark:ring-gray-800/30 backdrop-blur transition hover:scale-[1.01]">
+                        <div
+                          key={rule.id}
+                          className="rounded-2xl border border-indigo-100 dark:border-gray-800 bg-white/90 dark:bg-gray-900/90 p-5 shadow-lg ring-1 ring-indigo-100/30 dark:ring-gray-800/30 mb-2"
+                        >
                           <div className="flex items-center justify-between mb-2">
-                            <div className="font-semibold text-gray-900 dark:text-white truncate max-w-[60%]">{rule.name}</div>
+                            <span className="font-bold text-base text-gray-900 dark:text-white truncate max-w-[60%]">{rule.name}</span>
                             <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                               rule.status === 'ForwardRuleStatus_Normal'
                                 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
@@ -658,22 +661,42 @@ export default function ForwardingRulesPage() {
                               {rule.status.replace('ForwardRuleStatus_', '')}
                             </span>
                           </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-300 mb-1">
-                            <span className="font-medium text-gray-900 dark:text-white">{t.forwardingRules.deviceGroup}:</span> {deviceGroup.name}
+                          <div className="mb-1 text-sm">
+                            <span className="font-semibold text-gray-700 dark:text-gray-200">{t.forwardingRules.deviceGroup}:</span>
+                            <span className="ml-1 text-gray-900 dark:text-white">{deviceGroup.name}</span>
                           </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-300 mb-1">
-                            <span className="font-medium text-gray-900 dark:text-white">{t.forwardingRules.listenPort}:</span> {rule.listen_port || t.forwardingRules.randomPort}
+                          {deviceGroup.connectHost && (
+                            <div className="flex items-center space-x-2 text-xs text-gray-400 dark:text-gray-500 mb-1">
+                              <span>
+                                {deviceGroup.connectHost}:{rule.listen_port}
+                              </span>
+                              <button
+                                onClick={() => handleCopy(`${deviceGroup.connectHost}:${rule.listen_port}`)}
+                                className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
+                                title={t.forwardingRules.copy}
+                              >
+                                <ClipboardIcon className="h-4 w-4" />
+                              </button>
+                            </div>
+                          )}
+                          <div className="mb-1 text-sm">
+                            <span className="font-semibold text-gray-700 dark:text-gray-200">{t.forwardingRules.listenPort}:</span>
+                            <span className="ml-1 text-gray-900 dark:text-white">{rule.listen_port || t.forwardingRules.randomPort}</span>
                           </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-300 mb-1">
-                            <span className="font-medium text-gray-900 dark:text-white">{t.forwardingRules.destination}:</span> {config.dest?.join(', ')}
+                          <div className="mb-1 text-sm">
+                            <span className="font-semibold text-gray-700 dark:text-gray-200">{t.forwardingRules.destination}:</span>
+                            <div className="ml-1 text-gray-900 dark:text-white break-words whitespace-pre-line">
+                              {config.dest?.join('\n')}
+                            </div>
                           </div>
-                          <div className="flex flex-wrap gap-2 mt-2">
+                          <div className="flex justify-between items-center mt-4 gap-2">
                             <button
                               onClick={() => handleDiagnose(rule.id)}
-                              className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm transition hover:scale-110 active:scale-95"
+                              className="flex-1 flex items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 py-2 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-800 transition"
                               title={t.forwardingRules.diagnose}
                             >
-                              <WrenchIcon className="h-5 w-5 inline" />
+                              <WrenchIcon className="h-5 w-5 mr-1" />
+                              {t.forwardingRules.diagnose}
                             </button>
                             <button
                               onClick={() => {
@@ -686,21 +709,21 @@ export default function ForwardingRulesPage() {
                                   listen_port: rule.listen_port
                                 });
                               }}
-                              className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm transition hover:scale-110 active:scale-95"
+                              className="flex-1 flex items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-300 py-2 text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-800 transition"
                               title={t.forwardingRules.copy}
                             >
                               {t.forwardingRules.copy}
                             </button>
                             <button
                               onClick={() => openEditModal(rule)}
-                              className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm transition hover:scale-110 active:scale-95"
+                              className="flex-1 flex items-center justify-center rounded-lg bg-yellow-50 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 py-2 text-sm font-medium hover:bg-yellow-100 dark:hover:bg-yellow-800 transition"
                               title={t.forwardingRules.edit}
                             >
                               {t.forwardingRules.edit}
                             </button>
                             <button
                               onClick={() => handleDeleteRule(rule.id)}
-                              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 text-sm transition hover:scale-110 active:scale-95"
+                              className="flex-1 flex items-center justify-center rounded-lg bg-red-50 dark:bg-red-900 text-red-600 dark:text-red-300 py-2 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-800 transition"
                               title={t.forwardingRules.delete}
                             >
                               {t.forwardingRules.delete}

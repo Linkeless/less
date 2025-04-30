@@ -96,10 +96,10 @@ export async function checkout(trade_no: string, method: number): Promise<Checko
   });
 }
 
-export async function checkCoupon(code: string): Promise<CouponResponse> {
+export async function checkCoupon(code: string, plan_id: number): Promise<CouponResponse> {
   return serverFetch('/api/v1/user/coupon/check', {
     method: 'POST',
-    body: JSON.stringify({ code }),
+    body: JSON.stringify({ code, plan_id }),
   });
 }
 
