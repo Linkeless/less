@@ -132,6 +132,21 @@ const LanguageSwitch = () => {
   );
 };
 
+// 格式化到期时间
+function formatExpireDate(expired_at: string | number | null | undefined) {
+  if (!expired_at || expired_at === '0' || expired_at === 0) return '永久有效';
+  const ts = typeof expired_at === 'string' ? parseInt(expired_at) : expired_at;
+  if (isNaN(ts) || ts === 0) return '永久有效';
+  return new Date(ts * 1000).toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).replace(/\//g, '-');
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const { t } = useLanguage();
@@ -273,11 +288,11 @@ export default function Dashboard() {
 
   const navigation = useMemo(() => [
     { name: t.common.dashboard, href: '#', current: true },
-    ...(canShowForwarding ? [{ name: t.forwardingRules.title, href: '/forwarding-rules', current: false }] : []),
+    ...(forwardingUser ? [{ name: t.forwardingRules.title, href: '/forwarding-rules', current: false }] : []),
     { name: t.common.product, href: '/product', current: false },
     { name: t.common.orders, href: '/orders', current: false },
     { name: t.invite.title, href: '/invite', current: false },
-  ], [canShowForwarding, t]);
+  ], [t, forwardingUser]);
 
   const userNavigation = [
     { name: t.common.signOut, component: <SignOutButton /> }
@@ -446,7 +461,7 @@ export default function Dashboard() {
                               </h2>
                               <div className="flex items-center gap-2 mt-1">
                                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                  {t.dashboard.subscription.expires}: {subscription.data.expired_at}
+                                  {t.dashboard.subscription.expires}: {formatExpireDate(subscription.data.expired_at)}
                                 </p>
                                 {subscription.data?.plan && (
                                   <div className="flex gap-2">
@@ -761,81 +776,52 @@ export default function Dashboard() {
                                 </div>
                               )}
                             </div>
-                            {canShowForwarding && (
-                              <>
-                                {/* 转发权限说明 */}
-                                <div className="mb-2 text-sm text-gray-600 dark:text-gray-300 text-center">
-                                  开启后可获得端口转发权限，允许自定义端口转发规则。
+
+                            {/* Forwarding Info Card */}
+                            {forwardingUser && (
+                              <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
+                                <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-2">端口转发</h3>
+                                <span className="inline-flex items-center px-4 py-2 rounded-lg bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200 font-semibold text-base">
+                                  已激活
+                                </span>
+                                <div className="mt-2 text-sm text-gray-700 dark:text-gray-200 space-y-1 text-center">
+                                  <div>到期时间：{new Date(forwardingUser.expire * 1000).toLocaleString()}</div>
+                                  <div>套餐用量：{(() => {
+                                    const bytes = forwardingUser.traffic_enable;
+                                    if (bytes >= 1024 * 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024 * 1024)).toFixed(2) + ' TB';
+                                    if (bytes >= 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+                                    if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+                                    if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
+                                    return bytes + ' B';
+                                  })()}</div>
                                 </div>
-                                {/* 开启转发激活区域 */}
-                                <div className="rounded-xl bg-gradient-to-br from-indigo-50 dark:from-gray-900 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5 flex flex-col items-center">
-                                  {forwardingEnabled ? (
-                                    <>
-                                      <span className="inline-flex items-center px-4 py-2 rounded-lg bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200 font-semibold text-base">
-                                        已激活
-                                      </span>
-                                      {forwardingUser && (
-                                        <div className="mt-2 text-sm text-gray-700 dark:text-gray-200 space-y-1 text-center">
-                                          <div>到期时间：{new Date(forwardingUser.expire * 1000).toLocaleString()}</div>
-                                          <div>套餐用量：{(() => {
-                                            const bytes = forwardingUser.traffic_enable;
-                                            if (bytes >= 1024 * 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024 * 1024)).toFixed(2) + ' TB';
-                                            if (bytes >= 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
-                                            if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-                                            if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
-                                            return bytes + ' B';
-                                          })()}</div>
-                                        </div>
-                                      )}
-                                      {forwardingUser && (
-                                        <div className="mt-4 w-full">
-                                          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                            <span>转发流量使用情况</span>
-                                            <span>
-                                              {formatBytes(forwardingUser.traffic_used || 0)} / {formatBytes(forwardingUser.traffic_enable || 0)}
-                                            </span>
-                                          </div>
-                                          <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
-                                            <div
-                                              className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-500 dark:from-indigo-500 dark:to-indigo-400 transition-all duration-300"
-                                              style={{
-                                                width: `${Math.min(
-                                                  ((forwardingUser.traffic_used || 0) / (forwardingUser.traffic_enable || 1)) * 100,
-                                                  100
-                                                )}%`
-                                              }}
-                                            />
-                                          </div>
-                                          <div className="mt-1 text-right text-xs text-gray-500 dark:text-gray-400">
-                                            {(
-                                              (forwardingUser.traffic_used || 0) /
-                                              (forwardingUser.traffic_enable || 1) *
-                                              100
-                                            ).toFixed(1)}% 已用
-                                          </div>
-                                        </div>
-                                      )}
-                                    </>
-                                  ) : (
-                                    <button
-                                      className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-blue-500 px-4 py-2 text-base font-semibold text-white shadow-lg hover:scale-105 active:scale-95 transition focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2"
-                                      onClick={async () => {
-                                        await handleEnableForwarding();
-                                        // 激活后刷新状态
-                                        const usersRes = await getForwardUsers();
-                                        const now = Math.floor(Date.now() / 1000);
-                                        const user = usersRes.code === 0 && Array.isArray(usersRes.data)
-                                          ? usersRes.data.find((u: any) => u.username === userInfo?.data?.email && u.expire > now)
-                                          : null;
-                                        setForwardingEnabled(!!user);
-                                        setForwardingUser(user || null);
+                                <div className="mt-4 w-full">
+                                  <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                    <span>转发流量使用情况</span>
+                                    <span>
+                                      {formatBytes(forwardingUser.traffic_used || 0)} / {formatBytes(forwardingUser.traffic_enable || 0)}
+                                    </span>
+                                  </div>
+                                  <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                                    <div
+                                      className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-500 dark:from-indigo-500 dark:to-indigo-400 transition-all duration-300"
+                                      style={{
+                                        width: `${Math.min(
+                                          ((forwardingUser.traffic_used || 0) / (forwardingUser.traffic_enable || 1)) * 100,
+                                          100
+                                        )}%`
                                       }}
-                                    >
-                                      激活
-                                    </button>
-                                  )}
+                                    />
+                                  </div>
+                                  <div className="mt-1 text-right text-xs text-gray-500 dark:text-gray-400">
+                                    {(
+                                      (forwardingUser.traffic_used || 0) /
+                                      (forwardingUser.traffic_enable || 1) *
+                                      100
+                                    ).toFixed(1)}% 已用
+                                  </div>
                                 </div>
-                              </>
+                              </div>
                             )}
                           </div>
                         ) : (
