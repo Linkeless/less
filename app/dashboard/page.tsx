@@ -1,7 +1,7 @@
 'use client';
-import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems, Listbox, ListboxButton, ListboxOptions, ListboxOption, Dialog, DialogPanel, DialogTitle, DialogBackdrop, Transition } from '@headlessui/react'
+import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems, Listbox, ListboxButton, ListboxOptions, ListboxOption, Dialog, DialogPanel, DialogTitle, DialogBackdrop, Transition, Switch } from '@headlessui/react'
 import { Bars3Icon, BellIcon, XMarkIcon, ChevronDownIcon, CheckIcon, ExclamationTriangleIcon, ArrowPathIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline'
-import { useEffect, useState, Fragment } from 'react'
+import { useEffect, useState, Fragment, useMemo } from 'react'
 import md5 from 'md5'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 import type { UserInfoResponse, TrafficLog, Subscription } from '@/lib/types'
@@ -11,13 +11,18 @@ import {
   getSubscription, 
   getTrafficLog, 
   resetUUID,
-  getUserNotices
+  getUserNotices,
+  createForwardUser,
+  getForwardUsers,
+  updateForwardUser,
+  fetchAdminShopPlans
 } from '@/lib/actions'
 import { useLanguage } from '@/lib/i18n/hooks';
 import TitleBar from '@/components/TitleBar'
 import { useRouter } from 'next/navigation';
 import SignOutButton from '@/components/SignOutButton';
 import { Dialog as HeadlessDialog, Transition as HeadlessTransition } from '@headlessui/react';
+import { env } from '@/env.config';
 
 const getGravatarUrl = (email: string) => {
   const hash = md5(email.trim().toLowerCase());
@@ -146,6 +151,8 @@ export default function Dashboard() {
   const [showNotices, setShowNotices] = useState(false);
   const [showPopupNotice, setShowPopupNotice] = useState(false);
   const [popupNotice, setPopupNotice] = useState<any | null>(null);
+  const [forwardingEnabled, setForwardingEnabled] = useState(false)
+  const [forwardingUser, setForwardingUser] = useState<any>(null)
 
   // Move user object inside component
   const user = {
@@ -154,6 +161,15 @@ export default function Dashboard() {
     imageUrl: userInfo ? getGravatarUrl(userInfo.data.email) : getGravatarUrl(''),
   }
 
+  // 判断当前用户 plan_id 是否允许开启转发（响应 userInfo 变化）
+  const canShowForwarding = useMemo(() => {
+    const planId = Number(userInfo?.data?.plan_id);
+    console.log('userInfo?.data?.plan_id:', userInfo?.data?.plan_id, typeof userInfo?.data?.plan_id);
+    console.log('env.FORWARDING_ALLOWED_PLAN_IDS:', env.FORWARDING_ALLOWED_PLAN_IDS);
+    console.log('canShowForwarding:', !!planId && env.FORWARDING_ALLOWED_PLAN_IDS.includes(planId));
+    return !!planId && env.FORWARDING_ALLOWED_PLAN_IDS.includes(planId);
+  }, [userInfo]);
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -161,12 +177,14 @@ export default function Dashboard() {
           subscriptionData,
           userInfoData,
           trafficData,
-          noticesData
+          noticesData,
+          forwardUsersRes
         ] = await Promise.all([
           getSubscription(),
           getUserInfo(),
           getTrafficLog(),
           getUserNotices(),
+          getForwardUsers(),
         ]);
 
         setSubscription(subscriptionData as unknown as Subscription);
@@ -175,6 +193,16 @@ export default function Dashboard() {
         }
         setTrafficLog(trafficData.data || []);
         setNotices(noticesData.data || []);
+        // 处理转发用户
+        if (forwardUsersRes.code === 0 && Array.isArray(forwardUsersRes.data) && userInfoData?.data?.email) {
+          const now = Math.floor(Date.now() / 1000);
+          const user = forwardUsersRes.data.find((u: any) => u.username === userInfoData.data.email && u.expire > now);
+          setForwardingEnabled(!!user);
+          setForwardingUser(user || null);
+        } else {
+          setForwardingEnabled(false);
+          setForwardingUser(null);
+        }
         // 检查是否有 tags 包含"弹窗"的通知
         if (noticesData.data && Array.isArray(noticesData.data)) {
           const popup = noticesData.data.find((n: any) => Array.isArray(n.tags) && n.tags.includes('弹窗'));
@@ -243,16 +271,117 @@ export default function Dashboard() {
     }
   }
 
-  const navigation = [
+  const navigation = useMemo(() => [
     { name: t.common.dashboard, href: '#', current: true },
+    ...(canShowForwarding ? [{ name: t.forwardingRules.title, href: '/forwarding-rules', current: false }] : []),
     { name: t.common.product, href: '/product', current: false },
     { name: t.common.orders, href: '/orders', current: false },
     { name: t.invite.title, href: '/invite', current: false },
-  ]
+  ], [canShowForwarding, t]);
 
   const userNavigation = [
     { name: t.common.signOut, component: <SignOutButton /> }
   ]
+
+  // 开启转发逻辑
+  const handleEnableForwarding = async () => {
+    if (!userInfo?.data?.email) return;
+    const email = userInfo.data.email;
+    try {
+      // 1. 先获取所有转发用户
+      const usersRes = await getForwardUsers();
+      if (usersRes.code !== 0 || !Array.isArray(usersRes.data)) {
+        alert('获取转发用户失败');
+        return;
+      }
+      // 2. 查找当前邮箱是否已存在
+      const existUser = usersRes.data.find((u: any) => u.username === email);
+      if (existUser) {
+        alert('已开启转发');
+        return;
+      }
+      // 3. 不存在则创建
+      const createRes = await createForwardUser(email);
+      if (createRes.code !== 0) {
+        alert(createRes.msg || '开启转发失败');
+        return;
+      }
+      // 4. 创建后再次获取用户
+      const usersRes2 = await getForwardUsers();
+      if (usersRes2.code !== 0 || !Array.isArray(usersRes2.data)) {
+        alert('获取转发用户失败');
+        return;
+      }
+      const user = usersRes2.data.find((u: any) => u.username === email);
+      if (!user) {
+        alert('未找到刚创建的转发用户');
+        return;
+      }
+      // 5. 获取 plan_id=2 的 ShopPlan 并填充字段
+      const userPlanId = String(userInfo.data.plan_id);
+      const forwardingPlanId = env.FORWARDING_PLAN_MAP?.[userPlanId];
+      if (!forwardingPlanId) {
+        alert(`未配置 plan_id=${userPlanId} 的转发套餐映射`);
+        return;
+      }
+      const plansRes = await fetchAdminShopPlans();
+      if (plansRes.code !== 0 || !Array.isArray(plansRes.data)) {
+        alert('获取套餐信息失败');
+        return;
+      }
+      const plan = plansRes.data.find((p: any) => p.id == forwardingPlanId);
+      if (!plan) {
+        alert(`未找到 plan_id=${forwardingPlanId} 的套餐`);
+        return;
+      }
+      user.plan_id = plan.id;
+      user.group_id = plan.group_id;
+      user.max_rules = plan.max_rules;
+      user.speed_limit = plan.speed_limit;
+      user.ip_limit = plan.ip_limit;
+      user.connection_limit = plan.connection_limit;
+      user.traffic_enable = plan.traffic;
+      if (userInfo.data.expired_at === null) {
+        user.expire = Date.parse('9999-12-31T00:00:00Z') / 1000;
+      } else {
+        user.expire = userInfo.data.expired_at;
+      }
+      user.update_traffic = true;
+      user.qd_update_traffic = true;
+      user.qd_update_group = true;
+      user.qd_update_max_rules = true;
+      user.qd_update_limits = true;
+
+      // 打印请求参数到前端控制台
+      console.log('updateForwardUser 请求参数:');
+      Object.entries(user).forEach(([key, value]) => {
+        console.log(`  ${key}:`, value);
+      });
+
+      // 6. 更新用户
+      await updateForwardUser(user.id, user);
+      alert('开启转发成功');
+      window.location.reload();
+    } catch (e: any) {
+      alert(e?.msg || e?.message || '开启转发失败');
+    }
+  };
+
+  const handleToggleForwarding = async (enabled: boolean) => {
+    if (enabled) {
+      await handleEnableForwarding()
+      // 切换后重新检查状态
+      const usersRes = await getForwardUsers()
+      const now = Math.floor(Date.now() / 1000)
+      const user = usersRes.code === 0 && Array.isArray(usersRes.data)
+        ? usersRes.data.find((u: any) => u.username === userInfo?.data?.email && u.expire > now)
+        : null
+      setForwardingEnabled(!!user)
+    } else {
+      // 如有关闭转发逻辑，可在此实现
+      alert('如需关闭转发，请联系管理员')
+    }
+  }
 
   return (
     <>
@@ -317,7 +446,7 @@ export default function Dashboard() {
                               </h2>
                               <div className="flex items-center gap-2 mt-1">
                                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                  {t.dashboard.subscription.expires}: {formatDate(subscription.data.expired_at)}
+                                  {t.dashboard.subscription.expires}: {subscription.data.expired_at}
                                 </p>
                                 {subscription.data?.plan && (
                                   <div className="flex gap-2">
@@ -632,6 +761,82 @@ export default function Dashboard() {
                                 </div>
                               )}
                             </div>
+                            {canShowForwarding && (
+                              <>
+                                {/* 转发权限说明 */}
+                                <div className="mb-2 text-sm text-gray-600 dark:text-gray-300 text-center">
+                                  开启后可获得端口转发权限，允许自定义端口转发规则。
+                                </div>
+                                {/* 开启转发激活区域 */}
+                                <div className="rounded-xl bg-gradient-to-br from-indigo-50 dark:from-gray-900 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5 flex flex-col items-center">
+                                  {forwardingEnabled ? (
+                                    <>
+                                      <span className="inline-flex items-center px-4 py-2 rounded-lg bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200 font-semibold text-base">
+                                        已激活
+                                      </span>
+                                      {forwardingUser && (
+                                        <div className="mt-2 text-sm text-gray-700 dark:text-gray-200 space-y-1 text-center">
+                                          <div>到期时间：{new Date(forwardingUser.expire * 1000).toLocaleString()}</div>
+                                          <div>套餐用量：{(() => {
+                                            const bytes = forwardingUser.traffic_enable;
+                                            if (bytes >= 1024 * 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024 * 1024)).toFixed(2) + ' TB';
+                                            if (bytes >= 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+                                            if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+                                            if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
+                                            return bytes + ' B';
+                                          })()}</div>
+                                        </div>
+                                      )}
+                                      {forwardingUser && (
+                                        <div className="mt-4 w-full">
+                                          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                            <span>转发流量使用情况</span>
+                                            <span>
+                                              {formatBytes(forwardingUser.traffic_used || 0)} / {formatBytes(forwardingUser.traffic_enable || 0)}
+                                            </span>
+                                          </div>
+                                          <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                                            <div
+                                              className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-500 dark:from-indigo-500 dark:to-indigo-400 transition-all duration-300"
+                                              style={{
+                                                width: `${Math.min(
+                                                  ((forwardingUser.traffic_used || 0) / (forwardingUser.traffic_enable || 1)) * 100,
+                                                  100
+                                                )}%`
+                                              }}
+                                            />
+                                          </div>
+                                          <div className="mt-1 text-right text-xs text-gray-500 dark:text-gray-400">
+                                            {(
+                                              (forwardingUser.traffic_used || 0) /
+                                              (forwardingUser.traffic_enable || 1) *
+                                              100
+                                            ).toFixed(1)}% 已用
+                                          </div>
+                                        </div>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <button
+                                      className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-blue-500 px-4 py-2 text-base font-semibold text-white shadow-lg hover:scale-105 active:scale-95 transition focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2"
+                                      onClick={async () => {
+                                        await handleEnableForwarding();
+                                        // 激活后刷新状态
+                                        const usersRes = await getForwardUsers();
+                                        const now = Math.floor(Date.now() / 1000);
+                                        const user = usersRes.code === 0 && Array.isArray(usersRes.data)
+                                          ? usersRes.data.find((u: any) => u.username === userInfo?.data?.email && u.expire > now)
+                                          : null;
+                                        setForwardingEnabled(!!user);
+                                        setForwardingUser(user || null);
+                                      }}
+                                    >
+                                      激活
+                                    </button>
+                                  )}
+                                </div>
+                              </>
+                            )}
                           </div>
                         ) : (
                           <p className="text-sm text-gray-500 text-center py-8">Failed to load user information</p>

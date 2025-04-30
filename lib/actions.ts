@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { serverFetch } from './server';
+import { env } from '@/env.config';
 import type { 
   UserInfoResponse, 
   SubscriptionResponse,
@@ -16,7 +17,10 @@ import type {
   PaymentMethodResponse,
   OrdersResponse,
   CheckoutResponse,
-  CouponResponse
+  CouponResponse,
+  ForwardUser,
+  ShopPlan,
+  AdminShopPlansResponse
 } from './types';
 
 export async function getUserInfo(): Promise<UserInfoResponse> {
@@ -178,4 +182,207 @@ export async function getInviteCommissionRecords() {
 
 export async function getUserNotices() {
   return serverFetch('/api/v1/user/notice/fetch');
+}
+
+interface ForwardingLoginResponse {
+  code: number;
+  data: string;
+  msg: string;
+}
+
+interface ForwardingRule {
+  id: number;
+  name: string;
+  uid: number;
+  listen_port: number;
+  device_group_in: number;
+  device_group_out: number;
+  traffic_used: number;
+  config: string;
+  status: string;
+  display_updated_at: string;
+}
+
+interface ForwardingRulesResponse {
+  code: number;
+  data: ForwardingRule[];
+  count: number;
+}
+
+interface DeviceGroup {
+  id: number;
+  name: string;
+  type: string;
+  ratio: string;
+  traffic_used: number;
+  connect_host?: string;
+  port_range?: string;
+  config: string;
+  show_order?: number;
+  display_num?: number;
+}
+
+interface DeviceGroupsResponse {
+  code: number;
+  data: DeviceGroup[];
+  msg: string;
+}
+
+export async function getForwardingRules(userId: number, page: number = 1, size: number = 10): Promise<ForwardingRulesResponse> {
+  const headers: Record<string, string> = {};
+  if (env.FORWARDING_ADMIN_TOKEN) {
+    headers['Authorization'] = env.FORWARDING_ADMIN_TOKEN;
+  }
+  const response = await serverFetch(`/api/v1/admin/user/${userId}/forward?page=${page}&size=${size}`, {
+    method: 'GET',    
+    headers,
+    baseUrl: env.FORWARDING_API_URL
+  });
+  return response;
+}
+
+export async function getDeviceGroups(userId: number): Promise<DeviceGroupsResponse> {
+  const headers: Record<string, string> = {};
+  if (env.FORWARDING_ADMIN_TOKEN) {
+    headers['Authorization'] = env.FORWARDING_ADMIN_TOKEN;
+  }
+  return serverFetch(`/api/v1/admin/devicegroup?uid=${userId}`, {
+    headers,
+    baseUrl: env.FORWARDING_API_URL
+  });
+}
+
+interface CreateForwardingRuleResponse {
+  code: number;
+  msg: string;
+}
+
+export async function createForwardingRule(
+  userId: number,
+  data: {
+    name: string;
+    device_group_in: number;
+    device_group_out: number | null;
+    config: string;
+    listen_port: number;
+  }
+): Promise<{ code: number; msg: string }> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (env.FORWARDING_ADMIN_TOKEN) {
+    headers['Authorization'] = env.FORWARDING_ADMIN_TOKEN;
+  }
+  return serverFetch(`/api/v1/admin/user/${userId}/forward`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(data),
+    baseUrl: env.FORWARDING_API_URL,
+  });
+}
+
+export async function updateForwardingRule(
+  userId: number,
+  ruleId: number,
+  data: {
+    name: string;
+    device_group_in: number;
+    device_group_out: number | null;
+    config: string;
+    listen_port: number;
+  }
+): Promise<{ code: number; msg: string }> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (env.FORWARDING_ADMIN_TOKEN) {
+    headers['Authorization'] = env.FORWARDING_ADMIN_TOKEN;
+  }
+  return serverFetch(`/api/v1/admin/user/${userId}/forward/${ruleId}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+    baseUrl: env.FORWARDING_API_URL,
+  });
+}
+
+export async function diagnoseForwardingRule(userId: number, ruleId: number) {
+  const headers: Record<string, string> = {};
+  if (env.FORWARDING_ADMIN_TOKEN) {
+    headers['Authorization'] = env.FORWARDING_ADMIN_TOKEN;
+  }
+  return serverFetch(`/api/v1/admin/user/${userId}/forward/${ruleId}/diagnose`, {
+    method: 'POST',
+    headers,
+    baseUrl: env.FORWARDING_API_URL
+  });
+}
+
+export async function deleteForwardingRules(userId: number, ids: number[]): Promise<{ code: number; msg: string }> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (env.FORWARDING_ADMIN_TOKEN) {
+    headers['Authorization'] = env.FORWARDING_ADMIN_TOKEN;
+  }
+  return serverFetch(`/api/v1/admin/user/${userId}/forward`, {
+    method: 'DELETE',
+    headers,
+    body: JSON.stringify({ ids }),
+    baseUrl: env.FORWARDING_API_URL,
+  });
+}
+
+export async function createForwardUser(username: string): Promise<{ code: number; msg: string }> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (env.FORWARDING_ADMIN_TOKEN) {
+    headers['Authorization'] = env.FORWARDING_ADMIN_TOKEN;
+  }
+  return serverFetch('/api/v1/admin/user', {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify({ username }),
+    baseUrl: env.FORWARDING_API_URL,    
+  });
+}
+
+export async function getForwardUsers(page: number = 1, size: number = 1000): Promise<{ code: number; data: any[]; msg?: string }> {
+  const headers: Record<string, string> = {};
+  if (env.FORWARDING_ADMIN_TOKEN) {
+    headers['Authorization'] = env.FORWARDING_ADMIN_TOKEN;
+  }
+  return serverFetch(`/api/v1/admin/user?page=${page}&size=${size}`, {
+    method: 'GET',
+    headers,
+    baseUrl: env.FORWARDING_API_URL,
+  });
+}
+
+export async function updateForwardUser(id: number, user: ForwardUser): Promise<{ code: number; msg: string }> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json; charset=utf-8',
+  };
+  if (env.FORWARDING_ADMIN_TOKEN) {
+    headers['Authorization'] = env.FORWARDING_ADMIN_TOKEN;
+  }
+  return serverFetch(`/api/v1/admin/user/${id}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(user),
+    baseUrl: env.FORWARDING_API_URL,
+  });
+}
+
+export async function fetchAdminShopPlans(): Promise<AdminShopPlansResponse> {
+  const headers: Record<string, string> = {};
+  if (env.FORWARDING_ADMIN_TOKEN) {
+    headers['Authorization'] = env.FORWARDING_ADMIN_TOKEN;
+  }
+  return serverFetch('/api/v1/admin/shop/plan', {
+    method: 'GET',
+    headers,
+    baseUrl: env.FORWARDING_API_URL,
+  });
 }

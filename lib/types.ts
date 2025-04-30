@@ -15,6 +15,7 @@ export interface UserInfo {
   commission_rate: number | null;
   telegram_id: number;
   avatar_url: string;
+  remarks: string;
 }
 
 export interface BaseResponse {
@@ -181,6 +182,55 @@ export interface CouponResponse extends BaseResponse {
     value: number;
     type: 1 | 2;  // 1 for fixed amount, 2 for percentage
   } | null;
+}
+
+export interface ForwardUser {
+  id: number;
+  username: string;
+  balance: string;
+  aff_balance: string;
+  inviter: number;
+  invite_config: string;
+  invite_code: string;
+  plan_id: number;
+  group_id: number;
+  max_rules: number;
+  speed_limit: number;
+  ip_limit: number;
+  connection_limit: number;
+  traffic_enable: number;
+  traffic_used: number;
+  expire: number;
+  auto_renew: boolean;
+  banned: boolean;
+  admin: boolean;
+  allow_device: boolean;
+  telegram_id: number;
+  telegram_notify: string;
+  display_traffic: any;
+}
+
+export interface ShopPlan {
+  id: number;
+  type: string;
+  name: string;
+  desc: string;
+  price: string;
+  multiple: number;
+  show_order: number;
+  hide: boolean;
+  group_id: number;
+  max_rules: number;
+  traffic: number;
+  speed_limit: number;
+  ip_limit: number;
+  connection_limit: number;
+}
+
+export interface AdminShopPlansResponse {
+  code: number;
+  data: ShopPlan[];
+  msg: string;
 }
 
 // Add other type definitions as needed...

@@ -18,12 +18,13 @@ export class APIError extends Error {
   }
 }
 
-export async function serverFetch<T = any>(path: string, init?: RequestInit): Promise<T> {
+export async function serverFetch<T = any>(path: string, init?: RequestInit & { baseUrl?: string }): Promise<T> {
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_data');
+  const baseUrl = init?.baseUrl || API_URL;
 
   try {
-    const response = await fetch(`${API_URL}${path}`, {
+    const response = await fetch(`${baseUrl}${path}`, {
       ...init,
       headers: {
         'Content-Type': 'application/json',
@@ -53,6 +54,16 @@ export async function serverFetch<T = any>(path: string, init?: RequestInit): Pr
         data: null,
         error: 'EXISTING_UNPAID_ORDER' 
       } as unknown as T;
+    }
+    
+    // 特殊处理端口转发接口错误，直接返回数据给前端
+    // if (path === '/api/v1/user/forward' && data && typeof data.code !== 'undefined' && data.code !== 0) {
+    //   return data as T;
+    // }
+    
+    // 特殊处理 /api/v1/admin/user
+    if (path.startsWith('/api/v1/admin/') && data && typeof data.code !== 'undefined' && data.code !== 0) {
+      return data as T;
     }
     
     if (!response.ok || data.status === 'fail') {
