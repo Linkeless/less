@@ -21,7 +21,7 @@ interface DeviceGroup {
 interface RuleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (rule: { source: string; destination: string; device_group_in: number; listen_port: number }) => void;
+  onSubmit: (rule: { source: string; destination: string; device_group_in: number; listen_port?: number }) => void;
   initialData?: { source: string; destination: string; device_group_in?: number; listen_port?: number };
   deviceGroups: DeviceGroup[];
   isCopyMode?: boolean;
@@ -54,21 +54,33 @@ export default function RuleModal({
     const formData = new FormData(e.currentTarget);
     const destination = formData.get('destination') as string;
     
-    // Validate destination addresses
+    // 校验每一行格式（IPv4:port、[IPv6]:port、域名:port）
     const addresses = destination.split('\n').filter(line => line.trim());
-    // const isValid = addresses.every(addr => /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$/.test(addr.trim()));
-    
-    // if (!isValid) {
-    //   alert(t.forwardingRules.destination + ': 1.2.3.4:5678');
-    //   return;
-    // }
+    console.log('目标地址分割结果:', addresses);
+    const invalidLines = addresses.filter(addr =>
+      !/^((?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)|\[[0-9a-fA-F:]+\]|([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}):\d{1,5}$/.test(addr.trim())
+    );
+    console.log('格式有误的行:', invalidLines);
+    if (invalidLines.length > 0) {
+      alert('此地址格式有误: ' + invalidLines.join(', ') + '\n每行应为 1.2.3.4:5678、[2001::]:5678 或 example.com:5678');
+      return;
+    }
 
-    onSubmit({
+    const rule: {
+      source: string;
+      destination: string;
+      device_group_in: number;
+      listen_port?: number;
+    } = {
       source: formData.get('source') as string,
       destination: destination,
       device_group_in: Number(formData.get('device_group_in')),
-      listen_port: Number(formData.get('listen_port')),
-    });
+    };
+    const listenPortRaw = formData.get('listen_port');
+    if (listenPortRaw) {
+      rule.listen_port = Number(listenPortRaw);
+    }
+    onSubmit(rule);
   };
 
   return (
@@ -114,8 +126,7 @@ export default function RuleModal({
                     id="source"
                     defaultValue={initialData?.source}
                     className="block w-full rounded-xl border-0 px-3 py-2 text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-400/70 sm:text-sm dark:bg-gray-800/80 bg-white/80"
-                    placeholder={t.forwardingRules.name + ' (example.com)'}
-                    pattern="^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$"
+                    placeholder={t.forwardingRules.name}
                     title={t.forwardingRules.name}
                     required
                   />
@@ -170,10 +181,9 @@ export default function RuleModal({
                       defaultValue={initialData?.listen_port}
                       className="block w-full rounded-xl border-0 px-3 py-2 text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-400/70 sm:text-sm dark:bg-gray-800/80 bg-white/80"
                       placeholder={t.forwardingRules.listenPort}
-                      required
                     />
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      端口范围: {selectedGroup?.port_range || '未知'}
+                      端口范围: {selectedGroup?.port_range || '未知'}，留空则随机
                     </p>
                   </div>
                 </div>

@@ -199,20 +199,24 @@ export default function ForwardingRulesPage() {
     }
   };
 
-  const handleAddRule = async (ruleData: { source: string; destination: string; device_group_in: number; listen_port: number }) => {
+  const handleAddRule = async (ruleData: { source: string; destination: string; device_group_in: number; listen_port?: number }) => {
 
     if (!forwardUserId) {
       setError('未获取到转发用户ID');
       return;
     }
     try {
-      const response = await createForwardingRule(forwardUserId, {
+      const addresses = ruleData.destination.split('\n').filter(line => line.trim());
+      const data: any = {
         name: ruleData.source,
         device_group_in: ruleData.device_group_in,
         device_group_out: null,
-        config: JSON.stringify({ dest: [ruleData.destination] }),
-        listen_port: ruleData.listen_port
-      });
+        config: JSON.stringify({ dest: addresses })
+      };
+      if (typeof ruleData.listen_port === 'number') {
+        data.listen_port = ruleData.listen_port;
+      }
+      const response = await createForwardingRule(forwardUserId, data);
 
       if (response.code === 0) {
         // 刷新规则列表
@@ -229,7 +233,7 @@ export default function ForwardingRulesPage() {
     }
   };
 
-  const handleEditRule = async (ruleData: { source: string; destination: string; device_group_in: number; listen_port: number }) => {
+  const handleEditRule = async (ruleData: { source: string; destination: string; device_group_in: number; listen_port?: number }) => {
     if (!editingRule) {
       setError('No rule selected');
       return;
@@ -240,13 +244,17 @@ export default function ForwardingRulesPage() {
       return;
     }
     try {
-      const response = await updateForwardingRule(forwardUserId, editingRule.id, {
+      const addresses = ruleData.destination.split('\n').filter(line => line.trim());
+      const data: any = {
         name: ruleData.source,
         device_group_in: ruleData.device_group_in,
         device_group_out: null,
-        config: JSON.stringify({ dest: [ruleData.destination] }),
-        listen_port: ruleData.listen_port
-      });
+        config: JSON.stringify({ dest: addresses })
+      };
+      if (typeof ruleData.listen_port === 'number') {
+        data.listen_port = ruleData.listen_port;
+      }
+      const response = await updateForwardingRule(forwardUserId, editingRule.id, data);
 
       if (response.code === 0) {
         // 刷新规则列表
