@@ -213,8 +213,9 @@ export default function Dashboard() {
         // 处理转发用户
         if (forwardUsersRes.code === 0 && Array.isArray(forwardUsersRes.data) && userInfoData?.data?.email) {
           const now = Math.floor(Date.now() / 1000);
-          const user = forwardUsersRes.data.find((u: any) => u.username === userInfoData.data.email && u.expire > now);
-          setForwardingEnabled(!!user);
+          // 只要邮箱匹配就赋值
+          const user = forwardUsersRes.data.find((u: any) => u.username === userInfoData.data.email);
+          setForwardingEnabled(!!user && user.expire > now);
           setForwardingUser(user || null);
         } else {
           setForwardingEnabled(false);
@@ -400,6 +401,74 @@ export default function Dashboard() {
     }
   }
 
+  // 同步转发用户套餐逻辑
+  const handleSyncForwardingUser = async () => {
+    if (!userInfo?.data?.email || !forwardingUser) return;
+    const email = userInfo.data.email;
+    try {
+      // 1. 获取最新转发用户
+      const usersRes = await getForwardUsers();
+      if (usersRes.code !== 0 || !Array.isArray(usersRes.data)) {
+        alert('获取转发用户失败');
+        return;
+      }
+      const user = usersRes.data.find((u: any) => u.username === email);
+      if (!user) {
+        alert('未找到转发用户');
+        return;
+      }
+      // 2. 获取 plan_id 映射
+      const userPlanId = String(userInfo.data.plan_id);
+      const forwardingPlanId = env.FORWARDING_PLAN_MAP?.[userPlanId];
+      if (!forwardingPlanId) {
+        alert(`未配置 plan_id=${userPlanId} 的转发套餐映射`);
+        return;
+      }
+      // 3. 获取套餐信息
+      const plansRes = await fetchAdminShopPlans();
+      if (plansRes.code !== 0 || !Array.isArray(plansRes.data)) {
+        alert('获取套餐信息失败');
+        return;
+      }
+      const plan = plansRes.data.find((p: any) => p.id == forwardingPlanId);
+      if (!plan) {
+        alert(`未找到 plan_id=${forwardingPlanId} 的套餐`);
+        return;
+      }
+      // 4. 更新用户字段
+      user.plan_id = plan.id;
+      user.group_id = plan.group_id;
+      user.max_rules = plan.max_rules;
+      user.speed_limit = plan.speed_limit;
+      user.ip_limit = plan.ip_limit;
+      user.connection_limit = plan.connection_limit;
+      user.traffic_enable = plan.traffic;
+      if (userInfo.data.expired_at === null) {
+        user.expire = Date.parse('9999-12-31T00:00:00Z') / 1000;
+      } else {
+        user.expire = userInfo.data.expired_at;
+      }
+      user.update_traffic = true;
+      user.qd_update_traffic = true;
+      user.qd_update_group = true;
+      user.qd_update_max_rules = true;
+      user.qd_update_limits = true;
+      // 5. 更新转发用户
+      await updateForwardUser(user.id, user);
+      alert('同步成功');
+      // 刷新状态
+      const usersRes2 = await getForwardUsers();
+      const now = Math.floor(Date.now() / 1000);
+      const updatedUser = usersRes2.code === 0 && Array.isArray(usersRes2.data)
+        ? usersRes2.data.find((u: any) => u.username === userInfo?.data?.email && u.expire > now)
+        : null;
+      setForwardingUser(updatedUser || null);
+      setForwardingEnabled(!!updatedUser);
+    } catch (e: any) {
+      alert(e?.msg || e?.message || '同步失败');
+    }
+  };
+
   return (
     <>
       <style jsx global>{globalStyles}</style>
@@ -447,77 +516,78 @@ export default function Dashboard() {
                 {/* Subscription Card */}
                 <div className="relative group">
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                  <div className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800">
-                    <div className="px-8 pt-6 pb-3 sm:px-10 sm:pt-8">
-                      {loading ? (
-                        <div className="flex flex-col items-center justify-center py-12">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
-                          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">{t.dashboard.traffic.loading}</p>
-                        </div>
-                      ) : subscription ? (
-                        <div className="space-y-6">
-                          <div className="flex items-center gap-3 mb-6">
-                            <div className="flex-1 min-w-0">
-                              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7 truncate">
-                                {subscription.data?.plan?.name || t.dashboard.subscription.noActive}
-                              </h2>
-                              <div className="flex items-center gap-2 mt-1">
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                  {t.dashboard.subscription.expires}: {formatExpireDate(subscription.data.expired_at)}
-                                </p>
-                                {subscription.data?.plan && (
-                                  <div className="flex gap-2">
+                  <div className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-8 sm:p-10 gap-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7 mb-1">订阅信息</h2>
+                    {loading ? (
+                      <div className="flex flex-col items-center justify-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
+                        <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">{t.dashboard.traffic.loading}</p>
+                      </div>
+                    ) : subscription ? (
+                      <div className="flex flex-col gap-6">
+                        {/* 优化后的订阅信息卡片 */}
+                        <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 sm:p-10 flex flex-col gap-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
+                          {/* 套餐名称和操作 */}
+                          <div>
+                            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 truncate">
+                              {subscription.data?.plan?.name || t.dashboard.subscription.noActive}
+                            </h2>
+                            <div className="flex flex-row items-center justify-between gap-2 mt-1">
+                              <div className="text-sm text-gray-600 dark:text-gray-400">
+                                {t.dashboard.subscription.expires}：{formatExpireDate(subscription.data.expired_at)}
+                              </div>
+                              {subscription.data?.plan && (
+                                <div className="flex gap-2">
+                                  <a 
+                                    href={`/product/order?id=${subscription.data.plan_id}`}
+                                    className="inline-flex items-center px-4 py-1.5 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 transition"
+                                    aria-label={t.dashboard.subscription.renew}
+                                  >
+                                    <ArrowPathIcon className="w-5 h-5" aria-hidden="true" />
+                                    {t.dashboard.subscription.renew}
+                                  </a>
+                                  {subscription.data.plan.reset_price !== null && subscription.data.plan.reset_price !== undefined && (
                                     <a 
-                                      href={`/product/order?id=${subscription.data.plan_id}`}
+                                      href={`/product/order?id=${subscription.data.plan_id}&reset=1`}
                                       className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 transition-all duration-200"
                                     >
-                                      {t.dashboard.subscription.renew}
+                                      {t.dashboard.subscription.reset}
                                     </a>
-                                    {subscription.data.plan.reset_price !== null && subscription.data.plan.reset_price !== undefined && (
-                                      <a 
-                                        href={`/product/order?id=${subscription.data.plan_id}&reset=1`}
-                                        className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 transition-all duration-200"
-                                      >
-                                        {t.dashboard.subscription.reset}
-                                      </a>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
-
-                          {subscription.data?.plan ? (
-                            <div className="space-y-6">
-                              {/* Traffic Usage Card */}
-                              <div className="rounded-xl bg-gradient-to-br from-indigo-50 dark:from-indigo-950 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
-                                <p className="text-base font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.subscription.trafficUsage}</p>
-                                <div className="mt-4">
-                                  <div className="flex items-center justify-between mb-3">
-                                    <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
-                                      {formatBytes(subscription.data.u + subscription.data.d)}
-                                    </span>
-                                    <span className="text-2xl font-bold text-gray-900 dark:text-gray-100 tabular-nums">
-                                      {formatBytes(subscription.data.transfer_enable)}
-                                    </span>
-                                  </div>
-                                  <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
-                                    <div 
-                                      className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-500 dark:from-indigo-500 dark:to-indigo-400 transition-all duration-300" 
-                                      style={{ 
-                                        width: `${Math.min(((subscription.data.u + subscription.data.d) / subscription.data.transfer_enable * 100), 100)}%` 
-                                      }}
-                                    />
-                                  </div>
-                                  <p className="mt-2 text-sm font-medium text-gray-600 dark:text-gray-400 text-right">
-                                    {((subscription.data.u + subscription.data.d) / subscription.data.transfer_enable * 100).toFixed(1)}% {t.dashboard.subscription.used}
-                                  </p>
-                                </div>
+                          {/* 流量用量区块 */}
+                          {subscription.data?.plan && (
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-base font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.subscription.trafficUsage}</span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {formatBytes(subscription.data.u + subscription.data.d)} / {formatBytes(subscription.data.transfer_enable)}
+                                </span>
                               </div>
-
-                              {/* Node Selection Card */}
-                              <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-4 space-y-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
-                                <div className="space-y-2">
+                              <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden mb-1">
+                                <div 
+                                  className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-500 dark:from-indigo-500 dark:to-indigo-400 transition-all duration-300" 
+                                  style={{ 
+                                    width: `${Math.min(((subscription.data.u + subscription.data.d) / subscription.data.transfer_enable * 100), 100)}%` 
+                                  }}
+                                />
+                              </div>
+                              <div className="text-right text-xs text-gray-500 dark:text-gray-400">
+                                {((subscription.data.u + subscription.data.d) / subscription.data.transfer_enable * 100).toFixed(1)}% 已用
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        {/* 订阅方式卡片保持原样 */}
+                        {subscription.data?.plan ? (
+                          <div className="space-y-6">
+                            <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {/* 节点选择 */}
+                                <div className="flex flex-col">
                                   <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.nodes.title}</h3>
                                   <Listbox
                                     value={selectedNode}
@@ -581,10 +651,11 @@ export default function Dashboard() {
                                       </div>
                                     )}
                                   </Listbox>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">{t.dashboard.nodes.selectHint}</p>
-                                  
-                                  {/* 协议筛选 */}
-                                  <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mt-4">协议筛选</h3>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.dashboard.nodes.selectHint}</p>
+                                </div>
+                                {/* 协议选择 */}
+                                <div className="flex flex-col">
+                                  <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300">协议筛选</h3>
                                   <Listbox value={selectedProtocol} onChange={setSelectedProtocol}>
                                     {({ open }) => (
                                       <div className="relative mt-1">
@@ -633,80 +704,81 @@ export default function Dashboard() {
                                       </div>
                                     )}
                                   </Listbox>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">选择需要的协议进行筛选,默认为Shadowsocks</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">选择需要的协议进行筛选,默认为Shadowsocks</p>
                                 </div>
-                                
-                                <div className="space-y-3 pt-2">
-                                  <div className="grid grid-cols-1 gap-2">
-                                    {[
-                                      { id: 'copy', name: t.dashboard.traffic.copyUrl, onClick: () => handleCopyUrl(getFilteredUrl(subscription.data.token, selectedNode, [selectedProtocol])) },
-                                      ...(['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x', 'loon'] as const).map(client => ({
-                                        id: client,
-                                        name: client === 'quantumult-x' ? 'Quantumult X' : client.charAt(0).toUpperCase() + client.slice(1),
-                                        href: (() => {
-                                          const url = getFilteredUrl(subscription.data.token, selectedNode, [selectedProtocol]);
-                                          const clientUrls = {
-                                            'clash': `clash://install-config?url=${encodeURIComponent(url + '&flag=clash')}`,
-                                            'surge': `surge:///install-config?url=${encodeURIComponent(url + '&flag=surge')}`,
-                                            'shadowrocket': `shadowrocket://add/sub://${btoa(url + '&flag=shadowrocket')}`,
-                                            'surfboard': `surfboard:///install-config?url=${encodeURIComponent(url + '&flag=surfboard')}`,
-                                            'quantumult-x': `quantumult-x:///update-configuration?remote-resource=${encodeURIComponent(url + '&flag=quantumult%20x')}`,
-                                            'loon': `loon://import?url=${encodeURIComponent(url + '&flag=loon')}`
-                                          };
-                                          return clientUrls[client];
-                                        })()
-                                      }))
-                                    ].map((item) => (
-                                      'onClick' in item ? (
-                                        <button
-                                          key={item.id}
-                                          onClick={item.onClick}
-                                          className="flex items-center justify-center gap-1.5 px-2.5 py-2 text-sm font-medium bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-lg hover:from-indigo-500 hover:to-indigo-400 transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                        >
-                                          {item.name}
-                                        </button>
-                                      ) : (
-                                        <a
-                                          key={item.id}
-                                          href={item.href}
-                                          className={`flex items-center justify-center gap-1.5 px-2.5 py-2 text-sm font-medium ${
-                                            ['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x'].includes(item.id)
-                                              ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                                              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                                          } rounded-lg transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                                            ['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x'].includes(item.id)
-                                              ? 'focus:ring-gray-500 dark:focus:ring-gray-400'
-                                              : 'focus:ring-gray-500 dark:focus:ring-gray-400'
-                                          }`}
-                                        >
-                                          <img 
-                                            src={`/${item.id === 'quantumult-x' ? 'qx' : item.id}.${item.id === 'surfboard' ? 'avif' : 'png'}`} 
-                                            alt="" 
-                                            className="w-4 h-4" 
-                                          />
-                                          <span>{item.name}</span>
-                                        </a>
-                                      )
-                                    ))}
-                                  </div>
+                              </div>
+                              {/* 客户端按钮区块 */}
+                              <div className="mt-4">
+                                <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-2">客户端下载</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                  {[
+                                    { id: 'copy', name: t.dashboard.traffic.copyUrl, onClick: () => handleCopyUrl(getFilteredUrl(subscription.data.token, selectedNode, [selectedProtocol])) },
+                                    ...(['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x', 'loon'] as const).map(client => ({
+                                      id: client,
+                                      name: client === 'quantumult-x' ? 'Quantumult X' : client.charAt(0).toUpperCase() + client.slice(1),
+                                      href: (() => {
+                                        const url = getFilteredUrl(subscription.data.token, selectedNode, [selectedProtocol]);
+                                        const clientUrls = {
+                                          'clash': `clash://install-config?url=${encodeURIComponent(url + '&flag=clash')}`,
+                                          'surge': `surge:///install-config?url=${encodeURIComponent(url + '&flag=surge')}`,
+                                          'shadowrocket': `shadowrocket://add/sub://${btoa(url + '&flag=shadowrocket')}`,
+                                          'surfboard': `surfboard:///install-config?url=${encodeURIComponent(url + '&flag=surfboard')}`,
+                                          'quantumult-x': `quantumult-x:///update-configuration?remote-resource=${encodeURIComponent(url + '&flag=quantumult%20x')}`,
+                                          'loon': `loon://import?url=${encodeURIComponent(url + '&flag=loon')}`
+                                        };
+                                        return clientUrls[client];
+                                      })()
+                                    }))
+                                  ].map((item) => (
+                                    'onClick' in item ? (
+                                      <button
+                                        key={item.id}
+                                        onClick={item.onClick}
+                                        className="flex items-center justify-center gap-1.5 px-2.5 py-2 text-sm font-medium bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-lg hover:from-indigo-500 hover:to-indigo-400 transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                      >
+                                        {item.name}
+                                      </button>
+                                    ) : (
+                                      <a
+                                        key={item.id}
+                                        href={item.href}
+                                        className={`flex items-center justify-center gap-1.5 px-2.5 py-2 text-sm font-medium ${
+                                          ['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x'].includes(item.id)
+                                            ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                        } rounded-lg transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                                          ['clash', 'surge', 'shadowrocket', 'surfboard', 'quantumult-x'].includes(item.id)
+                                            ? 'focus:ring-gray-500 dark:focus:ring-gray-400'
+                                            : 'focus:ring-gray-500 dark:focus:ring-gray-400'
+                                        }`}
+                                      >
+                                        <img 
+                                          src={`/${item.id === 'quantumult-x' ? 'qx' : item.id}.${item.id === 'surfboard' ? 'avif' : 'png'}`} 
+                                          alt="" 
+                                          className="w-4 h-4" 
+                                        />
+                                        <span>{item.name}</span>
+                                      </a>
+                                    )
+                                  ))}
                                 </div>
                               </div>
                             </div>
-                          ) : (
-                            <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-6 text-center shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{t.dashboard.purchase.needSubscription}</p>
-                              <a href="/product" className="mt-4 inline-block px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-lg hover:from-indigo-500 hover:to-indigo-400 transition-colors">
-                                {t.dashboard.purchase.purchaseNow}
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="text-center py-12">
-                          <p className="text-sm text-gray-500">{t.dashboard.traffic.loadFailed}</p>
-                        </div>
-                      )}
-                    </div>
+                          </div>
+                        ) : (
+                          <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-6 text-center shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{t.dashboard.purchase.needSubscription}</p>
+                            <a href="/product" className="mt-4 inline-block px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-lg hover:from-indigo-500 hover:to-indigo-400 transition-colors">
+                              {t.dashboard.purchase.purchaseNow}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <p className="text-sm text-gray-500">{t.dashboard.traffic.loadFailed}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -783,32 +855,57 @@ export default function Dashboard() {
                             {(planIdAllowed || forwardingUser) && (
                               <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
                                 <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-2">端口转发</h3>
-                                {forwardingUser ? (
-                                  <>
-                                    <span className="inline-flex items-center px-4 py-2 rounded-lg bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200 font-semibold text-base">
-                                      已激活
-                                    </span>
-                                    <div className="mt-2 text-sm text-gray-700 dark:text-gray-200 space-y-1 text-center">
-                                      <div>到期时间：{new Date(forwardingUser.expire * 1000).toLocaleString()}</div>
-                                      <div>套餐用量：{
-                                        String((() => {
-                                          const bytes = forwardingUser.traffic_enable;
-                                          if (bytes >= 1024 * 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024 * 1024)).toFixed(2) + ' TB';
-                                          if (bytes >= 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
-                                          if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-                                          if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
-                                          return bytes + ' B';
-                                        })())
-                                      }</div>
-                                    </div>
-                                    <div className="mt-4 w-full">
-                                      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                {forwardingUser ? ((() => {
+                                  const now = Math.floor(Date.now() / 1000);
+                                  const isExpired = forwardingUser.expire < now;
+                                  return (
+                                    <>
+                                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                                        <div>
+                                          {isExpired ? (
+                                            <span className="inline-flex items-center px-4 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold text-base">
+                                              已过期
+                                            </span>
+                                          ) : (
+                                            <span className="inline-flex items-center px-4 py-1.5 rounded-lg bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200 font-semibold text-base">
+                                              已激活
+                                            </span>
+                                          )}
+                                        </div>
+                                        <button
+                                          className="inline-flex items-center px-4 py-1.5 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 transition"
+                                          onClick={handleSyncForwardingUser}
+                                          type="button"
+                                        >
+                                          同步
+                                        </button>
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                        <div className="space-y-1">
+                                          <div className="text-xs text-gray-500 dark:text-gray-400">到期时间</div>
+                                          <div className="font-mono text-sm text-gray-900 dark:text-gray-100">{new Date(forwardingUser.expire * 1000).toLocaleString()}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                          <div className="text-xs text-gray-500 dark:text-gray-400">套餐用量</div>
+                                          <div className="font-mono text-sm text-gray-900 dark:text-gray-100">{
+                                            String((() => {
+                                              const bytes = forwardingUser.traffic_enable;
+                                              if (bytes >= 1024 * 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024 * 1024)).toFixed(2) + ' TB';
+                                              if (bytes >= 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+                                              if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+                                              if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
+                                              return bytes + ' B';
+                                            })())
+                                          }</div>
+                                        </div>
+                                      </div>
+                                      <div className="mb-2 flex justify-between text-xs text-gray-500 dark:text-gray-400">
                                         <span>转发流量使用情况</span>
                                         <span>
                                           {formatBytes(forwardingUser.traffic_used || 0)} / {formatBytes(forwardingUser.traffic_enable || 0)}
                                         </span>
                                       </div>
-                                      <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                                      <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden mb-1">
                                         <div
                                           className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-500 dark:from-indigo-500 dark:to-indigo-400 transition-all duration-300"
                                           style={{
@@ -819,27 +916,26 @@ export default function Dashboard() {
                                           }}
                                         />
                                       </div>
-                                      <div className="mt-1 text-right text-xs text-gray-500 dark:text-gray-400">
+                                      <div className="text-right text-xs text-gray-500 dark:text-gray-400">
                                         {(
                                           (forwardingUser.traffic_used || 0) /
                                           (forwardingUser.traffic_enable || 1) *
                                           100
                                         ).toFixed(1)}% 已用
                                       </div>
-                                    </div>
-                                  </>
-                                ) : (
+                                    </>
+                                  );
+                                })()) : (
                                   <button
                                     className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-blue-500 px-4 py-2 text-base font-semibold text-white shadow-lg hover:scale-105 active:scale-95 transition focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2"
                                     onClick={async () => {
                                       await handleEnableForwarding();
                                       // 激活后刷新状态
                                       const usersRes = await getForwardUsers();
-                                      const now = Math.floor(Date.now() / 1000);
                                       const user = usersRes.code === 0 && Array.isArray(usersRes.data)
-                                        ? usersRes.data.find((u: any) => u.username === userInfo?.data?.email && u.expire > now)
+                                        ? usersRes.data.find((u: any) => u.username === userInfo?.data?.email)
                                         : null;
-                                      setForwardingEnabled(!!user);
+                                      setForwardingEnabled(!!user && user.expire > Math.floor(Date.now() / 1000));
                                       setForwardingUser(user || null);
                                     }}
                                   >
