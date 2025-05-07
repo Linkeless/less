@@ -12,7 +12,7 @@ interface LoginResponse {
   error?: string;
 }
 
-export async function login(email: string, password: string): Promise<LoginResponse> {
+export async function login(email: string, password: string, rememberMe: boolean): Promise<LoginResponse> {
   const response = await fetch(`${env.API_URL}/api/v1/passport/auth/login`, {
     method: 'POST',
     headers: {
@@ -30,7 +30,8 @@ export async function login(email: string, password: string): Promise<LoginRespo
       value: data.data.auth_data,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
+      sameSite: 'lax',
+      ...(rememberMe ? { expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) } : {})
     });
   }
 

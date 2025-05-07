@@ -472,7 +472,7 @@ export default function Dashboard() {
   return (
     <>
       <style jsx global>{globalStyles}</style>
-      <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
+      <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 font-sans antialiased">
         <div className="relative isolate">
           {/* Background Gradient */}
           <div
@@ -510,14 +510,14 @@ export default function Dashboard() {
             }
           />
 
-          <main className="flex-1">
+          <main className="flex-1 leading-relaxed">
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
               <div className="grid gap-6 lg:grid-cols-2">
                 {/* Subscription Card */}
                 <div className="relative group">
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
                   <div className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-8 sm:p-10 gap-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7 mb-1">订阅信息</h2>
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7 mb-1">订阅信息</h2>
                     {loading ? (
                       <div className="flex flex-col items-center justify-center py-12">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
@@ -529,18 +529,18 @@ export default function Dashboard() {
                         <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 sm:p-10 flex flex-col gap-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
                           {/* 套餐名称和操作 */}
                           <div>
-                            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 truncate">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 truncate">
                               {subscription.data?.plan?.name || t.dashboard.subscription.noActive}
                             </h2>
                             <div className="flex flex-row items-center justify-between gap-2 mt-1">
-                              <div className="text-sm text-gray-600 dark:text-gray-400">
+                              <div className="text-sm sm:text-xs text-gray-600 dark:text-gray-400">
                                 {t.dashboard.subscription.expires}：{formatExpireDate(subscription.data.expired_at)}
                               </div>
                               {subscription.data?.plan && (
                                 <div className="flex gap-2">
                                   <a 
                                     href={`/product/order?id=${subscription.data.plan_id}`}
-                                    className="inline-flex items-center px-4 py-1.5 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 transition"
+                                    className="inline-flex items-center gap-2 px-4 py-1.5 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 transition"
                                     aria-label={t.dashboard.subscription.renew}
                                   >
                                     <ArrowPathIcon className="w-5 h-5" aria-hidden="true" />
@@ -562,8 +562,8 @@ export default function Dashboard() {
                           {subscription.data?.plan && (
                             <div>
                               <div className="flex items-center justify-between mb-2">
-                                <span className="text-base font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.subscription.trafficUsage}</span>
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                <span className="text-base sm:text-sm font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.subscription.trafficUsage}</span>
+                                <span className="text-xs sm:text-xs text-gray-500 dark:text-gray-400">
                                   {formatBytes(subscription.data.u + subscription.data.d)} / {formatBytes(subscription.data.transfer_enable)}
                                 </span>
                               </div>
@@ -575,7 +575,7 @@ export default function Dashboard() {
                                   }}
                                 />
                               </div>
-                              <div className="text-right text-xs text-gray-500 dark:text-gray-400">
+                              <div className="text-right text-xs sm:text-xs text-gray-500 dark:text-gray-400">
                                 {((subscription.data.u + subscription.data.d) / subscription.data.transfer_enable * 100).toFixed(1)}% 已用
                               </div>
                             </div>
@@ -788,12 +788,9 @@ export default function Dashboard() {
                   <div className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800">
                     <div className="px-8 pt-8 pb-3 sm:px-10">
                       <div className="mb-8">
-                          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7">
+                          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7">
                             {t.dashboard.userInfo}
                           </h2>
-                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                            {userInfo?.data.email}
-                          </p>
                         </div>
 
                       <div className="mt-6">
@@ -806,7 +803,7 @@ export default function Dashboard() {
                             {/* UUID Card */}
                             <div className="rounded-xl bg-gradient-to-br from-indigo-50 dark:from-indigo-950 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
                               <div className="flex items-center justify-between mb-4">
-                                <p className="text-base font-semibold text-gray-700 dark:text-gray-300">UUID</p>
+                                <p className="text-base sm:text-sm font-semibold text-gray-700 dark:text-gray-300">UUID</p>
                                 <button
                                   onClick={() => setShowUUID(!showUUID)}
                                   className="inline-flex items-center gap-x-1.5 rounded-md bg-gradient-to-br from-indigo-50 dark:from-indigo-950 to-white dark:to-gray-800 px-2.5 py-1.5 text-xs font-medium text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -814,7 +811,7 @@ export default function Dashboard() {
                                   {showUUID ? t.dashboard.uuid.hide : t.dashboard.uuid.show}
                                 </button>
                               </div>
-                              <p className="text-base font-medium text-gray-900 dark:text-gray-100 tracking-wide break-all font-mono">
+                              <p className="text-base sm:text-sm font-medium text-gray-900 dark:text-gray-100 tracking-wide break-all font-mono">
                                 {showUUID ? userInfo.data.uuid : '••••••••-••••-••••-••••-••••••••••••'}
                               </p>
                             </div>
@@ -822,14 +819,14 @@ export default function Dashboard() {
                             {/* Balance Cards */}
                             <div className="grid grid-cols-2 gap-4">
                               <div className="rounded-xl bg-gradient-to-br from-indigo-50 dark:from-indigo-950 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
-                                <p className="text-base font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.balance}</p>
-                                <p className="mt-2 text-2xl font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
+                                <p className="text-base sm:text-sm font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.balance}</p>
+                                <p className="mt-2 text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
                                   ¥{(userInfo.data.balance / 100).toFixed(2)}
                                 </p>
                               </div>
                               <div className="rounded-xl bg-gradient-to-br from-indigo-50 dark:from-indigo-950 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
-                                <p className="text-base font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.commission}</p>
-                                <p className="mt-2 text-2xl font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
+                                <p className="text-base sm:text-sm font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.commission}</p>
+                                <p className="mt-2 text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
                                   ¥{(userInfo.data.commission_balance / 100).toFixed(2)}
                                 </p>
                               </div>
@@ -854,13 +851,13 @@ export default function Dashboard() {
                             {/* Forwarding Info Card */}
                             {(planIdAllowed || forwardingUser) && (
                               <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
-                                <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-2">端口转发</h3>
+                                <h3 className="text-base sm:text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">端口转发</h3>
                                 {forwardingUser ? ((() => {
                                   const now = Math.floor(Date.now() / 1000);
                                   const isExpired = forwardingUser.expire < now;
                                   return (
                                     <>
-                                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                                      <div className="flex flex-row items-center justify-between gap-2 mb-4">
                                         <div>
                                           {isExpired ? (
                                             <span className="inline-flex items-center px-4 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold text-base">
@@ -882,11 +879,11 @@ export default function Dashboard() {
                                       </div>
                                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                                         <div className="space-y-1">
-                                          <div className="text-xs text-gray-500 dark:text-gray-400">到期时间</div>
+                                          <div className="text-xs sm:text-xs text-gray-500 dark:text-gray-400">到期时间</div>
                                           <div className="font-mono text-sm text-gray-900 dark:text-gray-100">{new Date(forwardingUser.expire * 1000).toLocaleString()}</div>
                                         </div>
                                         <div className="space-y-1">
-                                          <div className="text-xs text-gray-500 dark:text-gray-400">套餐用量</div>
+                                          <div className="text-xs sm:text-xs text-gray-500 dark:text-gray-400">套餐用量</div>
                                           <div className="font-mono text-sm text-gray-900 dark:text-gray-100">{
                                             String((() => {
                                               const bytes = forwardingUser.traffic_enable;

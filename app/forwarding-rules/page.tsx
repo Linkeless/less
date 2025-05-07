@@ -437,7 +437,7 @@ export default function ForwardingRulesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen font-sans bg-gradient-to-br from-indigo-50 to-white dark:from-gray-900 dark:to-gray-800">
       <TitleBar
         user={{
           name: 'User',
@@ -463,10 +463,10 @@ export default function ForwardingRulesPage() {
         <div className="px-4 py-8 sm:px-0">
           <div className="sm:flex sm:items-center">
             <div className="sm:flex-auto">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+              <h1 className="text-3xl font-bold font-sans text-gray-900 dark:text-white tracking-tight">
                 {t.forwardingRules.title}
               </h1>
-              <p className="mt-3 text-base text-gray-700 dark:text-gray-300">
+              <p className="mt-3 text-base font-sans text-gray-700 dark:text-gray-300">
                 {t.forwardingRules.description}
               </p>
             </div>
@@ -531,7 +531,7 @@ export default function ForwardingRulesPage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900 font-sans">
                       {rules.map((rule) => {
                         const config = JSON.parse(rule.config);
                         const deviceGroup = getDeviceGroupInfo(rule.device_group_in);
@@ -539,12 +539,12 @@ export default function ForwardingRulesPage() {
                           <tr key={rule.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                             <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-white sm:pl-6">
                               <div className="flex items-center">
-                                <span className="truncate max-w-[200px]">{rule.name}</span>
+                                <span className="truncate max-w-[200px] font-sans">{rule.name}</span>
                               </div>
                             </td>
                             <td className="px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
-                              <div className="space-y-1">
-                                <div className="font-medium text-gray-900 dark:text-white">{deviceGroup.name}</div>
+                              <div className="space-y-1 font-sans">
+                                <div className="font-medium font-sans text-gray-900 dark:text-white">{deviceGroup.name}</div>
                                 {deviceGroup.connectHost && (
                                   <div className="flex items-center space-x-2 text-xs text-gray-400 dark:text-gray-500">
                                     <span>
@@ -562,27 +562,25 @@ export default function ForwardingRulesPage() {
                               </div>
                             </td>
                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
-                              <div className="space-y-1">
+                              <div className="space-y-1 font-sans">
                                 <div>{rule.listen_port || t.forwardingRules.randomPort}</div>
                                 {deviceGroup.portRange && (
-                                  <div className="text-xs text-gray-400 dark:text-gray-500">
+                                  <div className="text-xs font-sans text-gray-400 dark:text-gray-500">
                                     {t.forwardingRules.portRange}: {deviceGroup.portRange}
                                   </div>
                                 )}
                               </div>
                             </td>
                             <td className="px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
-                              <div className="space-y-1">
+                              <div className="space-y-1 font-sans">
                                 {config.dest?.map((dest: string, index: number) => (
-                                  <div key={index} className="truncate max-w-[200px]">
-                                    {dest}
-                                  </div>
+                                  <div key={index} className="truncate max-w-[200px] font-sans">{dest}</div>
                                 ))}
                               </div>
                             </td>
                             <td className="whitespace-nowrap px-3 py-4 text-sm">
                               <span
-                                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium font-sans ${
                                   rule.status === 'ForwardRuleStatus_Normal'
                                     ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
                                     : rule.status === 'ForwardRuleStatus_Error'
@@ -594,7 +592,7 @@ export default function ForwardingRulesPage() {
                               </span>
                             </td>
                             <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                              <div className="flex items-center justify-end space-x-2">
+                              <div className="flex items-center justify-end space-x-2 font-sans">
                                 <button
                                   onClick={() => handleDiagnose(rule.id)}
                                   className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
@@ -650,8 +648,8 @@ export default function ForwardingRulesPage() {
                           className="rounded-2xl border border-indigo-100 dark:border-gray-800 bg-white/90 dark:bg-gray-900/90 p-5 shadow-lg ring-1 ring-indigo-100/30 dark:ring-gray-800/30 mb-2"
                         >
                           <div className="flex items-center justify-between mb-2">
-                            <span className="font-bold text-base text-gray-900 dark:text-white truncate max-w-[60%]">{rule.name}</span>
-                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            <span className="font-bold text-base font-sans text-gray-900 dark:text-white truncate max-w-[60%]">{rule.name}</span>
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium font-sans ${
                               rule.status === 'ForwardRuleStatus_Normal'
                                 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
                                 : rule.status === 'ForwardRuleStatus_Error'
@@ -661,9 +659,9 @@ export default function ForwardingRulesPage() {
                               {rule.status.replace('ForwardRuleStatus_', '')}
                             </span>
                           </div>
-                          <div className="mb-1 text-sm">
-                            <span className="font-semibold text-gray-700 dark:text-gray-200">{t.forwardingRules.deviceGroup}:</span>
-                            <span className="ml-1 text-gray-900 dark:text-white">{deviceGroup.name}</span>
+                          <div className="mb-1 text-sm font-sans">
+                            <span className="font-semibold font-sans text-gray-700 dark:text-gray-200">{t.forwardingRules.deviceGroup}:</span>
+                            <span className="ml-1 font-sans text-gray-900 dark:text-white">{deviceGroup.name}</span>
                           </div>
                           {deviceGroup.connectHost && (
                             <div className="flex items-center space-x-2 text-xs text-gray-400 dark:text-gray-500 mb-1">
@@ -679,17 +677,17 @@ export default function ForwardingRulesPage() {
                               </button>
                             </div>
                           )}
-                          <div className="mb-1 text-sm">
-                            <span className="font-semibold text-gray-700 dark:text-gray-200">{t.forwardingRules.listenPort}:</span>
-                            <span className="ml-1 text-gray-900 dark:text-white">{rule.listen_port || t.forwardingRules.randomPort}</span>
+                          <div className="mb-1 text-sm font-sans">
+                            <span className="font-semibold font-sans text-gray-700 dark:text-gray-200">{t.forwardingRules.listenPort}:</span>
+                            <span className="ml-1 font-sans text-gray-900 dark:text-white">{rule.listen_port || t.forwardingRules.randomPort}</span>
                           </div>
-                          <div className="mb-1 text-sm">
-                            <span className="font-semibold text-gray-700 dark:text-gray-200">{t.forwardingRules.destination}:</span>
-                            <div className="ml-1 text-gray-900 dark:text-white break-words whitespace-pre-line">
+                          <div className="mb-1 text-sm font-sans">
+                            <span className="font-semibold font-sans text-gray-700 dark:text-gray-200">{t.forwardingRules.destination}:</span>
+                            <div className="ml-1 font-sans text-gray-900 dark:text-white break-words whitespace-pre-line">
                               {config.dest?.join('\n')}
                             </div>
                           </div>
-                          <div className="flex justify-between items-center mt-4 gap-2">
+                          <div className="flex justify-between items-center mt-4 gap-2 font-sans">
                             <button
                               onClick={() => handleDiagnose(rule.id)}
                               className="flex-1 flex items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 py-2 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-800 transition"
@@ -740,9 +738,9 @@ export default function ForwardingRulesPage() {
 
           {/* Page size selector, total count, and Pagination - improved layout */}
           <div className="flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 px-4 py-3 rounded-b-xl gap-2 shadow ring-1 ring-indigo-100/30 dark:ring-gray-800/30 backdrop-blur mt-4">
-            <div className="flex flex-1 items-center gap-4 w-full sm:w-auto">
+            <div className="flex flex-1 items-center gap-4 w-full sm:w-auto font-sans">
               <div className="flex items-center space-x-2">
-                <label htmlFor="page-size" className="text-sm text-gray-700 dark:text-gray-300">每页显示</label>
+                <label htmlFor="page-size" className="text-sm font-sans text-gray-700 dark:text-gray-300">每页显示</label>
                 <select
                   id="page-size"
                   value={pageSize}
@@ -753,18 +751,18 @@ export default function ForwardingRulesPage() {
                     <option key={size} value={size}>{size}</option>
                   ))}
                 </select>
-                <span className="text-sm text-gray-700 dark:text-gray-300">条</span>
+                <span className="text-sm font-sans text-gray-700 dark:text-gray-300">条</span>
               </div>
-              <span className="text-sm text-gray-700 dark:text-gray-300">
-                共 <span className="font-semibold">{total}</span> 条规则
+              <span className="text-sm font-sans text-gray-700 dark:text-gray-300">
+                共 <span className="font-semibold font-sans">{total}</span> 条规则
               </span>
-              <span className="text-sm text-gray-700 dark:text-gray-300">
-                已用规则数: <span className="font-semibold">{total}</span>
+              <span className="text-sm font-sans text-gray-700 dark:text-gray-300">
+                已用规则数: <span className="font-semibold font-sans">{total}</span>
                 {forwardUser?.max_rules ? ` / ${forwardUser.max_rules}` : ''}
               </span>
               {forwardUser?.max_rules && (
-                <span className="text-sm text-gray-700 dark:text-gray-300">
-                  剩余规则数: <span className="font-semibold">{forwardUser.max_rules - total}</span>
+                <span className="text-sm font-sans text-gray-700 dark:text-gray-300">
+                  剩余规则数: <span className="font-semibold font-sans">{forwardUser.max_rules - total}</span>
                 </span>
               )}
             </div>
@@ -846,7 +844,7 @@ export default function ForwardingRulesPage() {
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
                     </div>
                   ) : (
-                    <pre className="mt-2 whitespace-pre-wrap text-sm text-left text-gray-500 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 p-4 rounded-md">
+                    <pre className="mt-2 whitespace-pre-wrap text-sm text-left font-mono text-gray-500 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 p-4 rounded-md">
                       {diagnosisResult}
                     </pre>
                   )}
@@ -953,7 +951,7 @@ function Pagination({ currentPage, totalPages, onPageChange }: { currentPage: nu
   };
 
   return (
-    <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+    <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm font-sans" aria-label="Pagination">
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}

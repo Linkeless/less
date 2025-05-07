@@ -13,13 +13,14 @@ export default function LoginPage() {
     const [error, setError] = useState('');
     const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         
         try {
-            const result = await login(formData.email, formData.password);
+            const result = await login(formData.email, formData.password, rememberMe);
             
             if (result.data?.auth_data) {
                 router.push('/dashboard');
@@ -119,6 +120,21 @@ export default function LoginPage() {
                       className="block w-full rounded-md bg-white dark:bg-gray-800 px-3 py-1.5 text-base text-gray-900 dark:text-gray-100 outline-1 -outline-offset-1 outline-gray-300 dark:outline-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 dark:focus:outline-indigo-500 sm:text-sm/6"
                     />
                   </div>
+                </div>
+
+                {/* Remember me checkbox */}
+                <div className="flex items-center">
+                  <input
+                    id="remember-me"
+                    name="remember-me"
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-500 focus:ring-indigo-600 dark:focus:ring-indigo-500"
+                  />
+                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-200 select-none">
+                    Remember me
+                  </label>
                 </div>
     
                 <div>
