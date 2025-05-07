@@ -1,52 +1,25 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { getInviteInfo, getUserInfo, createInviteCode, getInviteCommissionRecords } from '@/lib/actions';
+import { useState } from 'react';
 import { ClipboardIcon, CheckIcon, UsersIcon, ArrowTrendingUpIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import TitleBar from '@/components/TitleBar';
-import md5 from 'md5';
 import { useLanguage } from '@/lib/i18n/hooks';
+import { useInviteData } from '@/hooks/useInviteData';
 
 export default function InvitePage() {
-  const [codes, setCodes] = useState<{ code: string }[]>([]);
-  const [stat, setStat] = useState<number[]>([]);
-  const [copied, setCopied] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [user, setUser] = useState<{ name: string; email: string; imageUrl: string }>({ name: '', email: '', imageUrl: '' });
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const [creating, setCreating] = useState(false);
-  const [commissionRecords, setCommissionRecords] = useState<any[]>([]);
-  const [loadingRecords, setLoadingRecords] = useState(true);
   const { t } = useLanguage();
+  const {
+    codes,
+    stat,
+    user,
+    commissionRecords,
+    loading,
+    loadingRecords,
+    creating,
+    error,
+    handleCreateInvite,
+  } = useInviteData();
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      try {
-        const [inviteRes, userRes, recordsRes] = await Promise.all([
-          getInviteInfo(),
-          getUserInfo(),
-          getInviteCommissionRecords(),
-        ]);
-        setCodes(inviteRes.data.codes || []);
-        setStat(inviteRes.data.stat || []);
-        setCommissionRecords(recordsRes.data || []);
-        setLoadingRecords(false);
-        if (userRes.status === 'success' && userRes.data) {
-          const email = userRes.data.email;
-          const name = email.split('@')[0];
-          const imageUrl = userRes.data.avatar_url || `https://www.gravatar.com/avatar/${md5(email.trim().toLowerCase())}?s=256&d=monsterid`;
-          setUser({ name, email, imageUrl });
-        }
-      } catch (err: any) {
-        setError(err.message || '加载失败');
-        setLoadingRecords(false);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   const inviteLink = codes[0]?.code
     ? `${typeof window !== 'undefined' ? window.location.origin : ''}/register?invite_code=${codes[0].code}`
@@ -63,22 +36,6 @@ export default function InvitePage() {
     }
   };
 
-  // 生成邀请码
-  const handleCreateInvite = async () => {
-    setCreating(true);
-    try {
-      await createInviteCode();
-      // 重新拉取邀请码列表
-      const res = await getInviteInfo();
-      setCodes(res.data.codes || []);
-      setStat(res.data.stat || []);
-    } catch (err: any) {
-      setError(err.message || '生成邀请码失败');
-    } finally {
-      setCreating(false);
-    }
-  };
-
   const navigation = [
     { name: t.common.dashboard, href: '/dashboard', current: false },
     { name: t.common.product, href: '/product', current: false },
@@ -88,6 +45,22 @@ export default function InvitePage() {
   const userNavigation = [
     { name: t.common.signOut, href: '/logout' },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
+        <p className="text-gray-700 dark:text-gray-300">{t.common.loading}...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
+        <p className="text-red-500 dark:text-red-400">Error: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">

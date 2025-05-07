@@ -6,6 +6,7 @@ import { useLanguage } from '@/lib/i18n/hooks';
 import { useRouter } from 'next/navigation'
 import { handleLogout } from '@/lib/authUtils';
 import { useState } from 'react';
+import LanguageSwitch from './LanguageSwitch';
 
 interface TitleBarProps {
   user: {
@@ -30,40 +31,6 @@ interface TitleBarProps {
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
 }
-
-const LanguageSwitch = () => {
-  const { language, setLanguage } = useLanguage();
-  
-  return (
-    <Menu as="div" className="relative">
-      <MenuButton className="flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">
-        <span>{language === 'zh-CN' ? '中文' : 'EN'}</span>
-      </MenuButton>
-      <MenuItems className="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-lg bg-white dark:bg-gray-800 py-1 shadow-lg ring-1 ring-black/5 dark:ring-white/5 focus:outline-none">
-        <MenuItem>
-          <button
-            onClick={() => setLanguage('en')}
-            className={`block w-full px-4 py-2 text-sm text-left text-gray-700 dark:text-gray-300 ${
-              language === 'en' ? 'bg-gray-100 dark:bg-gray-700' : ''
-            } hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200`}
-          >
-            English
-          </button>
-        </MenuItem>
-        <MenuItem>
-          <button
-            onClick={() => setLanguage('zh-CN')}
-            className={`block w-full px-4 py-2 text-sm text-left text-gray-700 dark:text-gray-300 ${
-              language === 'zh-CN' ? 'bg-gray-100 dark:bg-gray-700' : ''
-            } hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200`}
-          >
-            中文
-          </button>
-        </MenuItem>
-      </MenuItems>
-    </Menu>
-  );
-};
 
 export default function TitleBar({ user, navigation, userNavigation, showLanguageSwitch, rightExtra }: TitleBarProps) {
   const router = useRouter();

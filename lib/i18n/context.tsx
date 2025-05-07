@@ -5,7 +5,7 @@ import en from './en';
 import zhCN from './zh-CN';
 
 type Language = 'en' | 'zh-CN';
-type TranslationValues = typeof en | typeof zhCN;
+export type TranslationValues = typeof en | typeof zhCN;
 type Translations = TranslationValues;
 
 interface LanguageContextType {
