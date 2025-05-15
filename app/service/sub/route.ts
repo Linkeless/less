@@ -6,7 +6,15 @@ export async function GET(request: NextRequest) {
     const baseUrl = env.SUB_API_URL;
     // 直接使用原始 URL 的查询参数部分
     const originalUrl = new URL(request.url);
-    const subscribeUrl = `${baseUrl}/api/v1/client/subscribe${originalUrl.search}`;
+    
+    // 获取客户端 IP 地址
+    const clientIp = request.headers.get('x-forwarded-for') || 
+                    request.headers.get('x-real-ip') || 
+                    '';    
+    // 构建包含 IP 参数的 URL
+    const urlSearchParams = new URLSearchParams(originalUrl.search);
+    urlSearchParams.append('ip', clientIp);
+    const subscribeUrl = `${baseUrl}/api/v1/client/subscribe?${urlSearchParams.toString()}`;
       
     const userAgent = request.headers.get('user-agent') || '';
     const host = request.headers.get('host') || '';
@@ -14,18 +22,16 @@ export async function GET(request: NextRequest) {
     const fullPath = originalUrl.pathname + originalUrl.search;
     const scheme = request.nextUrl.protocol.replace(':', '');
     const surgeSub = `${scheme}://${host}${fullPath}`;
+
+    // 准备发送到 API 的请求头
+    const apiHeaders = {
+      'User-Agent': userAgent,
+      'Surge-Sub': surgeSub,
+    };
     
-    // 获取客户端 IP 地址
-    const clientIp = request.headers.get('x-forwarded-for') || 
-                    request.headers.get('x-real-ip') || 
-                    '';
 
     const subscription = await fetch(subscribeUrl, {
-      headers: {
-        'User-Agent': userAgent,
-        'Surge-Sub': surgeSub,
-        'X-Client-IP': clientIp, // 将客户端 IP 添加到请求头
-      }
+      headers: apiHeaders
     });
 
     if (!subscription.ok) {
