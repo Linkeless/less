@@ -14,11 +14,17 @@ export async function GET(request: NextRequest) {
     const fullPath = originalUrl.pathname + originalUrl.search;
     const scheme = request.nextUrl.protocol.replace(':', '');
     const surgeSub = `${scheme}://${host}${fullPath}`;
+    
+    // 获取客户端 IP 地址
+    const clientIp = request.headers.get('x-forwarded-for') || 
+                    request.headers.get('x-real-ip') || 
+                    '';
 
     const subscription = await fetch(subscribeUrl, {
       headers: {
         'User-Agent': userAgent,
         'Surge-Sub': surgeSub,
+        'X-Client-IP': clientIp, // 将客户端 IP 添加到请求头
       }
     });
 
