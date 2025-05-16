@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
-import { ArrowPathIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, ChevronUpIcon, ChevronDownIcon, GlobeAltIcon, DevicePhoneMobileIcon, CalendarIcon, ClockIcon } from '@heroicons/react/24/outline';
 import type { RecentSubscriptionRequestsResponse, SubscriptionData, RecentSubscriptionRequest } from '@/lib/types';
 import type { TranslationValues } from '@/lib/i18n/context';
 import { getRecentSubscriptionRequests } from '@/lib/actions';
@@ -205,7 +205,7 @@ export default function SubscriptionRequestsCard({
                       </th>
                       <th 
                         scope="col" 
-                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell cursor-pointer"
+                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hidden md:table-cell"
                         onClick={() => handleSort('user_agent')}
                       >
                         客户端
@@ -213,11 +213,17 @@ export default function SubscriptionRequestsCard({
                       </th>
                       <th 
                         scope="col" 
-                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell cursor-pointer"
+                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hidden md:table-cell"
                         onClick={() => handleSort('host')}
                       >
                         域名
                         <SortIcon field="host" />
+                      </th>
+                      <th 
+                        scope="col" 
+                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer md:table-cell"
+                      >
+                        位置
                       </th>
                       <th 
                         scope="col" 
@@ -231,14 +237,28 @@ export default function SubscriptionRequestsCard({
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {sortedData.map((request, index) => (
-                      <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700 hidden md:table-row">
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                          {request.ip}
+                          <div className="flex items-center">
+                            {request.ip_details?.country && (
+                              <span className="mr-2 inline-block">
+                                {request.ip_details.country === 'CN' ? '🇨🇳' : 
+                                 request.ip_details.country === 'HK' ? '🇭🇰' : 
+                                 request.ip_details.country === 'US' ? '🇺🇸' : 
+                                 request.ip_details.country === 'JP' ? '🇯🇵' : 
+                                 request.ip_details.country === 'SG' ? '🇸🇬' : 
+                                 request.ip_details.country === 'TW' ? '🇨🇳' : 
+                                 request.ip_details.country === 'KR' ? '🇰🇷' : 
+                                 '🌍'}
+                              </span>
+                            )}
+                            {request.ip}
+                          </div>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden sm:table-cell">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                           <span className="truncate block max-w-[150px]">{request.user_agent}</span>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                           <span className="truncate block max-w-[150px]">
                             {typeof request.host === 'string' 
                               ? request.host 
@@ -247,6 +267,22 @@ export default function SubscriptionRequestsCard({
                                   : '-')}
                           </span>
                         </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 md:table-cell">
+                          {request.ip_details ? (
+                            <div>
+                              <div>
+                                {request.ip_details.city && request.ip_details.region 
+                                  ? `${request.ip_details.city}, ${request.ip_details.region}` 
+                                  : request.ip_details.city || request.ip_details.region || '-'}
+                              </div>
+                              {request.ip_details.org && (
+                                <div className="text-xs text-gray-400 dark:text-gray-500 mt-1 truncate max-w-[200px]">
+                                  {request.ip_details.org}
+                                </div>
+                              )}
+                            </div>
+                          ) : '-'}
+                        </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                           {request.datetime}
                         </td>
@@ -254,6 +290,83 @@ export default function SubscriptionRequestsCard({
                     ))}
                   </tbody>
                 </table>
+                
+                {/* 移动端卡片列表 */}
+                <div className="md:hidden flex flex-col space-y-3 p-4">
+                  {sortedData.map((request, index) => (
+                    <div
+                      key={index}
+                      className="rounded-xl bg-white dark:bg-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5"
+                    >
+                      <div className="flex justify-between items-center mb-3">
+                        <div className="font-medium text-gray-900 dark:text-gray-100 flex items-center">
+                          {request.ip_details?.country && (
+                            <span className="mr-2 inline-block">
+                              {request.ip_details.country === 'CN' ? '🇨🇳' : 
+                               request.ip_details.country === 'HK' ? '🇭🇰' : 
+                               request.ip_details.country === 'US' ? '🇺🇸' : 
+                               request.ip_details.country === 'JP' ? '🇯🇵' : 
+                               request.ip_details.country === 'SG' ? '🇸🇬' : 
+                               request.ip_details.country === 'TW' ? '🇹🇼' : 
+                               request.ip_details.country === 'KR' ? '🇰🇷' : 
+                               '🌍'}
+                            </span>
+                          )}
+                          <span>{request.ip}</span>
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 flex flex-col items-end">
+                          <div className="flex items-center">
+                            <CalendarIcon className="h-3.5 w-3.5 mr-1" />
+                            <span>{request.datetime.split(' ')[0]}</span>
+                          </div>
+                          <div className="flex items-center mt-1">
+                            <ClockIcon className="h-3.5 w-3.5 mr-1" />
+                            <span>{request.datetime.split(' ')[1]}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-sm">
+                        {/* Location info */}
+                        {request.ip_details && (
+                          <div className="flex items-start mb-2">
+                            <GlobeAltIcon className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <span className="text-gray-700 dark:text-gray-300 break-words">
+                                {request.ip_details.city && request.ip_details.region ? 
+                                  `${request.ip_details.city}, ${request.ip_details.region}` : 
+                                  request.ip_details.city || request.ip_details.region || ''}
+                                {request.ip_details.org && (
+                                  <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    {request.ip_details.org}
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* User agent */}
+                        <div className="flex items-start">
+                          <DevicePhoneMobileIcon className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700 dark:text-gray-300 break-words">{request.user_agent}</span>
+                        </div>
+                        
+                        {/* Host */}
+                        <div className="flex items-start">
+                          <GlobeAltIcon className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700 dark:text-gray-300 break-words">
+                            {typeof request.host === 'string' 
+                              ? request.host 
+                              : (request.host && request.host.length > 0 
+                                  ? request.host.join(', ') 
+                                  : '-')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}

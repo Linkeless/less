@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { UserInfoResponse } from '@/lib/types';
 import type { TranslationValues } from '@/lib/i18n/context';
 import { formatBytes } from '@/lib/api'; // For formatting forwarding traffic
+import { resetSecurity } from '@/lib/actions'; // Import resetSecurity function
 
 interface UserInfoCardProps {
   userInfo: UserInfoResponse | null;
@@ -12,7 +13,7 @@ interface UserInfoCardProps {
   forwardingUser: any | null; // From state in parent
   onEnableForwarding: () => Promise<void>; // Handler from parent
   onSyncForwardingUser: () => Promise<void>; // Handler from parent
-  // getForwardUsers, setForwardingUser, setForwardingEnabled are removed as page reload handles refresh
+  // onResetUuid prop removed as we're using resetSecurity directly
 }
 
 export default function UserInfoCard({
@@ -25,10 +26,30 @@ export default function UserInfoCard({
   onSyncForwardingUser,
 }: UserInfoCardProps) {
   const [showUUID, setShowUUID] = useState(false);
+  const [resettingUuid, setResettingUuid] = useState(false);
 
   const handleActivateForwarding = async () => {
     await onEnableForwarding(); // Parent will reload the page
     // No need for further state updates here as the page will refresh
+  };
+
+  const handleResetUuid = async () => {
+    if (confirm('确定要重置UUID吗？重置后您需要更新所有相关配置。')) {
+      setResettingUuid(true);
+      try {
+        const response = await resetSecurity();
+        if (response.status === 'success') {
+          // Reload page to reflect the updated UUID
+          window.location.reload();
+        } else {
+          alert('重置UUID失败: ' + (response.message || '未知错误'));
+        }
+      } catch (error) {
+        alert('重置UUID失败: ' + (error instanceof Error ? error.message : '未知错误'));
+      } finally {
+        setResettingUuid(false);
+      }
+    }
   };
 
   if (loadingUserInfo) {
@@ -87,12 +108,21 @@ export default function UserInfoCard({
             <div className="rounded-xl bg-gradient-to-br from-indigo-50 dark:from-indigo-950 to-white dark:to-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-base sm:text-sm font-semibold text-gray-700 dark:text-gray-300">UUID</p>
-                <button
-                  onClick={() => setShowUUID(!showUUID)}
-                  className="inline-flex items-center gap-x-1.5 rounded-md bg-gradient-to-br from-indigo-50 dark:from-indigo-950 to-white dark:to-gray-800 px-2.5 py-1.5 text-xs font-medium text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                  {showUUID ? t.dashboard.uuid.hide : t.dashboard.uuid.show}
-                </button>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handleResetUuid}
+                    disabled={resettingUuid}
+                    className="inline-flex items-center gap-x-1.5 rounded-md bg-red-50 dark:bg-red-950 px-2.5 py-1.5 text-xs font-medium text-red-700 dark:text-red-300 shadow-sm ring-1 ring-inset ring-red-300 dark:ring-red-700 hover:bg-red-100 dark:hover:bg-red-900 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {resettingUuid ? '重置中...' : '重置'}
+                  </button>
+                  <button
+                    onClick={() => setShowUUID(!showUUID)}
+                    className="inline-flex items-center gap-x-1.5 rounded-md bg-gradient-to-br from-indigo-50 dark:from-indigo-950 to-white dark:to-gray-800 px-2.5 py-1.5 text-xs font-medium text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  >
+                    {showUUID ? t.dashboard.uuid.hide : t.dashboard.uuid.show}
+                  </button>
+                </div>
               </div>
               <p className="text-base sm:text-sm font-medium text-gray-900 dark:text-gray-100 tracking-wide break-all font-mono">
                 {showUUID ? userData.uuid : '••••••••-••••-••••-••••-••••••••••••'}

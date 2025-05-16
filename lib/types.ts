@@ -233,22 +233,34 @@ export interface AdminShopPlansResponse {
   msg: string;
 }
 
+export interface IPDetails {
+  ip: string;
+  hostname?: string;
+  city?: string;
+  region?: string;
+  country?: string;
+  loc?: string;
+  org?: string;
+  postal?: string;
+  timezone?: string;
+  readme?: string;
+}
+
 export interface RecentSubscriptionRequest {
   ip: string;
   datetime: string;
   user_agent: string;
   host: string[] | string;
-}
-
-export interface RecentSubscriptionRequestsData {
-  user_id: number;
-  total_requests: number;
-  recent_requests: RecentSubscriptionRequest[];
+  ip_details?: IPDetails;
 }
 
 export interface RecentSubscriptionRequestsResponse {
   success: boolean;
-  data: RecentSubscriptionRequestsData;
+  data: {
+    user_id: number;
+    total_requests: number;
+    recent_requests: RecentSubscriptionRequest[];
+  };
 }
 
 // Add other type definitions as needed...

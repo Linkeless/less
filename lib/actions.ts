@@ -397,3 +397,16 @@ export async function getRecentSubscriptionRequests(token: string): Promise<Rece
     throw error;
   }
 }
+
+interface ResetSecurityResponse {
+  status: string;
+  message: string;
+  data: string;
+  error: null | string;
+}
+
+export async function resetSecurity(): Promise<ResetSecurityResponse> {
+  return serverFetch('/api/v1/user/resetSecurity', {
+    method: 'POST',
+  });
+}
