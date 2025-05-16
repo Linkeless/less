@@ -121,6 +121,33 @@ export default function SubscriptionRequestsCard({
     });
   }, [requestData, sortField, sortDirection]);
 
+  // Helper function to get country code from IP details
+  const getCountryCode = (ipDetails: any): string | undefined => {
+    if (!ipDetails) return undefined;
+    return ipDetails.country_code || ipDetails.country;
+  };
+
+  // Helper function to get location info from IP details
+  const getLocationInfo = (ipDetails: any): { city: string | null; region: string | null; org: string | null } => {
+    if (!ipDetails) return { city: null, region: null, org: null };
+    
+    const city = ipDetails.city || null;
+    const region = ipDetails.region || null;
+    const org = ipDetails.org || ipDetails.organization || ipDetails.asn_organization || null;
+    
+    return { city, region, org };
+  };
+
+  // Helper function to format host data
+  const formatHost = (host: string | string[] | undefined): string => {
+    if (!host) return '-';
+    if (host === 'unknown') return '未知域名';
+    if (Array.isArray(host)) {
+      return host.length > 0 ? host.join(', ') : '-';
+    }
+    return host;
+  };
+
   if (loading) {
     return (
       <div className="lg:col-span-2 relative group h-full">
@@ -240,15 +267,15 @@ export default function SubscriptionRequestsCard({
                       <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700 hidden md:table-row">
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                           <div className="flex items-center">
-                            {request.ip_details?.country && (
+                            {request.ip_details && getCountryCode(request.ip_details) && (
                               <span className="mr-2 inline-block">
-                                {request.ip_details.country === 'CN' ? '🇨🇳' : 
-                                 request.ip_details.country === 'HK' ? '🇭🇰' : 
-                                 request.ip_details.country === 'US' ? '🇺🇸' : 
-                                 request.ip_details.country === 'JP' ? '🇯🇵' : 
-                                 request.ip_details.country === 'SG' ? '🇸🇬' : 
-                                 request.ip_details.country === 'TW' ? '🇨🇳' : 
-                                 request.ip_details.country === 'KR' ? '🇰🇷' : 
+                                {getCountryCode(request.ip_details) === 'CN' ? '🇨🇳' : 
+                                 getCountryCode(request.ip_details) === 'HK' ? '🇭🇰' : 
+                                 getCountryCode(request.ip_details) === 'US' ? '🇺🇸' : 
+                                 getCountryCode(request.ip_details) === 'JP' ? '🇯🇵' : 
+                                 getCountryCode(request.ip_details) === 'SG' ? '🇸🇬' : 
+                                 getCountryCode(request.ip_details) === 'TW' ? '🇨🇳' : 
+                                 getCountryCode(request.ip_details) === 'KR' ? '🇰🇷' : 
                                  '🌍'}
                               </span>
                             )}
@@ -260,26 +287,28 @@ export default function SubscriptionRequestsCard({
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                           <span className="truncate block max-w-[150px]">
-                            {typeof request.host === 'string' 
-                              ? request.host 
-                              : (request.host && request.host.length > 0 
-                                  ? request.host.join(', ') 
-                                  : '-')}
+                            {formatHost(request.host)}
                           </span>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 md:table-cell">
                           {request.ip_details ? (
                             <div>
                               <div>
-                                {request.ip_details.city && request.ip_details.region 
-                                  ? `${request.ip_details.city}, ${request.ip_details.region}` 
-                                  : request.ip_details.city || request.ip_details.region || '-'}
+                                {(() => {
+                                  const { city, region, org } = getLocationInfo(request.ip_details);
+                                  return city && region 
+                                    ? `${city}, ${region}` 
+                                    : city || region || '-';
+                                })()}
                               </div>
-                              {request.ip_details.org && (
-                                <div className="text-xs text-gray-400 dark:text-gray-500 mt-1 truncate max-w-[200px]">
-                                  {request.ip_details.org}
-                                </div>
-                              )}
+                              {(() => {
+                                const { org } = getLocationInfo(request.ip_details);
+                                return org && (
+                                  <div className="text-xs text-gray-400 dark:text-gray-500 mt-1 truncate max-w-[200px]">
+                                    {org}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           ) : '-'}
                         </td>
@@ -300,15 +329,15 @@ export default function SubscriptionRequestsCard({
                     >
                       <div className="flex justify-between items-center mb-3">
                         <div className="font-medium text-gray-900 dark:text-gray-100 flex items-center">
-                          {request.ip_details?.country && (
+                          {request.ip_details && getCountryCode(request.ip_details) && (
                             <span className="mr-2 inline-block">
-                              {request.ip_details.country === 'CN' ? '🇨🇳' : 
-                               request.ip_details.country === 'HK' ? '🇭🇰' : 
-                               request.ip_details.country === 'US' ? '🇺🇸' : 
-                               request.ip_details.country === 'JP' ? '🇯🇵' : 
-                               request.ip_details.country === 'SG' ? '🇸🇬' : 
-                               request.ip_details.country === 'TW' ? '🇹🇼' : 
-                               request.ip_details.country === 'KR' ? '🇰🇷' : 
+                              {getCountryCode(request.ip_details) === 'CN' ? '🇨🇳' : 
+                               getCountryCode(request.ip_details) === 'HK' ? '🇭🇰' : 
+                               getCountryCode(request.ip_details) === 'US' ? '🇺🇸' : 
+                               getCountryCode(request.ip_details) === 'JP' ? '🇯🇵' : 
+                               getCountryCode(request.ip_details) === 'SG' ? '🇸🇬' : 
+                               getCountryCode(request.ip_details) === 'TW' ? '🇨🇳' : 
+                               getCountryCode(request.ip_details) === 'KR' ? '🇰🇷' : 
                                '🌍'}
                             </span>
                           )}
@@ -333,14 +362,20 @@ export default function SubscriptionRequestsCard({
                             <GlobeAltIcon className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
                             <div>
                               <span className="text-gray-700 dark:text-gray-300 break-words">
-                                {request.ip_details.city && request.ip_details.region ? 
-                                  `${request.ip_details.city}, ${request.ip_details.region}` : 
-                                  request.ip_details.city || request.ip_details.region || ''}
-                                {request.ip_details.org && (
-                                  <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    {request.ip_details.org}
-                                  </span>
-                                )}
+                                {(() => {
+                                  const { city, region, org } = getLocationInfo(request.ip_details);
+                                  return city && region 
+                                    ? `${city}, ${region}` 
+                                    : city || region || '-';
+                                })()}
+                                {(() => {
+                                  const { org } = getLocationInfo(request.ip_details);
+                                  return org && (
+                                    <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                      {org}
+                                    </span>
+                                  );
+                                })()}
                               </span>
                             </div>
                           </div>
@@ -356,11 +391,7 @@ export default function SubscriptionRequestsCard({
                         <div className="flex items-start">
                           <GlobeAltIcon className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
                           <span className="text-gray-700 dark:text-gray-300 break-words">
-                            {typeof request.host === 'string' 
-                              ? request.host 
-                              : (request.host && request.host.length > 0 
-                                  ? request.host.join(', ') 
-                                  : '-')}
+                            {formatHost(request.host)}
                           </span>
                         </div>
                       </div>

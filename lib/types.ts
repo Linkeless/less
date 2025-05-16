@@ -238,11 +238,21 @@ export interface IPDetails {
   hostname?: string;
   city?: string;
   region?: string;
+  region_code?: string;
   country?: string;
+  country_code?: string;
   loc?: string;
+  latitude?: number;
+  longitude?: number;
   org?: string;
+  organization?: string;
+  asn?: number;
+  asn_organization?: string;
+  isp?: string;
   postal?: string;
   timezone?: string;
+  continent_code?: string;
+  offset?: number;
   readme?: string;
 }
 
