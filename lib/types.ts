@@ -233,4 +233,22 @@ export interface AdminShopPlansResponse {
   msg: string;
 }
 
+export interface RecentSubscriptionRequest {
+  ip: string;
+  datetime: string;
+  user_agent: string;
+  host: string[] | string;
+}
+
+export interface RecentSubscriptionRequestsData {
+  user_id: number;
+  total_requests: number;
+  recent_requests: RecentSubscriptionRequest[];
+}
+
+export interface RecentSubscriptionRequestsResponse {
+  success: boolean;
+  data: RecentSubscriptionRequestsData;
+}
+
 // Add other type definitions as needed...

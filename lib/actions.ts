@@ -20,7 +20,8 @@ import type {
   CouponResponse,
   ForwardUser,
   ShopPlan,
-  AdminShopPlansResponse
+  AdminShopPlansResponse,
+  RecentSubscriptionRequestsResponse
 } from './types';
 
 export async function getUserInfo(): Promise<UserInfoResponse> {
@@ -385,4 +386,14 @@ export async function fetchAdminShopPlans(): Promise<AdminShopPlansResponse> {
     headers,
     baseUrl: env.FORWARDING_API_URL,
   });
+}
+
+export async function getRecentSubscriptionRequests(token: string): Promise<RecentSubscriptionRequestsResponse> {
+  try {
+    const response = await serverFetch(`/api/v1/client/subscription/recent-requests?token=${token}`);
+    return response;
+  } catch (error) {
+    console.error('Error fetching recent subscription requests:', error);
+    throw error;
+  }
 }

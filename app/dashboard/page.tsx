@@ -7,6 +7,7 @@ import SignOutButton from '@/components/SignOutButton';
 import SubscriptionCard from '@/components/dashboard/SubscriptionCard';
 import UserInfoCard from '@/components/dashboard/UserInfoCard';
 import TrafficStatsCard from '@/components/dashboard/TrafficStatsCard';
+import SubscriptionRequestsCard from '@/components/dashboard/SubscriptionRequestsCard';
 import ResetUUIDDialog from '@/components/dashboard/dialogs/ResetUUIDDialog';
 import CopyNotification from '@/components/dashboard/dialogs/CopyNotification';
 import NoticesDialog from '@/components/dashboard/dialogs/NoticesDialog';
@@ -159,6 +160,12 @@ export default function Dashboard() {
                   trafficLog={trafficLog}
                   loadingTraffic={loadingTrafficLog}
                   isMobile={isMobile}
+                  t={t}
+                />
+
+                <SubscriptionRequestsCard
+                  subscription={subscription?.data ?? null}
+                  loading={loadingSubscription}
                   t={t}
                 />
               </div>
