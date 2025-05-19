@@ -407,6 +407,6 @@ interface ResetSecurityResponse {
 
 export async function resetSecurity(): Promise<ResetSecurityResponse> {
   return serverFetch('/api/v1/user/resetSecurity', {
-    method: 'POST',
+    method: 'GET',
   });
 }
