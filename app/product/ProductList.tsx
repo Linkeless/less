@@ -264,7 +264,10 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
                   className="relative group"
                 >
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-3xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                  <div className="relative rounded-3xl bg-white dark:bg-gray-800 p-8 ring-1 ring-gray-200 dark:ring-gray-700 xl:p-10">
+                  <div 
+                    onClick={() => handleOrderClick(plan.id)}
+                    className="relative rounded-3xl bg-white dark:bg-gray-800 p-8 ring-1 ring-gray-200 dark:ring-gray-700 xl:p-10 cursor-pointer"
+                  >
                     <h3 className="text-lg font-semibold leading-8 text-gray-900 dark:text-gray-100">
                       {plan.name}
                     </h3>
@@ -313,6 +316,7 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
                       href="#"
                       onClick={(e) => {
                         e.preventDefault();
+                        e.stopPropagation(); // 阻止事件冒泡，避免触发卡片的点击事件
                         handleOrderClick(plan.id);
                       }}
                       className="mt-6 block rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-sm hover:from-indigo-500 hover:to-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all duration-200"

@@ -156,6 +156,29 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
     }
   }
 
+  const calculateDiscountRate = (periodPrice: number, periodMonths: number) => {
+    if (!initialProduct.month_price || periodPrice === 0) return null;
+    const monthlyPrice = initialProduct.month_price;
+    const totalMonthlyPrice = monthlyPrice * periodMonths;
+    const discount = ((totalMonthlyPrice - periodPrice) / totalMonthlyPrice) * 100;
+    return discount > 0 ? discount.toFixed(0) : null;
+  }
+
+  const getPeriodDiscount = (period: string) => {
+    if (!initialProduct.month_price) return null;
+    
+    switch (period) {
+      case 'quarter':
+        return calculateDiscountRate(initialProduct.quarter_price || 0, 3);
+      case 'half_year':
+        return calculateDiscountRate(initialProduct.half_year_price || 0, 6);
+      case 'year':
+        return calculateDiscountRate(initialProduct.year_price || 0, 12);
+      default:
+        return null;
+    }
+  }
+
   const calculatePrices = () => {
     const basePrice = getPeriodPrice() / 100 // Convert to yuan
     let discountAmount = 0
@@ -337,6 +360,11 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                                 <RadioGroup.Description as="span" className="mt-1 text-gray-600 dark:text-gray-400">
                                   ¥{period.price}{period.unit}
                                 </RadioGroup.Description>
+                                {period.value !== 'month' && period.value !== 'onetime' && (
+                                  <span className="mt-1 text-sm text-green-600 dark:text-green-400">
+                                    {getPeriodDiscount(period.value) && `省${getPeriodDiscount(period.value)}%`}
+                                  </span>
+                                )}
                               </>
                             )}
                           </RadioGroup.Option>
