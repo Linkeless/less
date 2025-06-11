@@ -185,46 +185,44 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
   };
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
-      <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)} 
-      />
-      <TitleBar 
-        user={user}
-        navigation={navigation}
-        userNavigation={userNavigation}
-        showLanguageSwitch={true}
-      />
-      
-      <main className="flex-1">
-        <div className="relative isolate">
-          {/* Background Gradient */}
-          <div
-            aria-hidden="true"
-            className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
-          >
-            <div
-              style={{
-                clipPath:
-                  'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-              }}
-              className="relative left-[calc(50%-11rem)] aspect-1155/678 w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-            />
-          </div>
-
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center">
-              <h1 className="text-base font-semibold leading-7 text-indigo-600 dark:text-indigo-400">{t.product.title}</h1>
-              <div className="mt-8 flex justify-center">
-                <div className="relative rounded-full p-0.5 bg-gradient-to-r from-indigo-500 to-purple-500">
-                  <div className="relative rounded-full bg-white dark:bg-gray-900 p-0.5">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 relative">
+      {/* Grid Background */}
+      <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]" style={{
+        backgroundImage: `
+          linear-gradient(rgb(0, 0, 0) 1px, transparent 1px),
+          linear-gradient(90deg, rgb(0, 0, 0) 1px, transparent 1px)
+        `,
+        backgroundSize: '20px 20px'
+      }}></div>
+      <div className="relative z-10">
+        <AuthModal 
+          isOpen={showAuthModal} 
+          onClose={() => setShowAuthModal(false)} 
+        />
+        <TitleBar 
+          user={user}
+          navigation={navigation}
+          userNavigation={userNavigation}
+          showLanguageSwitch={true}
+        />
+        
+                  <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+            <div className="space-y-8 sm:space-y-16">
+              {/* 产品套餐 */}
+              <div>
+                <div className="mb-6 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-4 sm:pb-5">
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">{t.product.title}</h3>
+                  <p className="mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">选择适合您的订阅套餐</p>
+                </div>
+                
+                <div className="flex justify-center mb-8">
+                  <div className="inline-flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 gap-1">
                     {hasMonthlyPlans && (
                       <button
                         onClick={() => setPeriodType('monthly')}
                         className={classNames(
-                          periodType === 'monthly' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white' : 'text-gray-900 dark:text-gray-100',
-                          'px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200'
+                          periodType === 'monthly' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100',
+                          'px-4 py-2 rounded-md text-sm font-medium transition-all duration-200'
                         )}
                       >
                         {t.product.billing.monthly}
@@ -234,8 +232,8 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
                       <button
                         onClick={() => setPeriodType('yearly')}
                         className={classNames(
-                          periodType === 'yearly' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white' : 'text-gray-900 dark:text-gray-100',
-                          'px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200'
+                          periodType === 'yearly' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100',
+                          'px-4 py-2 rounded-md text-sm font-medium transition-all duration-200'
                         )}
                       >
                         {t.product.billing.annual}
@@ -245,8 +243,8 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
                       <button
                         onClick={() => setPeriodType('onetime')}
                         className={classNames(
-                          periodType === 'onetime' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white' : 'text-gray-900 dark:text-gray-100',
-                          'px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200'
+                          periodType === 'onetime' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100',
+                          'px-4 py-2 rounded-md text-sm font-medium transition-all duration-200'
                         )}
                       >
                         {t.product.billing.oneTime}
@@ -254,19 +252,16 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
                     )}
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <div className="mx-auto mt-16 grid max-w-lg gap-8 lg:max-w-none lg:grid-cols-3">
+              <div className="mx-auto mt-16 grid max-w-lg gap-8 lg:max-w-none lg:grid-cols-3">
               {filteredPlans.map((plan) => (
                 <div
                   key={plan.id}
                   className="relative group"
                 >
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-3xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
                   <div 
                     onClick={() => handleOrderClick(plan.id)}
-                    className="relative rounded-3xl bg-white dark:bg-gray-800 p-8 ring-1 ring-gray-200 dark:ring-gray-700 xl:p-10 cursor-pointer"
+                    className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 cursor-pointer hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-200"
                   >
                     <h3 className="text-lg font-semibold leading-8 text-gray-900 dark:text-gray-100">
                       {plan.name}
@@ -287,49 +282,51 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
                       </span>
                     </p>
                     <Content html={plan.content} />
-                    {periodType === 'monthly' && plan.month_price && (
-                      <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                        <span>{t.product.price.monthlyPrice}:</span>
-                        <span className="font-medium">¥{plan.month_price / 100}{t.product.billing.perMonth}</span>
-                      </div>
-                    )}
-                    {periodType === 'yearly' && plan.year_price && (
-                      <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                        <span>{t.product.price.yearlyPrice}:</span>
-                        <span className="font-medium">¥{plan.year_price / 100}{t.product.billing.perYear}</span>
-                      </div>
-                    )}
-                    {periodType === 'onetime' && plan.onetime_price && (
-                      <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                        <span>{t.product.price.oneTimePrice}:</span>
-                        <span className="font-medium">¥{plan.onetime_price / 100}</span>
-                      </div>
-                    )}
+                    <div className="mt-6 space-y-3">
+                      {periodType === 'monthly' && plan.month_price && (
+                        <div className="flex justify-between items-center py-2 px-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">{t.product.price.monthlyPrice}</span>
+                          <span className="font-semibold text-gray-900 dark:text-gray-100">¥{plan.month_price / 100}{t.product.billing.perMonth}</span>
+                        </div>
+                      )}
+                      {periodType === 'yearly' && plan.year_price && (
+                        <div className="flex justify-between items-center py-2 px-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">{t.product.price.yearlyPrice}</span>
+                          <span className="font-semibold text-gray-900 dark:text-gray-100">¥{plan.year_price / 100}{t.product.billing.perYear}</span>
+                        </div>
+                      )}
+                      {periodType === 'onetime' && plan.onetime_price && (
+                        <div className="flex justify-between items-center py-2 px-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">{t.product.price.oneTimePrice}</span>
+                          <span className="font-semibold text-gray-900 dark:text-gray-100">¥{plan.onetime_price / 100}</span>
+                        </div>
+                      )}
+                    </div>
                     {plan.onetime_price && (
-                      <div className="mt-2">
-                        <span className="inline-flex items-center rounded-md bg-green-50 dark:bg-green-900 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-300 ring-1 ring-inset ring-green-600/20">
+                      <div className="mt-4">
+                        <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200 font-medium text-sm">
                           {t.product.order.unlimited}
                         </span>
                       </div>
                     )}
-                    <a
-                      href="#"
+                    <button
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation(); // 阻止事件冒泡，避免触发卡片的点击事件
                         handleOrderClick(plan.id);
                       }}
-                      className="mt-6 block rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-sm hover:from-indigo-500 hover:to-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all duration-200"
+                      className="mt-6 w-full rounded-lg px-4 py-2.5 text-center text-sm font-semibold bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-sm hover:from-indigo-500 hover:to-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all duration-200 min-h-[44px]"
                     >
                       {t.product.order.now}
-                    </a>
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   )
-}
+  }

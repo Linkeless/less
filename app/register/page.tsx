@@ -5,6 +5,17 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { EnvelopeIcon, KeyIcon, LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
 
+// Add global styles to match dashboard
+const globalStyles = `
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  * {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+`;
+
 export default function Register() {
     const [formData, setFormData] = useState({
         email: '',
@@ -107,21 +118,19 @@ export default function Register() {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-900">
-            <div className="relative isolate min-h-screen px-6 pt-14 lg:px-8">
-                <div
-                    aria-hidden="true"
-                    className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
-                >
-                    <div
-                        style={{
-                            clipPath:
-                                'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-                        }}
-                        className="relative left-[calc(50%-11rem)] aspect-1155/678 w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-                    />
-                </div>
-                <div className="flex min-h-full flex-1 flex-col justify-center sm:mx-auto sm:w-full sm:max-w-sm">
+        <>
+            <style jsx global>{globalStyles}</style>
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 relative">
+                {/* Grid Background - matching dashboard style */}
+                <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]" style={{
+                    backgroundImage: `
+                        linear-gradient(rgb(0, 0, 0) 1px, transparent 1px),
+                        linear-gradient(90deg, rgb(0, 0, 0) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '20px 20px'
+                }}></div>
+                
+                <div className="relative z-10 flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
                     <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                         <img
                             alt="Linkeless"
@@ -332,6 +341,6 @@ export default function Register() {
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 }

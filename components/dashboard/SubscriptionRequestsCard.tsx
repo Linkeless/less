@@ -150,16 +150,11 @@ export default function SubscriptionRequestsCard({
 
   if (loading) {
     return (
-      <div className="lg:col-span-2 relative group h-full">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-        <div className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800">
-          <div className="px-8 pt-6 pb-3 sm:px-10 sm:pt-8">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7 mb-6">订阅拉取记录</h3>
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
-              <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">加载中...</p>
-            </div>
-          </div>
+      <div className="lg:col-span-2 space-y-6">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7">订阅拉取记录</h3>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">加载中...</p>
         </div>
       </div>
     );
@@ -167,242 +162,232 @@ export default function SubscriptionRequestsCard({
 
   if (!subscription) {
     return (
-      <div className="lg:col-span-2 relative group h-full">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-        <div className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800">
-          <div className="px-8 pt-6 pb-3 sm:px-10 sm:pt-8">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7 mb-6">订阅拉取记录</h3>
-            <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-6 text-center shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
-              <p className="text-sm text-gray-500 dark:text-gray-400">未找到订阅信息</p>
-            </div>
-          </div>
+      <div className="lg:col-span-2 space-y-6">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7">订阅拉取记录</h3>
+        <div className="text-center py-8">
+          <p className="text-sm text-gray-500 dark:text-gray-400">未找到订阅信息</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="lg:col-span-2 relative group h-full">
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-      <div className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800">
-        <div className="px-8 pt-6 pb-3 sm:px-10 sm:pt-8">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7">订阅拉取记录</h3>
-              {totalRequests > 0 && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">总拉取次数: {totalRequests}</p>
-              )}
-            </div>
-            <button 
-              onClick={fetchRecentRequests}
-              disabled={isLoading}
-              className="inline-flex items-center gap-1 rounded-md bg-white dark:bg-gray-800 px-2.5 py-1.5 text-sm font-medium text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
-            >
-              <ArrowPathIcon className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-              刷新
-            </button>
-          </div>
-
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center flex-grow py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
-              <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">加载中...</p>
-            </div>
-          ) : error ? (
-            <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-6 text-center shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
-              <p className="text-sm text-red-500">{error}</p>
-            </div>
-          ) : sortedData.length === 0 ? (
-            <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 p-6 text-center shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5">
-              <p className="text-sm text-gray-500 dark:text-gray-400">暂无拉取记录</p>
-            </div>
-          ) : (
-            <div className="rounded-xl bg-gradient-to-br from-gray-50 dark:from-gray-900 to-white dark:to-gray-800 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead className="bg-gray-50 dark:bg-gray-800">
-                    <tr>
-                      <th 
-                        scope="col" 
-                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer"
-                        onClick={() => handleSort('ip')}
-                      >
-                        IP 地址
-                        <SortIcon field="ip" />
-                      </th>
-                      <th 
-                        scope="col" 
-                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hidden md:table-cell"
-                        onClick={() => handleSort('user_agent')}
-                      >
-                        客户端
-                        <SortIcon field="user_agent" />
-                      </th>
-                      <th 
-                        scope="col" 
-                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hidden md:table-cell"
-                        onClick={() => handleSort('host')}
-                      >
-                        域名
-                        <SortIcon field="host" />
-                      </th>
-                      <th 
-                        scope="col" 
-                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer md:table-cell"
-                      >
-                        位置
-                      </th>
-                      <th 
-                        scope="col" 
-                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer"
-                        onClick={() => handleSort('datetime')}
-                      >
-                        时间
-                        <SortIcon field="datetime" />
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {sortedData.map((request, index) => (
-                      <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700 hidden md:table-row">
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                          <div className="flex items-center">
-                            {request.ip_details && getCountryCode(request.ip_details) && (
-                              <span className="mr-2 inline-block">
-                                {getCountryCode(request.ip_details) === 'CN' ? '🇨🇳' : 
-                                 getCountryCode(request.ip_details) === 'HK' ? '🇭🇰' : 
-                                 getCountryCode(request.ip_details) === 'US' ? '🇺🇸' : 
-                                 getCountryCode(request.ip_details) === 'JP' ? '🇯🇵' : 
-                                 getCountryCode(request.ip_details) === 'SG' ? '🇸🇬' : 
-                                 getCountryCode(request.ip_details) === 'TW' ? '🇨🇳' : 
-                                 getCountryCode(request.ip_details) === 'KR' ? '🇰🇷' : 
-                                 '🌍'}
-                              </span>
-                            )}
-                            {request.ip}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          <span className="truncate block max-w-[150px]">{request.user_agent}</span>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          <span className="truncate block max-w-[150px]">
-                            {formatHost(request.host)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 md:table-cell">
-                          {request.ip_details ? (
-                            <div>
-                              <div>
-                                {(() => {
-                                  const { city, region, org } = getLocationInfo(request.ip_details);
-                                  return city && region 
-                                    ? `${city}, ${region}` 
-                                    : city || region || '-';
-                                })()}
-                              </div>
-                              {(() => {
-                                const { org } = getLocationInfo(request.ip_details);
-                                return org && (
-                                  <div className="text-xs text-gray-400 dark:text-gray-500 mt-1 truncate max-w-[200px]">
-                                    {org}
-                                  </div>
-                                );
-                              })()}
-                            </div>
-                          ) : '-'}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                          {request.datetime}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                
-                {/* 移动端卡片列表 */}
-                <div className="md:hidden flex flex-col space-y-3 p-4">
-                  {sortedData.map((request, index) => (
-                    <div
-                      key={index}
-                      className="rounded-xl bg-white dark:bg-gray-800 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/5"
-                    >
-                      <div className="flex justify-between items-center mb-3">
-                        <div className="font-medium text-gray-900 dark:text-gray-100 flex items-center">
-                          {request.ip_details && getCountryCode(request.ip_details) && (
-                            <span className="mr-2 inline-block">
-                              {getCountryCode(request.ip_details) === 'CN' ? '🇨🇳' : 
-                               getCountryCode(request.ip_details) === 'HK' ? '🇭🇰' : 
-                               getCountryCode(request.ip_details) === 'US' ? '🇺🇸' : 
-                               getCountryCode(request.ip_details) === 'JP' ? '🇯🇵' : 
-                               getCountryCode(request.ip_details) === 'SG' ? '🇸🇬' : 
-                               getCountryCode(request.ip_details) === 'TW' ? '🇨🇳' : 
-                               getCountryCode(request.ip_details) === 'KR' ? '🇰🇷' : 
-                               '🌍'}
-                            </span>
-                          )}
-                          <span>{request.ip}</span>
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 flex flex-col items-end">
-                          <div className="flex items-center">
-                            <CalendarIcon className="h-3.5 w-3.5 mr-1" />
-                            <span>{request.datetime.split(' ')[0]}</span>
-                          </div>
-                          <div className="flex items-center mt-1">
-                            <ClockIcon className="h-3.5 w-3.5 mr-1" />
-                            <span>{request.datetime.split(' ')[1]}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2 text-sm">
-                        {/* Location info */}
-                        {request.ip_details && (
-                          <div className="flex items-start mb-2">
-                            <GlobeAltIcon className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
-                            <div>
-                              <span className="text-gray-700 dark:text-gray-300 break-words">
-                                {(() => {
-                                  const { city, region, org } = getLocationInfo(request.ip_details);
-                                  return city && region 
-                                    ? `${city}, ${region}` 
-                                    : city || region || '-';
-                                })()}
-                                {(() => {
-                                  const { org } = getLocationInfo(request.ip_details);
-                                  return org && (
-                                    <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                      {org}
-                                    </span>
-                                  );
-                                })()}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* User agent */}
-                        <div className="flex items-start">
-                          <DevicePhoneMobileIcon className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
-                          <span className="text-gray-700 dark:text-gray-300 break-words">{request.user_agent}</span>
-                        </div>
-                        
-                        {/* Host */}
-                        <div className="flex items-start">
-                          <GlobeAltIcon className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
-                          <span className="text-gray-700 dark:text-gray-300 break-words">
-                            {formatHost(request.host)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+    <div className="lg:col-span-2 space-y-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-tight">订阅拉取记录</h3>
+          {totalRequests > 0 && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">总拉取次数: {totalRequests}</p>
           )}
         </div>
+        <button 
+          onClick={fetchRecentRequests}
+          disabled={isLoading}
+          className="inline-flex items-center gap-1.5 rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-medium text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors min-h-[36px]"
+        >
+          <ArrowPathIcon className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          刷新
+        </button>
       </div>
+
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">加载中...</p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-8">
+          <p className="text-sm text-red-500">{error}</p>
+        </div>
+      ) : sortedData.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-sm text-gray-500 dark:text-gray-400">暂无拉取记录</p>
+        </div>
+      ) : (
+        <div className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="border-b border-gray-200 dark:border-gray-700">
+                <tr>
+                  <th 
+                    scope="col" 
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer"
+                    onClick={() => handleSort('ip')}
+                  >
+                    IP 地址
+                    <SortIcon field="ip" />
+                  </th>
+                  <th 
+                    scope="col" 
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hidden lg:table-cell"
+                    onClick={() => handleSort('user_agent')}
+                  >
+                    客户端
+                    <SortIcon field="user_agent" />
+                  </th>
+                  <th 
+                    scope="col" 
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hidden lg:table-cell"
+                    onClick={() => handleSort('host')}
+                  >
+                    域名
+                    <SortIcon field="host" />
+                  </th>
+                  <th 
+                    scope="col" 
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hidden lg:table-cell"
+                  >
+                    位置
+                  </th>
+                  <th 
+                    scope="col" 
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer"
+                    onClick={() => handleSort('datetime')}
+                  >
+                    时间
+                    <SortIcon field="datetime" />
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {sortedData.map((request, index) => (
+                  <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700 hidden lg:table-row">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                      <div className="flex items-center">
+                        {request.ip_details && getCountryCode(request.ip_details) && (
+                          <span className="mr-2 inline-block">
+                            {getCountryCode(request.ip_details) === 'CN' ? '🇨🇳' : 
+                             getCountryCode(request.ip_details) === 'HK' ? '🇭🇰' : 
+                             getCountryCode(request.ip_details) === 'US' ? '🇺🇸' : 
+                             getCountryCode(request.ip_details) === 'JP' ? '🇯🇵' : 
+                             getCountryCode(request.ip_details) === 'SG' ? '🇸🇬' : 
+                             getCountryCode(request.ip_details) === 'TW' ? '🇨🇳' : 
+                             getCountryCode(request.ip_details) === 'KR' ? '🇰🇷' : 
+                             '🌍'}
+                          </span>
+                        )}
+                        {request.ip}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      <span className="truncate block max-w-[150px]">{request.user_agent}</span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      <span className="truncate block max-w-[150px]">
+                        {formatHost(request.host)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">
+                      {request.ip_details ? (
+                        <div>
+                          <div>
+                            {(() => {
+                              const { city, region, org } = getLocationInfo(request.ip_details);
+                              return city && region 
+                                ? `${city}, ${region}` 
+                                : city || region || '-';
+                            })()}
+                          </div>
+                          {(() => {
+                            const { org } = getLocationInfo(request.ip_details);
+                            return org && (
+                              <div className="text-xs text-gray-400 dark:text-gray-500 mt-1 truncate max-w-[200px]">
+                                {org}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      ) : '-'}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                      {request.datetime}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            
+            {/* 移动端列表 */}
+            <div className="lg:hidden flex flex-col space-y-6 pt-4">
+              {sortedData.map((request, index) => (
+                <div
+                  key={index}
+                  className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0"
+                >
+                  <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-3">
+                    <div className="font-medium text-gray-900 dark:text-gray-100 flex items-center leading-relaxed">
+                      {request.ip_details && getCountryCode(request.ip_details) && (
+                        <span className="mr-2 inline-block">
+                          {getCountryCode(request.ip_details) === 'CN' ? '🇨🇳' : 
+                           getCountryCode(request.ip_details) === 'HK' ? '🇭🇰' : 
+                           getCountryCode(request.ip_details) === 'US' ? '🇺🇸' : 
+                           getCountryCode(request.ip_details) === 'JP' ? '🇯🇵' : 
+                           getCountryCode(request.ip_details) === 'SG' ? '🇸🇬' : 
+                           getCountryCode(request.ip_details) === 'TW' ? '🇨🇳' : 
+                           getCountryCode(request.ip_details) === 'KR' ? '🇰🇷' : 
+                           '🌍'}
+                        </span>
+                      )}
+                      <span>{request.ip}</span>
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 flex flex-col gap-1 sm:items-end">
+                      <div className="flex items-center">
+                        <CalendarIcon className="h-3.5 w-3.5 mr-1" />
+                        <span>{request.datetime.split(' ')[0]}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <ClockIcon className="h-3.5 w-3.5 mr-1" />
+                        <span>{request.datetime.split(' ')[1]}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 text-sm">
+                    {/* Location info */}
+                    {request.ip_details && (
+                      <div className="flex items-start mb-2">
+                        <GlobeAltIcon className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="text-gray-700 dark:text-gray-300 break-words leading-relaxed">
+                            {(() => {
+                              const { city, region, org } = getLocationInfo(request.ip_details);
+                              return city && region 
+                                ? `${city}, ${region}` 
+                                : city || region || '-';
+                            })()}
+                            {(() => {
+                              const { org } = getLocationInfo(request.ip_details);
+                              return org && (
+                                <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed">
+                                  {org}
+                                </span>
+                              );
+                            })()}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* User agent */}
+                    <div className="flex items-start">
+                      <DevicePhoneMobileIcon className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300 break-words leading-relaxed">{request.user_agent}</span>
+                    </div>
+                    
+                    {/* Host */}
+                    <div className="flex items-start">
+                      <GlobeAltIcon className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300 break-words leading-relaxed">
+                        {formatHost(request.host)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

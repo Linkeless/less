@@ -66,7 +66,7 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
                   src="/Linkeless.png"
                   className="size-8 dark:invert"
                 />
-                <span className="ml-2 text-lg font-semibold text-gray-900 dark:text-white">Linkeless</span>
+                <span className="ml-2 text-lg font-semibold text-gray-900 dark:text-white leading-tight">Linkeless</span>
               </a>
             </div>
             <div className="hidden md:block">
@@ -80,7 +80,7 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
                       item.current 
                         ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' 
                         : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100',
-                      'rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200'
+                      'rounded-md px-3 py-2.5 text-sm font-medium transition-colors duration-200 leading-relaxed'
                     )}
                   >
                     {item.name}
@@ -94,15 +94,8 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
               {showLanguageSwitch && <LanguageSwitch />}
               {rightExtra}
               <Menu as="div" className="relative">
-                <MenuButton className="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">
-                  {user.imageUrl ? (
-                    <img 
-                      alt="" 
-                      src={user.imageUrl}
-                      className="size-8 rounded-full" 
-                    />
-                  ) : null}
-                  <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-200">{user.name}</span>
+                <MenuButton className="flex items-center gap-2 rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 min-h-[40px]">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200 leading-relaxed">{user.name}</span>
                 </MenuButton>
                 <MenuItems className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-lg bg-white dark:bg-gray-800 py-1 shadow-lg ring-1 ring-black/5 dark:ring-white/5 focus:outline-none">
                   {userNavigation.map((item) => (
@@ -110,7 +103,7 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
                       {item.component || (
                         <button
                           onClick={item.onClick}
-                          className="block w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                          className="block w-full px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 leading-relaxed"
                         >
                           {item.name}
                         </button>
@@ -123,7 +116,7 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
           </div>
           <div className="flex md:hidden">
             <DisclosureButton 
-              className="relative p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 rounded-md transition-colors duration-200"
+              className="relative p-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 rounded-md transition-colors duration-200 min-h-[44px] min-w-[44px]"
               onClick={() => setIsOpen(!isOpen)}
             >
               {isOpen ? (
@@ -137,7 +130,7 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
       </div>
 
       <DisclosurePanel className="md:hidden">
-        <div className="space-y-1 px-2 pb-3 pt-2">
+        <div className="space-y-2 px-2 pb-4 pt-3">
           {navigation.map((item) => (
             <DisclosureButton
               key={item.name}
@@ -148,30 +141,21 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
                 item.current 
                   ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' 
                   : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-white',
-                'block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200'
+                'block rounded-md px-3 py-3 text-base font-medium transition-colors duration-200 leading-relaxed'
               )}
             >
               {item.name}
             </DisclosureButton>
           ))}
         </div>
-        <div className="border-t border-gray-200 dark:border-gray-700 pb-3 pt-4">
+        <div className="border-t border-gray-200 dark:border-gray-700 pb-4 pt-5">
           <div className="flex items-center px-5">
-            <div className="shrink-0">
-              {user.imageUrl ? (
-                <img
-                  alt=""
-                  src={user.imageUrl}
-                  className="size-10 rounded-full"
-                />
-              ) : null}
-            </div>
             <div className="ml-3">
-              <div className="text-base font-medium text-gray-800 dark:text-gray-200">{user.name}</div>
-              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">{user.email}</div>
+              <div className="text-base font-medium text-gray-800 dark:text-gray-200 leading-tight">{user.name}</div>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400 leading-relaxed mt-0.5">{user.email}</div>
             </div>
           </div>
-          <div className="mt-3 space-y-1 px-2">
+          <div className="mt-4 space-y-2 px-2">
             {userNavigation.map((item) => (
               <DisclosureButton
                 key={item.name}
@@ -181,7 +165,7 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
                 {item.component || (
                   <button
                     onClick={item.onClick}
-                    className="block w-full rounded-md px-3 py-2 text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-white text-left transition-colors duration-200"
+                    className="block w-full rounded-md px-3 py-3 text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-white text-left transition-colors duration-200 leading-relaxed min-h-[44px]"
                   >
                     {item.name}
                   </button>

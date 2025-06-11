@@ -9,6 +9,17 @@ import SignOutButton from '@/components/SignOutButton'
 import type { UserInfo } from '@/lib/types'
 import { useLanguage } from '@/lib/i18n/hooks'
 
+// Add global styles - 添加全局样式
+const globalStyles = `
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  * {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+`;
+
 export default function OrdersPage() {
   const { t } = useLanguage()
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
@@ -41,27 +52,44 @@ export default function OrdersPage() {
   ]
 
   return (
-    <div className="min-h-[100dvh] flex flex-col">
-      <TitleBar 
-        user={user} 
-        navigation={navigation} 
-        userNavigation={userNavigation}
-        showLanguageSwitch={true}  
-      />
-      <div className="flex-1 bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-          <div className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl">
-            <div className="border-b border-gray-200 px-4 py-5 sm:px-6">
-              <h3 className="text-base font-semibold leading-6 text-gray-900">{t.orders.history}</h3>
+    <>
+      <style jsx global>{globalStyles}</style>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 relative">
+        {/* Grid Background */}
+        <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]" style={{
+          backgroundImage: `
+            linear-gradient(rgb(0, 0, 0) 1px, transparent 1px),
+            linear-gradient(90deg, rgb(0, 0, 0) 1px, transparent 1px)
+          `,
+          backgroundSize: '20px 20px'
+        }}></div>
+        <div className="relative z-10">
+          <TitleBar 
+            user={user} 
+            navigation={navigation} 
+            userNavigation={userNavigation}
+            showLanguageSwitch={true}  
+          />
+          
+          <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+            <div className="space-y-8 sm:space-y-16">
+              <div>
+                <div className="mb-6 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-4 sm:pb-5">
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">{t.orders.history}</h3>
+                  <p className="mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">查看您的订单历史记录</p>
+                </div>
+                <div className="bg-white dark:bg-gray-800 shadow-sm ring-1 ring-gray-900/5 dark:ring-gray-700/50 rounded-xl">
+                  <Suspense fallback={
+                    <div className="p-4 text-center text-gray-600 dark:text-gray-400">{t.common.loading}</div>
+                  }>
+                    <OrdersTable />
+                  </Suspense>
+                </div>
+              </div>
             </div>
-            <Suspense fallback={
-              <div className="p-4 text-center">{t.common.loading}</div>
-            }>
-              <OrdersTable />
-            </Suspense>
-          </div>
+          </main>
         </div>
       </div>
-    </div>
+    </>
   )
 }
