@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { PlusIcon, ChevronLeftIcon, ChevronRightIcon, ClipboardIcon, CheckIcon, WrenchIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import RuleModal from './components/RuleModal';
-import TitleBar from '@/components/TitleBar';
+import TitleBar from '@/components/layout/title-bar';
 import { useLanguage } from '@/lib/i18n/hooks';
 import { getForwardingRules, getDeviceGroups, createForwardingRule, diagnoseForwardingRule, deleteForwardingRules, getUserInfo, getForwardUsers, updateForwardingRule } from '@/lib/actions';
 

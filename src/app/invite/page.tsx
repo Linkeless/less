@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { ClipboardIcon, CheckIcon, UsersIcon, ArrowTrendingUpIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
-import TitleBar from '@/components/TitleBar';
+import TitleBar from '@/components/layout/title-bar';
 import { useLanguage } from '@/lib/i18n/hooks';
 import { useInviteData } from '@/hooks/useInviteData';
 

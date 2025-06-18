@@ -1,8 +1,9 @@
 'use client';
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Dialog, Transition } from '@headlessui/react';
 import { login } from '@/lib/auth';
+import { checkAuthDataFromServer } from '@/lib/authUtils';
 
 // Add global styles - same as dashboard
 const globalStyles = `
@@ -25,6 +26,27 @@ export default function LoginPage() {
     const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
+    const [isChecking, setIsChecking] = useState(true);
+
+    // 检查用户是否已登录
+    useEffect(() => {
+        const checkLoginStatus = async () => {
+            try {
+                // 检查服务端HttpOnly Cookie（包括会话级别和长期Cookie）
+                const { isLoggedIn } = await checkAuthDataFromServer();
+                if (isLoggedIn) {
+                    router.push('/dashboard');
+                    return;
+                }
+            } catch (error) {
+                console.error('检查登录状态失败:', error);
+            }
+            
+            setIsChecking(false);
+        };
+
+        checkLoginStatus();
+    }, [router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,6 +56,8 @@ export default function LoginPage() {
             const result = await login(formData.email, formData.password, rememberMe);
             
             if (result.data?.auth_data) {
+                // 认证数据已保存在HttpOnly Cookie中
+                // 勾选"记住我"：30天过期，不勾选：会话级别
                 router.push('/dashboard');
                 router.refresh();
             } else {
@@ -50,6 +74,21 @@ export default function LoginPage() {
         alert(`Password reset email sent to ${resetEmail}`);
         setForgotPasswordOpen(false);
     };
+
+    // 如果正在检查登录状态，显示加载页面
+    if (isChecking) {
+        return (
+            <>
+                <style jsx global>{globalStyles}</style>
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 relative flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
+                        <p className="mt-4 text-gray-600 dark:text-gray-400">检查登录状态...</p>
+                    </div>
+                </div>
+            </>
+        );
+    }
 
     return (
       <>

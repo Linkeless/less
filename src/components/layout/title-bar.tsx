@@ -6,7 +6,7 @@ import { useLanguage } from '@/lib/i18n/hooks';
 import { useRouter } from 'next/navigation'
 import { handleLogout } from '@/lib/authUtils';
 import { useState } from 'react';
-import LanguageSwitch from './LanguageSwitch';
+import LanguageSwitch from '@/components/ui/language-switch';
 
 interface TitleBarProps {
   user: {

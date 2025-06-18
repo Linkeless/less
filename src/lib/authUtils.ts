@@ -3,13 +3,11 @@
 export const clearAuthData = async () => {
   if (typeof window === 'undefined') return;
 
-  // 清理 localStorage 和 sessionStorage
-  localStorage.clear();
+  // 清理 sessionStorage
   sessionStorage.clear();
 
-  // 尝试通过服务端接口清除 HttpOnly cookie
+  // 调用服务端接口清除 HttpOnly cookie
   try {
-    // 调用登出接口清除服务端设置的 HttpOnly cookie
     const response = await fetch('/api/auth/logout', {
       method: 'POST',
       credentials: 'include', // 确保发送cookies
@@ -21,26 +19,6 @@ export const clearAuthData = async () => {
   } catch (error) {
     console.error('调用登出接口出错:', error);
   }
-
-  // 仍然尝试在客户端清除非HttpOnly cookies
-  const cookies = document.cookie.split(';');
-  const domain = window.location.hostname;
-  
-  console.log('正在清除客户端可访问的cookies...');
-  
-  cookies.forEach(cookie => {
-    const cookieName = cookie.split('=')[0].trim();
-    if (cookieName) {
-      document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-      document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=${domain}; path=/`;
-      
-      // 处理主域名
-      if (domain.indexOf('.') > 0) {
-        const mainDomain = domain.substring(domain.indexOf('.'));
-        document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=${mainDomain}; path=/`;
-      }
-    }
-  });
 };
 
 export const handleLogout = (redirect = true, callback?: () => void) => {
@@ -77,13 +55,27 @@ export const handleLogout = (redirect = true, callback?: () => void) => {
     });
 };
 
-export const setAuthData = (authData: string) => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('auth_data', authData);
-  }
-};
+// 认证数据现在统一通过HttpOnly Cookie管理
+// 不再使用localStorage存储敏感的认证信息
 
-export const getAuthData = () => {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('auth_data');
+// 检查登录状态（包括cookie）
+export const checkAuthDataFromServer = async (): Promise<{ isLoggedIn: boolean; authData: string | null }> => {
+  try {
+    const response = await fetch('/api/auth/status', {
+      method: 'GET',
+      credentials: 'include',
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        isLoggedIn: data.isLoggedIn,
+        authData: data.authData
+      };
+    }
+  } catch (error) {
+    console.error('检查服务端登录状态失败:', error);
+  }
+  
+  return { isLoggedIn: false, authData: null };
 };

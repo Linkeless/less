@@ -1,10 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogPanel, Transition, Popover } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { Fragment } from 'react'
-import ThemeToggle from '@/components/theme-toggle'
+import { useRouter } from 'next/navigation'
+import ThemeToggle from '@/components/ui/theme-toggle'
+import TypewriterEffect from '@/components/ui/typewriter-effect'
+import { checkAuthDataFromServer } from '@/lib/authUtils'
 
 const navigation = [
   { name: 'Product', href: 'product' },
@@ -15,6 +18,33 @@ const navigation = [
 
 export default function Example() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const router = useRouter()
+
+  useEffect(() => {
+    // 检查用户是否已登录
+    const checkLoginStatus = async () => {
+      try {
+        // 检查服务端HttpOnly Cookie（包括会话级别和长期Cookie）
+        const { isLoggedIn } = await checkAuthDataFromServer()
+        setIsLoggedIn(isLoggedIn)
+      } catch (error) {
+        console.error('检查登录状态失败:', error)
+        setIsLoggedIn(false)
+      }
+    }
+
+    checkLoginStatus()
+  }, [])
+
+  const handleGetStarted = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (isLoggedIn) {
+      router.push('/dashboard')
+    } else {
+      router.push('/login')
+    }
+  }
 
   return (
     <div className="bg-white dark:bg-gray-900">
@@ -81,8 +111,11 @@ export default function Example() {
           </div>
           <div className="hidden lg:flex lg:flex-1 lg:justify-end items-center gap-4">
             <ThemeToggle />
-            <a href="/login" className="text-sm/6 font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300">
-              Log in <span aria-hidden="true">&rarr;</span>
+            <a 
+              href={isLoggedIn ? "/dashboard" : "/login"} 
+              className="text-sm/6 font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
+            >
+              {isLoggedIn ? 'Dashboard' : 'Log in'} <span aria-hidden="true">&rarr;</span>
             </a>
           </div>
         </nav>
@@ -147,10 +180,10 @@ export default function Example() {
                     </div>
                     <div className="py-6">
                       <a
-                        href="/login"
-                        className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
+                        href={isLoggedIn ? "/dashboard" : "/login"}
+                        className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                       >
-                        Log in
+                        {isLoggedIn ? 'Dashboard' : 'Log in'}
                       </a>
                     </div>
                   </div>
@@ -183,16 +216,21 @@ export default function Example() {
               Linkeless
             </h1>
             <p className="mt-8 text-lg font-medium text-pretty text-gray-500 dark:text-gray-400 sm:text-xl/8">
-              Link is less, Linkeless.
+              <TypewriterEffect 
+                text="Link is less, Linkeless."
+                speed={100}
+                showCursor={true}
+                cursorClassName="text-gray-500 dark:text-gray-400"
+              />
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
-              <a
-                href="/login"
-                className="rounded-md bg-indigo-600 dark:bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 dark:hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:focus-visible:outline-indigo-500"
+              <button
+                onClick={handleGetStarted}
+                className="rounded-md bg-indigo-600 dark:bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 dark:hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:focus-visible:outline-indigo-500 transition-colors duration-200"
               >
-                Get started
-              </a>
-              <a href="/login" className="text-sm/6 font-semibold text-gray-900 dark:text-gray-100">
+                {isLoggedIn ? 'Go to Dashboard' : 'Get started'}
+              </button>
+              <a href="/login" className="text-sm/6 font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200">
                 Learn more <span aria-hidden="true">→</span>
               </a>
             </div>

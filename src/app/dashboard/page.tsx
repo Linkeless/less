@@ -2,8 +2,8 @@
 import { BellIcon, ChartBarIcon, UserIcon, CogIcon, ArrowTrendingUpIcon, CreditCardIcon, ServerIcon } from '@heroicons/react/24/outline'
 import { useState, useMemo } from 'react' 
 import { useLanguage } from '@/lib/i18n/hooks';
-import TitleBar from '@/components/TitleBar'
-import SignOutButton from '@/components/SignOutButton';
+import TitleBar from '@/components/layout/title-bar'
+import SignOutButton from '@/components/auth/sign-out-button';
 import SubscriptionCard from '@/components/dashboard/SubscriptionCard';
 import UserInfoCard from '@/components/dashboard/UserInfoCard';
 import TrafficStatsCard from '@/components/dashboard/TrafficStatsCard';

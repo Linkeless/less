@@ -7,8 +7,8 @@ import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import md5 from 'md5'
 import type { PurchasePlan, UserInfo } from '@/lib/types'
 import { useLanguage } from '@/lib/i18n/hooks';
-import TitleBar from '@/components/TitleBar'
-import SignOutButton from '@/components/SignOutButton'
+import TitleBar from '@/components/layout/title-bar'
+import SignOutButton from '@/components/auth/sign-out-button'
 
 interface ProductListProps {
   initialProducts: PurchasePlan[]

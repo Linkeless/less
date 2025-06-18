@@ -4,7 +4,7 @@ import { useState } from 'react'
 import md5 from 'md5'
 import { RadioGroup } from '@headlessui/react'
 import { checkCoupon, getSubscription, createOrder } from '@/lib/actions'
-import TitleBar from '@/components/TitleBar'
+import TitleBar from '@/components/layout/title-bar'
 import type { UserInfo, PurchasePlan } from '@/lib/types'
 import { useLanguage } from '@/lib/i18n/hooks';
 

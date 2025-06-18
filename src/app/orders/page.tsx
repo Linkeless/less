@@ -1,11 +1,11 @@
 'use client'
 
 import { Suspense, useState, useEffect } from 'react'
-import TitleBar from '@/components/TitleBar'
+import TitleBar from '@/components/layout/title-bar'
 import OrdersTable from './OrdersTable'
 import { getUserInfo } from '@/lib/actions'
 import md5 from 'md5'
-import SignOutButton from '@/components/SignOutButton'
+import SignOutButton from '@/components/auth/sign-out-button'
 import type { UserInfo } from '@/lib/types'
 import { useLanguage } from '@/lib/i18n/hooks'
 
