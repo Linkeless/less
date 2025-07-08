@@ -44,6 +44,7 @@ export default function Dashboard() {
     trafficLog,
     loadingTrafficLog,
     handleResetUUID,
+    refreshSubscription,
   } = useUserData();
 
   const {
@@ -79,6 +80,8 @@ export default function Dashboard() {
     const success = await copyToClipboard(url)
     if (success) {
       triggerCopyNotification();
+      // 重新请求订阅数据
+      await refreshSubscription();
     }
   }
 

@@ -17,6 +17,7 @@ export interface UseUserDataReturn {
   trafficLog: TrafficLog[];
   loadingTrafficLog: boolean;
   handleResetUUID: () => Promise<void>;
+  refreshSubscription: () => Promise<void>;
 }
 
 export function useUserData(): UseUserDataReturn {
@@ -92,6 +93,15 @@ export function useUserData(): UseUserDataReturn {
     }
   };
 
+  const refreshSubscription = useCallback(async () => {
+    try {
+      const subscriptionData = await getSubscription();
+      setSubscription(subscriptionData as unknown as Subscription);
+    } catch (error) {
+      console.error('Failed to refresh subscription data:', error);
+    }
+  }, []);
+
   return {
     userInfo,
     loadingUserInfo,
@@ -100,5 +110,6 @@ export function useUserData(): UseUserDataReturn {
     trafficLog,
     loadingTrafficLog,
     handleResetUUID,
+    refreshSubscription,
   };
 } 
