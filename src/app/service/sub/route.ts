@@ -34,12 +34,31 @@ export async function GET(request: NextRequest) {
       headers: apiHeaders
     });
 
-    if (!subscription.ok) {
-      return new Response('Subscription not found', { status: 404 });
-    }
-
     const data = await subscription.text();
     const webPageUrl = `${request.nextUrl.protocol}//${host}`;
+
+    // 检查是否是 JSON 格式的错误响应
+    if (!subscription.ok) {
+      try {
+        const jsonData = JSON.parse(data);
+        return new Response(JSON.stringify(jsonData), {
+          status: subscription.status,
+          headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+            'Cache-Control': 'no-cache',
+          },
+        });
+      } catch {
+        // 如果不是 JSON 格式，返回原始数据
+        return new Response(data, {
+          status: subscription.status,
+          headers: {
+            'Content-Type': 'text/plain; charset=UTF-8',
+            'Cache-Control': 'no-cache',
+          },
+        });
+      }
+    }
 
     return new Response(data, {
       headers: {
