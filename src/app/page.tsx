@@ -42,7 +42,8 @@ export default function Example() {
     if (isLoggedIn) {
       router.push('/dashboard')
     } else {
-      router.push('/login')
+      // 破坏性修改：不再自动跳转到登录页
+      console.log('用户未登录，保留在首页')
     }
   }
 

@@ -13,6 +13,7 @@ export default function SignOutButton() {
   const handleSignOut = async () => {
     try {
       await logout();
+      // 显式处理跳转
       router.push('/login');
     } catch (error) {
       console.error('退出登录失败:', error);

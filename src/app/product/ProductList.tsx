@@ -9,10 +9,15 @@ import type { PurchasePlan, UserInfo } from '@/lib/types'
 import { useLanguage } from '@/lib/i18n/hooks';
 import TitleBar from '@/components/layout/title-bar'
 import SignOutButton from '@/components/auth/sign-out-button'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 
 interface ProductListProps {
   initialProducts: PurchasePlan[]
   initialUser: UserInfo | null
+  isLoading?: boolean
+  error?: string | null
+  onRetry?: () => void
 }
 
 // 此组件可由TitleBar内部使用，通过showLanguageSwitch标志控制
@@ -50,11 +55,15 @@ const LanguageSwitch = () => {
   );
 };
 
-export default function ProductList({ initialProducts, initialUser }: ProductListProps) {
+export default function ProductList({ initialProducts, initialUser, isLoading = false, error = null, onRetry }: ProductListProps) {
   const router = useRouter();
   const { t } = useLanguage();
   const [periodType, setPeriodType] = useState<'monthly' | 'yearly' | 'onetime'>('monthly')
-  const [showAuthModal, setShowAuthModal] = useState(!initialUser)
+  // 不在初始渲染时弹登录，保持与其它页面一致；仅在下单动作触发
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  useEffect(() => {
+    if (initialUser) setShowAuthModal(false)
+  }, [initialUser])
   
   // 检查是否有一次性套餐可用
   const hasMonthlyPlans = initialProducts.some(plan => plan.month_price !== null && plan.show === 1);
@@ -198,8 +207,26 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
           showLanguageSwitch={true}
         />
         
-                  <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
-            <div className="space-y-8 sm:space-y-16">
+        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+          {/* 错误提示（不遮挡页面） */}
+          {error && (
+            <div className="mb-6">
+              <Alert variant="destructive">
+                <AlertTitle>加载失败</AlertTitle>
+                <AlertDescription>
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="truncate">{error}</p>
+                    {onRetry && (
+                      <Button onClick={onRetry} variant="outline" size="sm">重试</Button>
+                    )}
+                  </div>
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
+
+          {!isLoading && (
+          <div className="space-y-8 sm:space-y-16">
               {/* 产品套餐 */}
               <div>
                 <div className="mb-6 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-4 sm:pb-5">
@@ -314,9 +341,10 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
                   </div>
                 </div>
               ))}
+              </div>
             </div>
-          </div>
-        </div>
+            </div>
+            )}
         </main>
       </div>
     </div>

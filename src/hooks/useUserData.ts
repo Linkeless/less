@@ -36,6 +36,7 @@ export function useUserData(): UseUserDataReturn {
     retryDelay: 2000,
     onError: (error) => {
       console.error('用户信息获取失败:', error);
+      // 不再自动跳转，让页面显示错误信息
     }
   });
 
@@ -44,6 +45,7 @@ export function useUserData(): UseUserDataReturn {
     retryDelay: 1500,
     onError: (error) => {
       console.error('订阅信息获取失败:', error);
+      // 不再自动跳转，让页面显示错误信息
     }
   });
 
@@ -130,19 +132,15 @@ export function useUserData(): UseUserDataReturn {
 
   // 重试获取用户信息
   const retryUserInfo = useCallback(async () => {
-    await userInfoErrorHandler.retry();
-    if (!userInfoErrorHandler.error) {
-      await fetchUserInfo();
-    }
-  }, [userInfoErrorHandler.retry, userInfoErrorHandler.error, fetchUserInfo]);
+    // 直接重新获取，不依赖错误处理器的retry方法
+    await fetchUserInfo();
+  }, [fetchUserInfo]);
 
   // 重试获取订阅信息
   const retrySubscription = useCallback(async () => {
-    await subscriptionErrorHandler.retry();
-    if (!subscriptionErrorHandler.error) {
-      await fetchSubscription();
-    }
-  }, [subscriptionErrorHandler.retry, subscriptionErrorHandler.error, fetchSubscription]);
+    // 直接重新获取，不依赖错误处理器的retry方法
+    await fetchSubscription();
+  }, [fetchSubscription]);
 
   // 清除所有错误
   const clearErrors = useCallback(() => {

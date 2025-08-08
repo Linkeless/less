@@ -5,8 +5,6 @@ import { useEffect, useState } from 'react'
 import ProductList from './ProductList'
 import { getSubscriptionPlans, getUserInfo } from '@/lib/client'
 import { Spinner } from '@/components/ui/spinner'
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
 import type { PurchasePlan, UserInfo, UserInfoResponse, SubscriptionPlan } from '@/lib/types'
 
 // 适配器函数：将新的订阅计划数据转换为组件期望的旧格式
@@ -118,45 +116,17 @@ export default function ProductPage() {
     fetchData()
   }, [])
 
-  // 加载状态
-  if (isLoading) {
-    return (
-      <div className="min-h-[100dvh] flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <Spinner size="lg" />
-          <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">加载中...</p>
-        </div>
-      </div>
-    )
-  }
+  // 不阻塞整页渲染：骨架占位替代整页 loading
 
-  // 错误状态
-  if (error) {
-    return (
-      <div className="min-h-[100dvh] flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center max-w-md mx-4">
-          <Alert variant="destructive">
-            <AlertTitle>加载失败</AlertTitle>
-            <AlertDescription>
-              <p className="mb-4">{error}</p>
-              <Button 
-                onClick={() => window.location.reload()}
-                variant="outline"
-                size="sm"
-              >
-                重试
-              </Button>
-            </AlertDescription>
-          </Alert>
-        </div>
-      </div>
-    )
-  }
+  // 错误提示（不遮挡页面）
 
   return (
     <ProductList 
       initialProducts={products} 
       initialUser={user}
+      isLoading={isLoading}
+      error={error}
+      onRetry={() => window.location.reload()}
     />
   )
 }

@@ -303,14 +303,7 @@ export interface OrdersResponse extends APIResponse {
   data: Order[];
 }
 
-export interface TicketResponse extends BaseResponse {
-  data: Array<{
-    id: number;
-    subject: string;
-    status: string;
-    created_at: number;
-  }>;
-}
+// 旧版 TicketResponse（包含 subject 等字段）已废弃，避免与新版冲突，若仍需请改名使用
 
 export interface OrderDetailResponse extends BaseResponse {
   data: {
@@ -519,6 +512,19 @@ export interface TicketResponse {
   user_id: number;
 }
 
+export interface CloseTicketRequest {
+  reason?: string;
+}
+
+export interface UserCreateTicketRequest {
+  category: 'general' | 'technical' | 'billing' | 'account' | 'feature' | 'bug' | 'subscription' | 'payment';
+  title: string; // 5-255 chars
+  description: string; // 10-5000 chars
+  priority?: 'low' | 'normal' | 'high' | 'urgent' | 'critical';
+  tags?: string; // 以逗号分隔
+  metadata?: string; // JSON 字符串
+}
+
 export interface PaginationResponse {
   limit?: number;
   page?: number;
@@ -534,4 +540,30 @@ export interface StandardListResponse<T = any> {
   code: number;
   message: string;
   data: ListDataInfo<T>;
+}
+
+// =============== 邀请相关（使用现有后端用户端接口） ===============
+export interface InviteCodeItem {
+  code: string;
+}
+
+export interface InviteInfoData {
+  codes: InviteCodeItem[];
+  stat: number[]; // [invitedCount, totalCommission, ..., commissionRate?] 兼容旧格式
+}
+
+export interface InviteInfoResponse extends BaseResponse {
+  data: InviteInfoData;
+}
+
+export interface CommissionRecord {
+  id: number;
+  trade_no: string;
+  order_amount: number; // cents
+  get_amount: number; // cents
+  created_at: number; // seconds timestamp
+}
+
+export interface CommissionRecordsResponse extends BaseResponse {
+  data: CommissionRecord[];
 }

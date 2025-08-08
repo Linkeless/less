@@ -3,6 +3,7 @@ import { useState, Fragment, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Dialog, Transition } from '@headlessui/react';
 import { login, hasValidToken } from '@/lib/auth-client';
+import { checkAuthDataFromServer } from '@/lib/authUtils';
 import OAuthButtons from '@/components/oauth/OAuthButtons';
 
 // Add global styles - same as dashboard
@@ -32,7 +33,7 @@ export default function LoginPage() {
 
     // 检查用户是否已登录和URL参数中的错误信息
     useEffect(() => {
-        const checkLoginStatus = () => {
+        const checkLoginStatus = async () => {
             try {
                 // 检查URL参数中是否有错误信息
                 const urlParams = new URLSearchParams(window.location.search);
@@ -47,6 +48,13 @@ export default function LoginPage() {
 
                 // 本地检查是否有有效token（不发起HTTP请求，避免循环）
                 if (hasValidToken()) {
+                    router.push('/dashboard');
+                    return;
+                }
+
+                // 兼容第三方登录：如果本地没有 token，则从服务端检查 HttpOnly 的 auth_data
+                const serverStatus = await checkAuthDataFromServer();
+                if (serverStatus.isLoggedIn) {
                     router.push('/dashboard');
                     return;
                 }

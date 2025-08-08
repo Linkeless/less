@@ -85,7 +85,8 @@ export default function Register() {
                 setIsErrorOpen(true);
                 // 可以在几秒后自动跳转到登录页面
                 setTimeout(() => {
-                    window.location.href = '/login';
+                    // 破坏性修改：不再自动跳转到登录页
+                    console.log('注册失败，但不再自动跳转到登录页');
                 }, 3000);
             } else {
                 setError(err.message || '注册失败');

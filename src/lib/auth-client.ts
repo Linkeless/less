@@ -132,11 +132,18 @@ class AuthManager {
    * 安全HTTP请求 - 自动处理Bearer认证和刷新
    */
   async secureRequest(url: string, options: RequestInit = {}): Promise<Response> {
-    // 检查失败次数，如果超过限制，直接重定向
+    // 如果已经失败太多次，直接返回错误响应而不是重定向
     if (this.failedRequestsCount >= this.maxFailedRequests) {
       console.error('认证失败次数过多，停止重试');
-      this.redirectToLogin();
-      return new Response(JSON.stringify({ message: 'Too many authentication failures' }), { status: 401 });
+      // 重置计数器，让用户可以手动重试
+      this.failedRequestsCount = 0;
+      return new Response(JSON.stringify({ 
+        message: '认证失败，请重新登录',
+        code: -1 
+      }), { 
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // 第一次尝试请求
@@ -153,9 +160,15 @@ class AuthManager {
         this.failedRequestsCount = 0;
         response = await this.makeRequest(url, options);
       } else {
-        // 刷新失败，重定向到登录页面
+        // 刷新失败，返回401错误响应，让上层处理
         console.error(`认证刷新失败 (${this.failedRequestsCount}/${this.maxFailedRequests})`);
-        this.redirectToLogin();
+        return new Response(JSON.stringify({ 
+          message: '认证失败，请重新登录',
+          code: -1 
+        }), { 
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        });
       }
     } else if (response.ok) {
       // 请求成功，重置失败次数
@@ -253,29 +266,17 @@ class AuthManager {
   }
 
   /**
-   * 重定向到登录页面
+   * 重定向到登录页面 - 已废弃，不再自动跳转
+   * @deprecated 不再使用自动跳转，由上层组件决定如何处理认证失败
    */
   private redirectToLogin(): void {
-    // 防止重复重定向
-    if (this.isRedirecting) {
-      return;
-    }
-    
-    this.isRedirecting = true;
-    console.log(`认证失败，重定向到登录页面 (失败次数: ${this.failedRequestsCount})`);
-    
-    // 清理所有状态
+    console.warn('redirectToLogin 已被废弃，不再执行自动跳转');
+    // 仅清理状态，不执行跳转
     this.clearToken();
     this.isRefreshing = false;
     this.refreshPromise = null;
     this.failedRequestsCount = 0;
-    
-    if (typeof window !== 'undefined') {
-      // 延迟重定向，避免并发问题，并确保所有状态已清理
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 200); // 增加延迟时间
-    }
+    this.isRedirecting = false;
   }
 
   /**

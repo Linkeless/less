@@ -5,7 +5,7 @@ const handleResponse = async (response: Response) => {
   
   if (response.status === 401) {
     localStorage.removeItem('auth_data');
-    window.location.href = '/login';
+    // 不再自动跳转，让调用方处理401错误
     throw new Error(data.message || 'Unauthorized');
   }
 

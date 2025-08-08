@@ -179,21 +179,15 @@ export default function InvitePage() {
                       <div className="text-gray-900 dark:text-white font-medium">{t.invite.myCodes}：</div>
                       <button
                         onClick={handleCreateInvite}
-                        disabled={creating}
+                        disabled
                         className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400 px-4 py-2 text-sm font-semibold text-white shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
                       >
-                        {creating ? (
-                          <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                          </svg>
-                        ) : null}
-                        生成邀请码
+                        生成邀请码（等待后端接口）
                       </button>
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {codes.map((c, i) => (
+                      {(codes || []).map((c, i) => (
                         <div key={c.code} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
                           <div className="flex items-center justify-between">
                             <span className="font-mono text-sm text-gray-900 dark:text-white break-all">{c.code}</span>

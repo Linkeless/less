@@ -252,7 +252,8 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
       name: 'Sign out', 
       onClick: () => {
         localStorage.clear();
-        window.location.href = '/login';
+        // 破坏性修改：不再自动跳转到登录页
+        console.warn('用户未登录，但不再自动跳转');
       }
     },
   ]

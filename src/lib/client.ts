@@ -95,8 +95,8 @@ export const createOrder = async (params: {
   });
 };
 
-// 获取订单详情 - 使用正确的订单API端点
-export const getOrderDetail = async (order_id: string) => {
+// 获取订单详情（沿用旧形态以兼容支付页，后续支付流程再整体切换到新接口）
+export const getOrderDetail = async (order_id: string | number) => {
   return clientFetch(`${BASE_URL}/subscription/orders/${order_id}`);
 };
 
@@ -146,29 +146,16 @@ export const getActiveSubscriptions = async () => {
   return clientFetch(`${BASE_URL}/subscriptions/my/active`);
 };
 
-// 获取订阅订单管理相关的客户端API - 根据swagger.json支持分页参数  
-export const fetchSubscriptionOrders = async (limit: number = 100, offset: number = 0) => {
-  const params = new URLSearchParams({
-    limit: limit.toString(),
-    offset: offset.toString()
-  });
-  return clientFetch(`${BASE_URL}/subscription/orders/my?${params}`);
-};
-
-// 更新fetchOrders函数使用正确的订单API
+// 用户订单列表（新接口）：GET /orders
 export const fetchOrders = async (limit: number = 100, offset: number = 0) => {
-  return fetchSubscriptionOrders(limit, offset);
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+  });
+  return clientFetch(`${BASE_URL}/orders?${params.toString()}`);
 };
 
-// ⚠️ 警告：此端点未在swagger.json中定义，可能已废弃或路径已变更
-// swagger.json中存在 /admin/subscriptions/orders/{id}/cancel 管理员端点
-// 和 /subscriptions/{id}/cancel 用户端点，可能需要使用后者
-// TODO: 需要后端确认正确的用户取消订单端点
-export const cancelOrder = async (trade_no: string) => {
-  return clientFetch(`${BASE_URL}/api/v1/user/order/cancel?trade_no=${trade_no}`, {
-    method: 'POST'
-  });
-};
+// 取消订单用户端未提供公开接口（以 swagger.json 为准），移除旧实现
 
 // 流量日志功能已移除 - 接口不可用
 
@@ -185,10 +172,7 @@ export const resetUUID = async () => {
 
 // 通知功能已移除 - 接口不可用
 
-// 添加邀请相关的客户端API
-// ⚠️ 警告：以下邀请相关端点未在swagger.json中定义，可能已废弃或路径已变更
-// swagger.json中存在 /admin/referrals/* 相关端点，但这些是管理员端点
-// TODO: 需要后端确认用户端邀请功能的正确端点
+// 邀请相关：使用现有用户端可用接口（未在新 swagger 中标注，但现网可用）
 export const getInviteInfo = async () => {
   return clientFetch(`${BASE_URL}/api/v1/user/invite/fetch`);
 };
@@ -283,7 +267,7 @@ export const initiateOAuthLogin = (provider: string) => {
   const clientBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
   
   // 按照最佳实践使用标准的API回调路径
-  const redirectUri = `${clientBaseUrl}/api/auth/callback/${provider}`;
+  const redirectUri = `${clientBaseUrl}/auth/callback/${provider}`;
   const authUrl = `${baseUrl}/auth/${provider}?redirect_uri=${encodeURIComponent(redirectUri)}`;
   
   window.location.href = authUrl;
@@ -459,4 +443,71 @@ export default {
   }),
   // Add convenience method for subscription plans
   getPlans: () => getSubscriptionPlans(),
+};
+
+// ==================== 工单（Ticket）相关 API（用户侧） ====================
+import type { TicketResponse, TicketMessageResponse, CloseTicketRequest, UserCreateTicketRequest } from '@/lib/types';
+
+// 列出当前用户的工单
+export const listUserTickets = async (params?: {
+  status?: string;
+  priority?: string;
+  category?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}): Promise<{ code: number; message: string; data: { items: TicketResponse[]; pagination: { page?: number; limit?: number; total?: number } } }> => {
+  const search = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '') search.append(k, String(v));
+    });
+  }
+  const qs = search.toString();
+  return clientFetch(`${BASE_URL}/tickets/my${qs ? `?${qs}` : ''}`);
+};
+
+// 创建工单
+export const createUserTicket = async (payload: UserCreateTicketRequest): Promise<{ code: number; message: string; data: TicketResponse }> => {
+  return clientFetch(`${BASE_URL}/tickets`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+};
+
+// 获取工单详情
+export const getUserTicket = async (id: number): Promise<{ code: number; message: string; data: TicketResponse }> => {
+  return clientFetch(`${BASE_URL}/tickets/${id}`);
+};
+
+// 获取工单消息
+export const getUserTicketMessages = async (id: number, page?: number, limit?: number): Promise<{
+  code: number;
+  message: string;
+  data: { items: TicketMessageResponse[]; pagination: { page?: number; limit?: number; total?: number } };
+}> => {
+  const search = new URLSearchParams();
+  if (page) search.append('page', String(page));
+  if (limit) search.append('limit', String(limit));
+  const qs = search.toString();
+  return clientFetch(`${BASE_URL}/tickets/${id}/messages${qs ? `?${qs}` : ''}`);
+};
+
+// 新增工单消息
+export const createUserTicketMessage = async (id: number, payload: {
+  content: string;
+  attachments?: string;
+}): Promise<{ code: number; message: string; data: TicketMessageResponse }> => {
+  return clientFetch(`${BASE_URL}/tickets/${id}/messages`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+};
+
+// 关闭工单
+export const closeUserTicket = async (id: number, payload?: CloseTicketRequest): Promise<{ code: number; message: string; data: TicketResponse }> => {
+  return clientFetch(`${BASE_URL}/tickets/${id}/close`, {
+    method: 'PUT',
+    body: JSON.stringify(payload || {}),
+  });
 };

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getInviteInfo, createInviteCode, getInviteCommissionRecords, getUserInfo } from '@/lib/client';
+import { getUserInfo } from '@/lib/client';
 import md5 from 'md5';
 
 export function useInviteData() {
@@ -20,15 +20,11 @@ export function useInviteData() {
     setLoadingRecords(true);
     setError('');
     try {
-      const [inviteRes, userRes, recordsRes] = await Promise.all([
-        getInviteInfo(),
-        getUserInfo(),
-        getInviteCommissionRecords(),
-      ]);
-
-      setCodes(inviteRes.data.codes || []);
-      setStat(inviteRes.data.stat || []);
-      setCommissionRecords(recordsRes.data || []);
+      const userRes = await getUserInfo();
+      // 暂无用户侧邀请接口：置空
+      setCodes([]);
+      setStat([]);
+      setCommissionRecords([]);
       
       if (userRes.code === 0 && userRes.data) {
         const email = userRes.data.email;
@@ -52,11 +48,8 @@ export function useInviteData() {
     setCreating(true);
     setError('');
     try {
-      await createInviteCode();
-      // Re-fetch invite info to update codes and stats
-      const inviteRes = await getInviteInfo();
-      setCodes(inviteRes.data.codes || []);
-      setStat(inviteRes.data.stat || []);
+      // 无用户侧创建接口
+      throw new Error('邀请接口未在 swagger.json 提供，功能暂不可用');
     } catch (err: any) {
       setError(err.message || '生成邀请码失败');
     } finally {

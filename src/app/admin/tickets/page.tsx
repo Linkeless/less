@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import TitleBar from '@/components/layout/title-bar'
 import { useLanguage } from '@/lib/i18n/hooks'
 import { adminListTickets } from '@/lib/client'
+import { Badge } from '@/components/ui/badge'
+import StatusBadge from '@/components/ui/status-badge'
 import type { TicketResponse } from '@/lib/types'
 
 export default function AdminTicketsPage() {
@@ -37,6 +39,8 @@ export default function AdminTicketsPage() {
     { name: t.common.orders, href: '/orders', current: false },
   ]
   const userNavigation = []
+
+  // 统一使用 StatusBadge 控制状态颜色
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -79,9 +83,7 @@ export default function AdminTicketsPage() {
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{tk.ticket_no}</td>
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{tk.title}</td>
                         <td className="px-4 py-3 text-xs">
-                          <span className="inline-flex rounded-md px-2 py-1 font-medium ring-1 ring-inset bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
-                            {tk.status}
-                          </span>
+                          <StatusBadge status={tk.status} />
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{tk.priority || '-'}</td>
                         <td className="px-4 py-3 text-sm text-gray-500">{new Date(tk.created_at).toLocaleString()}</td>

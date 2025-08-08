@@ -5,6 +5,7 @@ import { ThemeProvider } from 'next-themes'
 import { LanguageProvider } from '@/lib/i18n/context'
 import { ToastProvider } from '@/components/ui/Toast'
 import { ConfirmDialogProvider } from '@/components/ui/ConfirmDialog'
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
 
 export default function LayoutWrapper({
   children,
@@ -26,7 +27,9 @@ export default function LayoutWrapper({
       <LanguageProvider>
         <ToastProvider>
           <ConfirmDialogProvider>
-            {children}
+            <NuqsAdapter>
+              {children}
+            </NuqsAdapter>
           </ConfirmDialogProvider>
         </ToastProvider>
       </LanguageProvider>

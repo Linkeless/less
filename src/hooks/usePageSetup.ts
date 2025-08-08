@@ -24,9 +24,10 @@ export function usePageSetup({ userInfo, loadingUserInfo }: UsePageSetupProps) {
   }, []);
 
   useEffect(() => {
-    if (!loadingUserInfo && (!userInfo || userInfo.code !== 0)) {
-      router.push('/login');
-    }
+    // 破坏性修改：移除自动跳转逻辑
+    // if (!loadingUserInfo && (!userInfo || userInfo.code !== 0)) {
+    //   router.push('/login');
+    // }
   }, [userInfo, loadingUserInfo, router]);
 
   return { isMobile };

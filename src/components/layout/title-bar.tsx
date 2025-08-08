@@ -4,7 +4,7 @@ import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuIt
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useLanguage } from '@/lib/i18n/hooks';
 import { useNavItems, type NavItem } from '@/components/layout/nav-config'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { logout } from '@/lib/client';
 import { useState } from 'react';
 import LanguageSwitch from '@/components/ui/language-switch';
@@ -31,6 +31,7 @@ function classNames(...classes: string[]) {
 
 export default function TitleBar({ user, navigation, userNavigation, showLanguageSwitch, rightExtra }: TitleBarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const autoNav = useNavItems(navigation)
 
@@ -38,10 +39,20 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
     e.preventDefault();
     if (href === '#') return;
 
+    // 避免在同一路由重复导航导致整页刷新或数据重取
+    const normalize = (p: string) => (p.endsWith('/') && p !== '/' ? p.slice(0, -1) : p)
+    const currentPath = normalize(pathname || '/')
+    const targetPath = normalize(href)
+    if (currentPath === targetPath) {
+      setIsOpen(false)
+      return
+    }
+
     if (href === '/logout') {
       const handleLogoutClick = async () => {
         try {
           await logout();
+          // 显式处理跳转
           router.push('/login');
         } catch (error) {
           console.error('退出登录失败:', error);
