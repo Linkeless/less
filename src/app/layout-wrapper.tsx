@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { ThemeProvider } from 'next-themes'
 import { LanguageProvider } from '@/lib/i18n/context'
+import { ToastProvider } from '@/components/ui/Toast'
+import { ConfirmDialogProvider } from '@/components/ui/ConfirmDialog'
 
 export default function LayoutWrapper({
   children,
@@ -22,7 +24,11 @@ export default function LayoutWrapper({
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <LanguageProvider>
-        {children}
+        <ToastProvider>
+          <ConfirmDialogProvider>
+            {children}
+          </ConfirmDialogProvider>
+        </ToastProvider>
       </LanguageProvider>
     </ThemeProvider>
   )

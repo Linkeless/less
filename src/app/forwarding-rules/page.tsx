@@ -5,7 +5,7 @@ import { PlusIcon, ChevronLeftIcon, ChevronRightIcon, ClipboardIcon, CheckIcon, 
 import RuleModal from './components/RuleModal';
 import TitleBar from '@/components/layout/title-bar';
 import { useLanguage } from '@/lib/i18n/hooks';
-import { getForwardingRules, getDeviceGroups, createForwardingRule, diagnoseForwardingRule, deleteForwardingRules, getUserInfo, getForwardUsers, updateForwardingRule } from '@/lib/actions';
+import { getForwardingRules, getDeviceGroups, createForwardingRule, diagnoseForwardingRule, deleteForwardingRules, updateForwardingRule, getUserInfo, getForwardUsers } from '@/lib/client';
 
 // Add global styles to match dashboard and register pages
 const globalStyles = `
@@ -53,15 +53,6 @@ interface DeviceGroupInfo {
 export default function ForwardingRulesPage() {
   const { t } = useLanguage();
 
-  const navigation = [
-    { name: t.common.dashboard, href: '/dashboard', current: false },
-    { name: t.forwardingRules.title, href: '/forwarding-rules', current: true },
-    { name: t.common.product, href: '/product', current: false },
-    { name: t.common.orders, href: '/orders', current: false },
-    { name: t.invite.title, href: '/invite', current: false },
-
-  ];
-
   const userNavigation = [
     { name: t.common.signOut, href: '/logout' },
   ];
@@ -105,27 +96,13 @@ export default function ForwardingRulesPage() {
         // 先获取用户信息，检查 remarks
         const userInfoResp = await getUserInfo();
         setUserInfo(userInfoResp.data);
-        // 检查是否已开启转发
-        const usersRes = await getForwardUsers();
-        if (usersRes.code !== 0 || !Array.isArray(usersRes.data)) {
-          setNoForwardingPermission(true);
-          setIsLoading(false);
-          return;
-        }
-        const now = Math.floor(Date.now() / 1000);
-        const existUser = usersRes.data.find((u: any) => u.username === userInfoResp.data.email && u.expire > now);
-        if (!existUser) {
-          setNoForwardingPermission(true);
-          setIsLoading(false);
-          return;
-        }
-        setForwardUser(existUser); // 存 forwardUser 以便 max_rules 使用
-        // 存储 userId 到 localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('forwardUserId', String(existUser.id));
-        }
-      } catch (err) {
-        setError('Error connecting to forwarding API');
+        // 临时禁用转发功能检查
+        console.log('转发功能暂时禁用');
+        setNoForwardingPermission(true);
+        setIsLoading(false);
+        return;
+      } catch (err: any) {
+        setError(err.message || 'Error connecting to forwarding API');
         console.error('Error:', err);
       } finally {
         setIsLoading(false);
@@ -160,8 +137,8 @@ export default function ForwardingRulesPage() {
       } else {
         setError('Failed to fetch forwarding rules');
       }
-    } catch (err) {
-      setError('Error fetching forwarding rules');
+    } catch (err: any) {
+      setError(err.message || 'Error fetching forwarding rules');
       console.error('Error:', err);
     }
   };
@@ -178,8 +155,8 @@ export default function ForwardingRulesPage() {
       } else {
         setError('Failed to fetch device groups');
       }
-    } catch (err) {
-      setError('Error fetching device groups');
+    } catch (err: any) {
+      setError(err.message || 'Error fetching device groups');
       console.error('Error:', err);
     }
   };
@@ -238,8 +215,8 @@ export default function ForwardingRulesPage() {
       } else {
         setError(response.msg || 'Failed to create rule');
       }
-    } catch (err) {
-      setError('Error creating forwarding rule');
+    } catch (err: any) {
+      setError(err.message || 'Error creating forwarding rule');
       console.error('Error:', err);
     }
   };
@@ -277,8 +254,8 @@ export default function ForwardingRulesPage() {
       } else {
         setError(response.msg || 'Failed to update rule');
       }
-    } catch (err) {
-      setError('Error updating forwarding rule');
+    } catch (err: any) {
+      setError(err.message || 'Error updating forwarding rule');
       console.error('Error:', err);
     }
   };
@@ -300,8 +277,8 @@ export default function ForwardingRulesPage() {
       } else {
         alert(res.msg || '删除失败');
       }
-    } catch (e) {
-      alert('删除失败');
+    } catch (e: any) {
+      alert(e.message || '删除失败');
     } finally {
       setDeleteLoading(false);
     }
@@ -339,8 +316,8 @@ export default function ForwardingRulesPage() {
       } else {
         setDiagnosisResult(`${t.forwardingRules.diagnosisFailed} ${response.msg}`);
       }
-    } catch (error) {
-      setDiagnosisResult(t.forwardingRules.diagnosisRequestFailed);
+    } catch (error: any) {
+      setDiagnosisResult(error.message || t.forwardingRules.diagnosisRequestFailed);
     } finally {
       setDiagnosisLoading(false);
     }
@@ -377,7 +354,6 @@ export default function ForwardingRulesPage() {
                 email: userInfo?.email || '',
                 imageUrl: '',
               }}
-              navigation={navigation}
               userNavigation={userNavigation}
               showLanguageSwitch={true}
             />
@@ -423,7 +399,6 @@ export default function ForwardingRulesPage() {
                 email: 'user@example.com',
                 imageUrl: '',
               }}
-              navigation={navigation}
               userNavigation={userNavigation}
               showLanguageSwitch={true}
             />
@@ -464,7 +439,6 @@ export default function ForwardingRulesPage() {
                 email: 'user@example.com',
                 imageUrl: '',
               }}
-              navigation={navigation}
               userNavigation={userNavigation}
               showLanguageSwitch={true}
             />
@@ -509,7 +483,6 @@ export default function ForwardingRulesPage() {
               email: 'user@example.com',
               imageUrl: '',
             }}
-            navigation={navigation}
             userNavigation={userNavigation}
             showLanguageSwitch={true}
           />

@@ -36,7 +36,7 @@ const createRequest = async (path: string, options: RequestInit = {}) => {
 import {
   UserInfo,
   UserInfoResponse,
-  SubscriptionResponse,
+  UserSubscriptionResponse,
   TrafficLog,
   TrafficLogResponse,
   KnowledgeResponse,

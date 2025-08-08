@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect } from 'react'
 import TitleBar from '@/components/layout/title-bar'
 import OrdersTable from './OrdersTable'
-import { getUserInfo } from '@/lib/actions'
+import { getUserInfo } from '@/lib/client'
 import md5 from 'md5'
 import SignOutButton from '@/components/auth/sign-out-button'
 import type { UserInfo } from '@/lib/types'
@@ -27,20 +27,13 @@ export default function OrdersPage() {
   useEffect(() => {
     const loadUserInfo = async () => {
       const response = await getUserInfo()
-      if (response.status === 'success') {
+      if (response.code === 0) {
         setUserInfo(response.data)
       }
     }
     loadUserInfo()
   }, [])
   
-  const navigation = [
-    { name: t.common.dashboard, href: '/dashboard', current: false },
-    { name: t.common.product, href: '/product', current: false },
-    { name: t.common.orders, href: '/orders', current: true },
-    { name: t.invite.title, href: '/invite', current: false },
-  ]
-
   const user = {
     name: userInfo?.email.split('@')[0] || 'User',
     email: userInfo?.email || '',
@@ -66,7 +59,6 @@ export default function OrdersPage() {
         <div className="relative z-10">
           <TitleBar 
             user={user} 
-            navigation={navigation} 
             userNavigation={userNavigation}
             showLanguageSwitch={true}  
           />

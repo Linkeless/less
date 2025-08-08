@@ -47,12 +47,6 @@ export default function InvitePage() {
     }
   };
 
-  const navigation = [
-    { name: t.common.dashboard, href: '/dashboard', current: false },
-    { name: t.common.product, href: '/product', current: false },
-    { name: t.common.orders, href: '/orders', current: false },
-    { name: t.invite.title, href: '/invite', current: true },
-  ];
   const userNavigation = [
     { name: t.common.signOut, href: '/logout' },
   ];
@@ -112,7 +106,7 @@ export default function InvitePage() {
           backgroundSize: '20px 20px'
         }}></div>
         <div className="relative z-10">
-          <TitleBar user={user} navigation={navigation} userNavigation={userNavigation} showLanguageSwitch={true} />
+          <TitleBar user={user} userNavigation={userNavigation} showLanguageSwitch={true} />
           
           <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
             <div className="space-y-8 sm:space-y-16">

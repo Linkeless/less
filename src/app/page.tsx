@@ -7,7 +7,7 @@ import { Fragment } from 'react'
 import { useRouter } from 'next/navigation'
 import ThemeToggle from '@/components/ui/theme-toggle'
 import TypewriterEffect from '@/components/ui/typewriter-effect'
-import { checkAuthDataFromServer } from '@/lib/authUtils'
+import { checkAuthStatus } from '@/lib/auth-client'
 
 const navigation = [
   { name: 'Product', href: 'product' },
@@ -25,8 +25,8 @@ export default function Example() {
     // 检查用户是否已登录
     const checkLoginStatus = async () => {
       try {
-        // 检查服务端HttpOnly Cookie（包括会话级别和长期Cookie）
-        const { isLoggedIn } = await checkAuthDataFromServer()
+        // 检查客户端认证状态
+        const { isLoggedIn } = await checkAuthStatus()
         setIsLoggedIn(isLoggedIn)
       } catch (error) {
         console.error('检查登录状态失败:', error)

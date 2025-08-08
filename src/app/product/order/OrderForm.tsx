@@ -2,20 +2,28 @@
 
 import { useState } from 'react'
 import md5 from 'md5'
-import { RadioGroup } from '@headlessui/react'
-import { checkCoupon, getSubscription, createOrder } from '@/lib/actions'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+import { checkCoupon, getSubscription, createOrder } from '@/lib/client'
 import TitleBar from '@/components/layout/title-bar'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Spinner } from '@/components/ui/spinner'
 import type { UserInfo, PurchasePlan } from '@/lib/types'
 import { useLanguage } from '@/lib/i18n/hooks';
+import { cn } from '@/lib/utils'
 
 export interface OrderFormProps {
   initialProduct: PurchasePlan;
   user: UserInfo | null;
   couponValue?: number;
-}
-
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
 }
 
 interface ContentProps {
@@ -31,22 +39,28 @@ function Content({ html }: ContentProps) {
   );
 }
 
+const formSchema = z.object({
+  period: z.enum(['month', 'quarter', 'half_year', 'year', 'onetime']),
+  couponCode: z.string().optional(),
+})
+
 export default function OrderForm({ initialProduct, user, couponValue }: OrderFormProps) {
   const { t } = useLanguage();
-  const [couponCode, setCouponCode] = useState('')
   const [discount, setDiscount] = useState(0)
   const [discountType, setDiscountType] = useState(0) // 2: percent, 1: fixed
   const [discountValue, setDiscountValue] = useState(0)
   const [couponError, setCouponError] = useState('')
   const [orderError, setOrderError] = useState('') // 新增订单错误信息状态
+  const [checkingCoupon, setCheckingCoupon] = useState(false)
+  const [checkingSubscription, setCheckingSubscription] = useState(false)
   
   // 构建可选的计费周期
   const availablePeriods = [
-    ...(initialProduct.month_price ? [{ value: 'month', label: t.product.billing.monthly, price: initialProduct.month_price / 100, unit: t.product.billing.perMonth }] : []),
-    ...(initialProduct.quarter_price ? [{ value: 'quarter', label: t.product.billing.quarterly, price: initialProduct.quarter_price / 100, unit: t.product.billing.perQuarter }] : []),
-    ...(initialProduct.half_year_price ? [{ value: 'half_year', label: t.product.billing.semiAnnual, price: initialProduct.half_year_price / 100, unit: t.product.billing.perSemiAnnual }] : []),
-    ...(initialProduct.year_price ? [{ value: 'year', label: t.product.billing.annual, price: initialProduct.year_price / 100, unit: t.product.billing.perYear }] : []),
-    ...(initialProduct.onetime_price ? [{ value: 'onetime', label: t.product.billing.oneTime, price: initialProduct.onetime_price / 100, unit: '' }] : [])
+    ...(initialProduct.month_price ? [{ value: 'month' as const, label: t.product.billing.monthly, price: initialProduct.month_price / 100, unit: t.product.billing.perMonth }] : []),
+    ...(initialProduct.quarter_price ? [{ value: 'quarter' as const, label: t.product.billing.quarterly, price: initialProduct.quarter_price / 100, unit: t.product.billing.perQuarter }] : []),
+    ...(initialProduct.half_year_price ? [{ value: 'half_year' as const, label: t.product.billing.semiAnnual, price: initialProduct.half_year_price / 100, unit: t.product.billing.perSemiAnnual }] : []),
+    ...(initialProduct.year_price ? [{ value: 'year' as const, label: t.product.billing.annual, price: initialProduct.year_price / 100, unit: t.product.billing.perYear }] : []),
+    ...(initialProduct.onetime_price ? [{ value: 'onetime' as const, label: t.product.billing.oneTime, price: initialProduct.onetime_price / 100, unit: '' }] : [])
   ];
   
   // 默认选择存在的最小周期，包括一次性选项
@@ -58,17 +72,26 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
     if (initialProduct.onetime_price) return 'onetime';
     return 'month'; // 默认月付，虽然可能不存在
   };
-  
-  const [selectedPeriod, setSelectedPeriod] = useState<'month' | 'quarter' | 'half_year' | 'year' | 'onetime'>(getDefaultPeriod());
-  const [checkingSubscription, setCheckingSubscription] = useState(false)
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      period: getDefaultPeriod(),
+      couponCode: '',
+    },
+  })
+
+  const selectedPeriod = form.watch('period')
+  const couponCode = form.watch('couponCode') || ''
 
   const handleCheckCoupon = async () => {
     try {
+      setCheckingCoupon(true)
       setCouponError('')
       setDiscount(0)
       setDiscountValue(0)
       const result = await checkCoupon(couponCode, initialProduct.id)
-      if (result.status === 'success' && result.data) {
+      if (result.code === 0 && result.data) {
         const discountVal = Number(result.data.value)
         if (!isNaN(discountVal)) {
           setDiscountValue(discountVal)
@@ -97,19 +120,21 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
       setCouponError(msg)
       setDiscount(0)
       setDiscountValue(0)
+    } finally {
+      setCheckingCoupon(false)
     }
   }
 
-  const handleConfirmPayment = async () => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setCheckingSubscription(true)
       setOrderError('') // 清空之前的错误
       
       // 如果不是一次性购买，则需要检查当前订阅
-      if (selectedPeriod !== 'onetime') {
-        const response = await getSubscription()
+      if (values.period !== 'onetime') {
+        const response = await getSubscription('active', 1, 0) // 获取活跃订阅
         
-        if (response.data?.plan_id) {
+        if (response.data && response.data.length > 0) {
           const confirmed = window.confirm('注意：更改订阅将覆盖您当前的订阅计划。')
           if (!confirmed) {
             setCheckingSubscription(false);
@@ -118,15 +143,15 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
         }
       }
 
-      const period = selectedPeriod === 'onetime' ? 'onetime_price' : `${selectedPeriod}_price`;
       const orderResponse = await createOrder({
-        period,
-        plan_id: initialProduct.id,
-        coupon_code: couponCode
+        subscription_plan_id: initialProduct.id,
+        order_type: 'new',
+        coupon_code: values.couponCode,
+        return_url: window.location.origin + '/dashboard'
       })
 
-      if (orderResponse.status === 'success' && orderResponse.data) {
-        window.location.href = `/product/payment?trade_no=${orderResponse.data}`
+      if (orderResponse.code === 0 && orderResponse.data) {
+        window.location.href = `/product/payment?payment_no=${orderResponse.data.payment_no || orderResponse.data}`
       } else {
         setOrderError(orderResponse.message || '创建订单失败')
       }
@@ -222,12 +247,6 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
     return GB >= 1024 ? `${(GB / 1024).toFixed(0)}TB/${t.product.billing.monthly}` : `${GB}GB/${t.product.billing.monthly}`;
   }
 
-  const navigation = [
-    { name: t.common.dashboard, href: '/dashboard', current: false },
-    { name: t.common.product, href: '/product', current: false },
-    { name: t.common.orders, href: '/orders', current: false },
-  ]
-
   const userNavigation = [
     { 
       name: 'Sign out', 
@@ -277,7 +296,6 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
           email: user?.email || '',
           imageUrl: user ? `https://www.gravatar.com/avatar/${md5(user.email)}?s=256&d=monsterid` : '/default-avatar.png'
         }} 
-        navigation={navigation} 
         userNavigation={userNavigation} 
       />
 
@@ -286,9 +304,11 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
           <div className="md:grid md:grid-cols-2 md:gap-x-8 lg:gap-x-12">
             {/* Left side - Product Information */}
             <div className="mb-8 md:mb-0">
-              <div className="rounded-2xl bg-white dark:bg-gray-800 shadow-sm ring-1 ring-gray-900/5 dark:ring-gray-700 p-8">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">{t.product.order.details}</h2>
-                <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t.product.order.details}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{initialProduct.name}</h3>
                     <Content html={initialProduct.content} />
@@ -320,132 +340,150 @@ export default function OrderForm({ initialProduct, user, couponValue }: OrderFo
                       {(initialProduct.onetime_price) && (
                         <div className="flex justify-between text-gray-600 dark:text-gray-400">
                           <span>{t.product.order.duration}:</span>
-                          <span className="font-medium text-green-600 dark:text-green-400">{t.product.order.unlimited}</span>
+                          <Badge variant="secondary" className="text-green-600 dark:text-green-400">{t.product.order.unlimited}</Badge>
                         </div>
                       )}
                     </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
 
-            {/* Right side - Order Summary */}
+            {/* Right side - Order Form */}
             <div>
               <div className="sticky top-8 space-y-6">
-                <div className="rounded-2xl bg-white dark:bg-gray-800 shadow-sm ring-1 ring-gray-900/5 dark:ring-gray-700">
-                  {/* Billing Period Selection */}
-                  <div className="p-8">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">{t.product.billing.period}</h2>
-                    <RadioGroup value={selectedPeriod} onChange={setSelectedPeriod}>
-                      <RadioGroup.Label className="sr-only">计费周期</RadioGroup.Label>
-                      <div className="grid grid-cols-2 gap-4">
-                        {availablePeriods.map((period) => (
-                          <RadioGroup.Option
-                            key={period.value}
-                            value={period.value}
-                            className={({ checked }) =>
-                              classNames(
-                                checked 
-                                  ? 'border-indigo-600 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-900/50 text-indigo-900 dark:text-indigo-100' 
-                                  : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600',
-                                'flex flex-col items-center justify-center rounded-xl border-2 p-4 text-sm transition-colors cursor-pointer'
-                              )
-                            }
-                          >
-                            {({ checked }) => (
-                              <>
-                                <RadioGroup.Label as="span" className="font-medium">
-                                  {period.label}
-                                </RadioGroup.Label>
-                                <RadioGroup.Description as="span" className="mt-1 text-gray-600 dark:text-gray-400">
-                                  ¥{period.price}{period.unit}
-                                </RadioGroup.Description>
-                                {period.value !== 'month' && period.value !== 'onetime' && (
-                                  <span className="mt-1 text-sm text-green-600 dark:text-green-400">
-                                    {getPeriodDiscount(period.value) && `省${getPeriodDiscount(period.value)}%`}
-                                  </span>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{t.product.billing.period}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <FormField
+                          control={form.control}
+                          name="period"
+                          render={({ field }) => (
+                            <FormItem className="space-y-3">
+                              <FormControl>
+                                <RadioGroup
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                  className="grid grid-cols-2 gap-4"
+                                >
+                                  {availablePeriods.map((period) => (
+                                    <FormItem key={period.value}>
+                                      <FormControl>
+                                        <RadioGroupItem 
+                                          value={period.value} 
+                                          id={period.value}
+                                          className="peer sr-only"
+                                        />
+                                      </FormControl>
+                                      <Label
+                                        htmlFor={period.value}
+                                        className={cn(
+                                          "flex flex-col items-center justify-center rounded-xl border-2 p-4 text-sm transition-colors cursor-pointer",
+                                          "peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:dark:border-indigo-400 peer-checked:dark:bg-indigo-900/50 peer-checked:text-indigo-900 peer-checked:dark:text-indigo-100",
+                                          "border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
+                                        )}
+                                      >
+                                        <span className="font-medium">{period.label}</span>
+                                        <span className="mt-1 text-gray-600 dark:text-gray-400">
+                                          ¥{period.price}{period.unit}
+                                        </span>
+                                        {period.value !== 'month' && period.value !== 'onetime' && (
+                                          <span className="mt-1 text-sm text-green-600 dark:text-green-400">
+                                            {getPeriodDiscount(period.value) && `省${getPeriodDiscount(period.value)}%`}
+                                          </span>
+                                        )}
+                                      </Label>
+                                    </FormItem>
+                                  ))}
+                                </RadioGroup>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{t.product.payment.summary}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {renderOrderSummary()}
+
+                        {/* Coupon Input */}
+                        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                          <FormField
+                            control={form.control}
+                            name="couponCode"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{t.product.order.coupon.title}</FormLabel>
+                                <div className="flex space-x-2">
+                                  <FormControl>
+                                    <Input
+                                      placeholder={t.product.order.coupon.placeholder}
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleCheckCoupon}
+                                    disabled={checkingCoupon || !couponCode}
+                                  >
+                                    {checkingCoupon && <Spinner size="sm" className="mr-2" />}
+                                    {t.product.order.coupon.verify}
+                                  </Button>
+                                </div>
+                                {couponError && (
+                                  <Alert variant="destructive" className="mt-2">
+                                    <AlertDescription>{couponError}</AlertDescription>
+                                  </Alert>
                                 )}
-                              </>
+                                <FormMessage />
+                              </FormItem>
                             )}
-                          </RadioGroup.Option>
-                        ))}
-                      </div>
-                    </RadioGroup>
-                  </div>
-
-                  {/* Order Summary Section */}
-                  <div className="border-t border-gray-900/5 dark:border-gray-700 p-8">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">{t.product.payment.summary}</h2>
-                    {renderOrderSummary()}
-
-                    {/* Coupon Input */}
-                    <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                      <label htmlFor="coupon-code" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                        {t.product.order.coupon.title}
-                      </label>
-                      <div className="flex space-x-4">
-                        <div className="relative flex-1">
-                          <input
-                            id="coupon-code"
-                            type="text"
-                            value={couponCode}
-                            onChange={(e) => setCouponCode(e.target.value)}
-                            className="block w-full pl-4 py-2 h-10 rounded-lg border-gray-300 dark:border-gray-600 
-                                      dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-indigo-500 
-                                      dark:focus:border-indigo-400 focus:ring-indigo-500 dark:focus:ring-indigo-400 sm:text-sm"
-                            placeholder={t.product.order.coupon.placeholder}
                           />
                         </div>
-                        <button
-                          onClick={handleCheckCoupon}
-                          className="rounded-lg bg-gray-50 dark:bg-gray-700 px-4 py-2 h-10 text-sm font-medium 
-                                   text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 
-                                   border border-gray-300 dark:border-gray-600"
-                        >
-                          {t.product.order.coupon.verify}
-                        </button>
-                      </div>
-                      {couponError && (
-                        <p className="mt-2 text-sm text-red-600 dark:text-red-400 pl-4">{couponError}</p>
-                      )}
-                    </div>
 
-                    {/* Final Price and Confirm Button */}
-                    <div className="mt-8 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <dt className="text-lg font-medium text-gray-900 dark:text-gray-100">{t.product.payment.totalPayment}</dt>
-                        <dd className="text-xl font-semibold text-gray-900 dark:text-gray-100">¥{calculatePrices().finalPrice.toFixed(2)}</dd>
-                      </div>
-                      
-                      {/* 显示订单错误信息 */}
-                      {orderError && (
-                        <p className="mt-2 text-sm text-red-600 dark:text-red-400 pl-4">{orderError}</p>
-                      )}
-                      
-                      <button
-                        onClick={handleConfirmPayment}
-                        disabled={checkingSubscription}
-                        className="w-full rounded-xl bg-indigo-600 dark:bg-indigo-500 px-6 py-4 text-base font-semibold 
-                                 text-white shadow-sm hover:bg-indigo-700 dark:hover:bg-indigo-600 
-                                 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {checkingSubscription ? t.product.payment.processing : t.product.payment.payNow}
-                      </button>
-                      
-                      {/* 如果有未付款订单错误，显示前往订单列表的链接 */}
-                      {orderError && orderError.includes('未付款') && (
-                        <div className="mt-2 text-center">
-                          <a 
-                            href="/orders" 
-                            className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                        {/* Order Error */}
+                        {orderError && (
+                          <Alert variant="destructive" className="mt-4">
+                            <AlertTitle>订单创建失败</AlertTitle>
+                            <AlertDescription>
+                              {orderError}
+                              {orderError.includes('未付款') && (
+                                <div className="mt-2">
+                                  <Button variant="link" size="sm" asChild>
+                                    <a href="/orders">{t.product.order.viewPendingOrders || '查看未完成订单'}</a>
+                                  </Button>
+                                </div>
+                              )}
+                            </AlertDescription>
+                          </Alert>
+                        )}
+
+                        {/* Submit Button */}
+                        <div className="mt-6">
+                          <Button
+                            type="submit"
+                            disabled={checkingSubscription}
+                            className="w-full"
+                            size="lg"
                           >
-                            {t.product.order.viewPendingOrders || '查看未完成订单'}
-                          </a>
+                            {checkingSubscription && <Spinner size="sm" className="mr-2" />}
+                            {checkingSubscription ? t.product.payment.processing : t.product.payment.payNow}
+                          </Button>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                      </CardContent>
+                    </Card>
+                  </form>
+                </Form>
               </div>
             </div>
           </div>

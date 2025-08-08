@@ -138,6 +138,7 @@ export default {
       payNow: 'Pay Now',
       processing: 'Processing...',
       fee: '+{percent}% fee',
+      balance: 'Account Balance',
       orderNumber: 'Order Number',
       orderTime: 'Order Time',
       orderStatus: 'Order Status',

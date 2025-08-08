@@ -1,15 +1,22 @@
 'use client';
 
-import { handleLogout } from '@/lib/authUtils';
+import { logout } from '@/lib/client';
 import { useLanguage } from '@/lib/i18n/hooks';
+import { useRouter } from 'next/navigation';
 import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 
 export default function SignOutButton() {
   const { language } = useLanguage();
+  const router = useRouter();
   const signOutText = language === 'zh-CN' ? '退出登录' : 'Sign out';
 
-  const handleSignOut = () => {
-    handleLogout();
+  const handleSignOut = async () => {
+    try {
+      await logout();
+      router.push('/login');
+    } catch (error) {
+      console.error('退出登录失败:', error);
+    }
   };
 
   return (

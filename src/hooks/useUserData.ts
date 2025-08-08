@@ -1,115 +1,166 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { UserInfoResponse, TrafficLog, Subscription } from '@/lib/types';
+import type { UserInfoResponse, Subscription } from '@/lib/types';
 import {
   getUserInfo,
   getSubscription,
-  getTrafficLog,
   resetUUID as resetUUIDAction,
-} from '@/lib/actions';
+} from '@/lib/client';
+import { useApiErrorHandler } from '@/hooks/useErrorHandler';
+import type { ErrorInfo } from '@/components/error/ErrorDisplay';
 
 export interface UseUserDataReturn {
   userInfo: UserInfoResponse | null;
   loadingUserInfo: boolean;
+  userInfoError: ErrorInfo | null;
   subscription: Subscription | null;
   loadingSubscription: boolean;
-  trafficLog: TrafficLog[];
-  loadingTrafficLog: boolean;
+  subscriptionError: ErrorInfo | null;
   handleResetUUID: () => Promise<void>;
   refreshSubscription: () => Promise<void>;
+  retryUserInfo: () => Promise<void>;
+  retrySubscription: () => Promise<void>;
+  clearErrors: () => void;
 }
 
 export function useUserData(): UseUserDataReturn {
   const [userInfo, setUserInfo] = useState<UserInfoResponse | null>(null);
   const [loadingUserInfo, setLoadingUserInfo] = useState(true);
-
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loadingSubscription, setLoadingSubscription] = useState(true);
 
-  const [trafficLog, setTrafficLog] = useState<TrafficLog[]>([]);
-  const [loadingTrafficLog, setLoadingTrafficLog] = useState(true);
-
-  const fetchInitialData = useCallback(async () => {
-    setLoadingUserInfo(true);
-    setLoadingSubscription(true);
-    setLoadingTrafficLog(true);
-    try {
-      const [userInfoData, subscriptionData, trafficData] = await Promise.all([
-        getUserInfo(),
-        getSubscription(),
-        getTrafficLog(),
-      ]);
-
-      if (userInfoData.status === 'success' && userInfoData.data) {
-        setUserInfo(userInfoData as UserInfoResponse); // Ensure type assertion if needed
-      } else {
-        setUserInfo(null); // Or handle error appropriately
-      }
-
-      // Assuming SubscriptionResponse is the correct type from getSubscription()
-      setSubscription(subscriptionData as unknown as Subscription);
-
-      setTrafficLog(trafficData.data || []);
-
-    } catch (error) {
-      console.error('Failed to fetch initial user/subscription/traffic data:', error);
-      // Potentially set error states here
-      setUserInfo(null);
-      setSubscription(null);
-      setTrafficLog([]);
-    } finally {
-      setLoadingUserInfo(false);
-      setLoadingSubscription(false);
-      setLoadingTrafficLog(false);
+  // 分别为用户信息和订阅信息创建错误处理器
+  const userInfoErrorHandler = useApiErrorHandler({
+    maxRetries: 2,
+    retryDelay: 2000,
+    onError: (error) => {
+      console.error('用户信息获取失败:', error);
     }
+  });
+
+  const subscriptionErrorHandler = useApiErrorHandler({
+    maxRetries: 2,
+    retryDelay: 1500,
+    onError: (error) => {
+      console.error('订阅信息获取失败:', error);
+    }
+  });
+
+  // 获取用户信息
+  const fetchUserInfo = useCallback(async () => {
+    setLoadingUserInfo(true);
+    userInfoErrorHandler.clearError();
+    
+    const result = await userInfoErrorHandler.withApiErrorHandling(
+      () => getUserInfo(),
+      '获取用户信息失败'
+    );
+
+    if (result && result.code === 0 && result.data) {
+      setUserInfo(result as UserInfoResponse);
+    } else {
+      setUserInfo(null);
+    }
+    
+    setLoadingUserInfo(false);
   }, []);
+
+  // 获取订阅信息
+  const fetchSubscription = useCallback(async () => {
+    setLoadingSubscription(true);
+    subscriptionErrorHandler.clearError();
+    
+    const result = await subscriptionErrorHandler.withApiErrorHandling(
+      () => getSubscription(undefined, 100, 0),
+      '获取订阅信息失败'
+    );
+
+    if (result && result.code === 0 && result.data) {
+      setSubscription(result);
+    } else {
+      setSubscription(null);
+    }
+    
+    setLoadingSubscription(false);
+  }, []);
+
+  // 初始化数据获取
+  const fetchInitialData = useCallback(async () => {
+    // 并行获取用户信息和订阅信息
+    await Promise.all([
+      fetchUserInfo(),
+      fetchSubscription(),
+    ]);
+  }, [fetchUserInfo, fetchSubscription]);
 
   useEffect(() => {
     fetchInitialData();
   }, [fetchInitialData]);
 
-  const handleResetUUID = async () => {
-    if (!userInfo) return; // Or handle this case more gracefully
-    try {
-      const response = await resetUUIDAction(); // Call the imported action
-      // Update only the UUID part of the userInfo, preserving other data
+  // 重置UUID
+  const handleResetUUID = useCallback(async () => {
+    if (!userInfo) return;
+    
+    const result = await userInfoErrorHandler.withApiErrorHandling(
+      () => resetUUIDAction(),
+      '重置UUID失败'
+    );
+
+    if (result && result.code === 0 && result.data) {
       setUserInfo((prev) => {
         if (prev && prev.data) {
           return {
             ...prev,
             data: {
               ...prev.data,
-              uuid: response.data.uuid,
+              uuid: result.data.uuid,
             },
           };
         }
-        return prev; // Should not happen if userInfo is checked
+        return prev;
       });
-      // Optionally, re-fetch subscription if UUID change affects it, though unlikely for most systems.
-    } catch (error) {
-      console.error('Failed to reset UUID:', error);
-      // Potentially set an error message to display to the user
     }
-  };
+  }, [userInfo, userInfoErrorHandler.withApiErrorHandling]);
 
+  // 刷新订阅信息
   const refreshSubscription = useCallback(async () => {
-    try {
-      const subscriptionData = await getSubscription();
-      setSubscription(subscriptionData as unknown as Subscription);
-    } catch (error) {
-      console.error('Failed to refresh subscription data:', error);
+    await fetchSubscription();
+  }, [fetchSubscription]);
+
+  // 重试获取用户信息
+  const retryUserInfo = useCallback(async () => {
+    await userInfoErrorHandler.retry();
+    if (!userInfoErrorHandler.error) {
+      await fetchUserInfo();
     }
-  }, []);
+  }, [userInfoErrorHandler.retry, userInfoErrorHandler.error, fetchUserInfo]);
+
+  // 重试获取订阅信息
+  const retrySubscription = useCallback(async () => {
+    await subscriptionErrorHandler.retry();
+    if (!subscriptionErrorHandler.error) {
+      await fetchSubscription();
+    }
+  }, [subscriptionErrorHandler.retry, subscriptionErrorHandler.error, fetchSubscription]);
+
+  // 清除所有错误
+  const clearErrors = useCallback(() => {
+    userInfoErrorHandler.clearError();
+    subscriptionErrorHandler.clearError();
+  }, [userInfoErrorHandler.clearError, subscriptionErrorHandler.clearError]);
 
   return {
     userInfo,
     loadingUserInfo,
+    userInfoError: userInfoErrorHandler.error,
     subscription,
     loadingSubscription,
-    trafficLog,
-    loadingTrafficLog,
+    subscriptionError: subscriptionErrorHandler.error,
     handleResetUUID,
     refreshSubscription,
+    retryUserInfo,
+    retrySubscription,
+    clearErrors,
   };
 } 

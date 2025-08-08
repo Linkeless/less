@@ -2,8 +2,8 @@
 import { useState, Fragment, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Dialog, Transition } from '@headlessui/react';
-import { login } from '@/lib/auth';
-import { checkAuthDataFromServer } from '@/lib/authUtils';
+import { login, hasValidToken } from '@/lib/auth-client';
+import OAuthButtons from '@/components/oauth/OAuthButtons';
 
 // Add global styles - same as dashboard
 const globalStyles = `
@@ -27,14 +27,26 @@ export default function LoginPage() {
     const [resetEmail, setResetEmail] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
     const [isChecking, setIsChecking] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+    const [validationErrors, setValidationErrors] = useState({ email: '', password: '' });
 
-    // 检查用户是否已登录
+    // 检查用户是否已登录和URL参数中的错误信息
     useEffect(() => {
-        const checkLoginStatus = async () => {
+        const checkLoginStatus = () => {
             try {
-                // 检查服务端HttpOnly Cookie（包括会话级别和长期Cookie）
-                const { isLoggedIn } = await checkAuthDataFromServer();
-                if (isLoggedIn) {
+                // 检查URL参数中是否有错误信息
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlError = urlParams.get('error');
+                if (urlError) {
+                    setError(decodeURIComponent(urlError));
+                    // 清除URL中的错误参数，但不刷新页面
+                    const newUrl = new URL(window.location.href);
+                    newUrl.searchParams.delete('error');
+                    window.history.replaceState({}, '', newUrl.toString());
+                }
+
+                // 本地检查是否有有效token（不发起HTTP请求，避免循环）
+                if (hasValidToken()) {
                     router.push('/dashboard');
                     return;
                 }
@@ -48,23 +60,62 @@ export default function LoginPage() {
         checkLoginStatus();
     }, [router]);
 
+    // 表单验证
+    const validateForm = () => {
+        const errors = { email: '', password: '' };
+        let isValid = true;
+
+        // 邮箱验证
+        if (!formData.email.trim()) {
+            errors.email = '请输入邮箱地址';
+            isValid = false;
+        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            errors.email = '请输入有效的邮箱地址';
+            isValid = false;
+        }
+
+        // 密码验证
+        if (!formData.password.trim()) {
+            errors.password = '请输入密码';
+            isValid = false;
+        } else if (formData.password.length < 6) {
+            errors.password = '密码至少需要6个字符';
+            isValid = false;
+        }
+
+        setValidationErrors(errors);
+        return isValid;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setValidationErrors({ email: '', password: '' });
+
+        // 表单验证
+        if (!validateForm()) {
+            return;
+        }
+
+        setIsLoading(true);
         
         try {
             const result = await login(formData.email, formData.password, rememberMe);
             
-            if (result.data?.auth_data) {
-                // 认证数据已保存在HttpOnly Cookie中
-                // 勾选"记住我"：30天过期，不勾选：会话级别
+            // 检查登录是否成功 - Bearer Token已存储到cookies中
+            if (result.code === 0 || result.data) {
+                console.log('登录成功，Bearer Token已存储到cookies中');
+                // 跳转到dashboard，认证状态由cookies中的Bearer token维护
                 router.push('/dashboard');
-                router.refresh();
+                return;
             } else {
-                setError(result.message || 'Login failed');
+                setError(result.message || '登录失败，请检查您的邮箱和密码');
             }
-        } catch (err) {
-            setError('Network error occurred');
+        } catch (err: any) {
+            console.error('Login error:', err);
+            setError(err.message || '网络错误，请稍后重试');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -135,8 +186,15 @@ export default function LoginPage() {
                        autoComplete="email"
                        value={formData.email}
                        onChange={(e) => setFormData(prev => ({...prev, email: e.target.value}))}
-                       className="block w-full rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-base text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 transition-all duration-200"
+                       className={`block w-full rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-base text-gray-900 dark:text-gray-100 border placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                         validationErrors.email 
+                           ? 'border-red-500 dark:border-red-500 focus:border-red-500 focus:ring-red-500/20' 
+                           : 'border-gray-300 dark:border-gray-700 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20'
+                       }`}
                      />
+                     {validationErrors.email && (
+                       <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.email}</p>
+                     )}
                     </div>
                   </div>
         
@@ -164,8 +222,15 @@ export default function LoginPage() {
                          autoComplete="current-password"
                          value={formData.password}
                          onChange={(e) => setFormData(prev => ({...prev, password: e.target.value}))}
-                         className="block w-full rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-base text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 transition-all duration-200"
+                         className={`block w-full rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-base text-gray-900 dark:text-gray-100 border placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                           validationErrors.password 
+                             ? 'border-red-500 dark:border-red-500 focus:border-red-500 focus:ring-red-500/20' 
+                             : 'border-gray-300 dark:border-gray-700 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20'
+                         }`}
                        />
+                       {validationErrors.password && (
+                         <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.password}</p>
+                       )}
                     </div>
                   </div>
 
@@ -187,12 +252,29 @@ export default function LoginPage() {
                   <div>
                     <button
                       type="submit"
-                      className="flex w-full justify-center rounded-lg bg-indigo-600 dark:bg-indigo-500 px-3 py-3 text-sm/6 font-semibold text-white shadow-lg hover:bg-indigo-500 dark:hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:focus-visible:outline-indigo-500 transition-all duration-200 transform hover:scale-[1.02]"
+                      disabled={isLoading}
+                      className={`flex w-full justify-center rounded-lg px-3 py-3 text-sm/6 font-semibold text-white shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 transition-all duration-200 ${
+                        isLoading 
+                          ? 'bg-indigo-400 dark:bg-indigo-400 cursor-not-allowed' 
+                          : 'bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-500 dark:hover:bg-indigo-400 transform hover:scale-[1.02] focus-visible:outline-indigo-600 dark:focus-visible:outline-indigo-500'
+                      }`}
                     >
-                      登录
+                      {isLoading ? (
+                        <div className="flex items-center">
+                          <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          登录中...
+                        </div>
+                      ) : (
+                        '登录'
+                      )}
                                          </button>
                    </div>
                  </form>
+
+              {/* OAuth 第三方登录 */}
+              <div className="mt-6">
+                <OAuthButtons onError={(error) => setError(error)} />
+              </div>
     
               <p className="mt-8 text-center text-sm/6 text-gray-500 dark:text-gray-400">
                 还没有账户？{' '}

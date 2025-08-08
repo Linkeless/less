@@ -21,6 +21,8 @@ import { useNoticeData } from '@/hooks/useNoticeData';
 import { useForwardingData } from '@/hooks/useForwardingData';
 import { usePageSetup } from '@/hooks/usePageSetup';
 import { useTimedToggle } from '@/hooks/useTimedToggle';
+import ErrorBoundary from '@/components/error/ErrorBoundary';
+import ErrorDisplay from '@/components/error/ErrorDisplay';
 
 // Add global styles at the top - THIS SHOULD BE RETAINED
 const globalStyles = `
@@ -39,12 +41,15 @@ export default function Dashboard() {
   const {
     userInfo,
     loadingUserInfo,
+    userInfoError,
     subscription,
     loadingSubscription,
-    trafficLog,
-    loadingTrafficLog,
+    subscriptionError,
     handleResetUUID,
     refreshSubscription,
+    retryUserInfo,
+    retrySubscription,
+    clearErrors,
   } = useUserData();
 
   const {
@@ -80,18 +85,8 @@ export default function Dashboard() {
     const success = await copyToClipboard(url)
     if (success) {
       triggerCopyNotification();
-      // 重新请求订阅数据
-      await refreshSubscription();
     }
   }
-
-  const navigation = useMemo(() => [
-    { name: t.common.dashboard, href: '#', current: true },
-    ...(forwardingUser ? [{ name: t.forwardingRules.title, href: '/forwarding-rules', current: false }] : []),
-    { name: t.common.product, href: '/product', current: false },
-    { name: t.common.orders, href: '/orders', current: false },
-    { name: t.invite.title, href: '/invite', current: false },
-  ], [t, forwardingUser]);
 
   const userNavigation = [
     { name: t.common.signOut, component: <SignOutButton /> }
@@ -121,7 +116,6 @@ export default function Dashboard() {
         <div className="relative z-10">
           <TitleBar 
             user={userDisplay}
-            navigation={navigation}
             userNavigation={userNavigation}
             showLanguageSwitch={true}
             rightExtra={
@@ -142,71 +136,169 @@ export default function Dashboard() {
           />
 
           <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-12">
+            {/* 全局错误显示区域 */}
+            {(userInfoError || subscriptionError) && (
+              <div className="mb-6 space-y-4">
+                {userInfoError && (
+                  <ErrorDisplay
+                    error={userInfoError}
+                    onRetry={retryUserInfo}
+                    showRetryButton={true}
+                    showDismissButton={true}
+                    onDismiss={clearErrors}
+                  />
+                )}
+                {subscriptionError && (
+                  <ErrorDisplay
+                    error={subscriptionError}
+                    onRetry={retrySubscription}
+                    showRetryButton={true}
+                    showDismissButton={true}
+                    onDismiss={clearErrors}
+                  />
+                )}
+              </div>
+            )}
 
             {/* Main Dashboard Content */}
-            <div className="space-y-6 sm:space-y-16">
-              {/* Top Row - Subscription and User Info */}
-              <div className="grid grid-cols-1 gap-6 sm:gap-12 lg:gap-16 lg:grid-cols-2">
-                {/* Subscription Details */}
-                <div className="order-1 lg:order-1">
-                  <div className="mb-4 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-3 sm:pb-5">
-                    <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">订阅详情</h3>
-                    <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">您的订阅配置和使用情况</p>
+            <ErrorBoundary
+              resetKeys={[userInfo?.data?.email ?? 'no-user', subscription?.data?.[0]?.id ?? 'no-subscription']}
+              onError={(error, errorInfo) => {
+                console.error('Dashboard页面发生错误:', error, errorInfo);
+              }}
+            >
+              <div className="space-y-6 sm:space-y-16">
+                {/* Top Row - Subscription and User Info */}
+                <div className="grid grid-cols-1 gap-6 sm:gap-12 lg:gap-16 lg:grid-cols-2">
+                  {/* Subscription Details */}
+                  <ErrorBoundary
+                    resetKeys={[subscription?.data?.[0]?.id ?? 'no-subscription']}
+                    fallback={({ error, onRetry }) => (
+                      <div className="order-1 lg:order-1">
+                        <div className="mb-4 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-3 sm:pb-5">
+                          <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">订阅详情</h3>
+                          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">您的订阅配置和使用情况</p>
+                        </div>
+                        <ErrorDisplay
+                          error={{ type: 'unknown', message: '订阅详情组件加载失败' }}
+                          onRetry={onRetry}
+                          showRetryButton={true}
+                        />
+                      </div>
+                    )}
+                  >
+                    <div className="order-1 lg:order-1">
+                      <div className="mb-4 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-3 sm:pb-5">
+                        <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">订阅详情</h3>
+                        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">您的订阅配置和使用情况</p>
+                      </div>
+                      <SubscriptionCard 
+                        subscription={subscription}
+                        loading={loadingSubscription}
+                        userInfo={userInfo}
+                        t={t}
+                        handleCopyUrl={handleCopyUrl}
+                      />
+                    </div>
+                  </ErrorBoundary>
+
+                  {/* User Information */}
+                  <ErrorBoundary
+                    resetKeys={[userInfo?.data?.email ?? 'no-user', forwardingUser?.id ?? 'no-forwarding']}
+                    fallback={({ error, onRetry }) => (
+                      <div className="order-2 lg:order-2">
+                        <div className="mb-4 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-3 sm:pb-5">
+                          <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">账户信息</h3>
+                          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">您的个人资料和设置</p>
+                        </div>
+                        <ErrorDisplay
+                          error={{ type: 'unknown', message: '账户信息组件加载失败' }}
+                          onRetry={onRetry}
+                          showRetryButton={true}
+                        />
+                      </div>
+                    )}
+                  >
+                    <div className="order-2 lg:order-2">
+                      <div className="mb-4 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-3 sm:pb-5">
+                        <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">账户信息</h3>
+                        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">您的个人资料和设置</p>
+                      </div>
+                      <UserInfoCard 
+                        userInfo={userInfo}
+                        loadingUserInfo={loadingUserInfo}
+                        t={t}
+                        planIdAllowed={isForwardingAllowedForPlan}
+                        forwardingUser={forwardingUser}
+                        onEnableForwarding={handleEnableForwarding}
+                        onSyncForwardingUser={handleSyncForwardingUser}
+                      />
+                    </div>
+                  </ErrorBoundary>
+                </div>
+
+                {/* Second Row - Traffic Analytics */}
+                <ErrorBoundary
+                  fallback={({ error, onRetry }) => (
+                    <div className="order-3">
+                      <div className="mb-4 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-3 sm:pb-5">
+                        <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">流量分析</h3>
+                        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">详细的流量使用统计图表</p>
+                      </div>
+                      <ErrorDisplay
+                        error={{ type: 'unknown', message: '流量分析组件加载失败' }}
+                        onRetry={onRetry}
+                        showRetryButton={true}
+                      />
+                    </div>
+                  )}
+                >
+                  <div className="order-3">
+                    <div className="mb-4 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-3 sm:pb-5">
+                      <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">流量分析</h3>
+                      <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">详细的流量使用统计图表</p>
+                    </div>
+                    <TrafficStatsCard 
+                      trafficLog={[]}
+                      loadingTraffic={false}
+                      isMobile={isMobile}
+                      t={t}
+                    />
                   </div>
-                  <SubscriptionCard 
-                    subscription={subscription}
-                    loading={loadingSubscription}
-                    userInfo={userInfo}
-                    t={t}
-                    handleCopyUrl={handleCopyUrl}
-                  />
-                </div>
+                </ErrorBoundary>
 
-                {/* User Information */}
-                <div className="order-2 lg:order-2">
-                  <div className="mb-4 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-3 sm:pb-5">
-                    <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">账户信息</h3>
-                    <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">您的个人资料和设置</p>
+                {/* Third Row - Recent Activity (Full Width) */}
+                <ErrorBoundary
+                  resetKeys={[subscription?.data?.[0]?.id ?? 'no-subscription']}
+                  fallback={({ error, onRetry }) => (
+                    <div className="order-4">
+                      <div className="mb-4 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-3 sm:pb-5">
+                        <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">最近活动</h3>
+                        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">订阅请求和使用记录</p>
+                      </div>
+                      <ErrorDisplay
+                        error={{ type: 'unknown', message: '最近活动组件加载失败' }}
+                        onRetry={onRetry}
+                        showRetryButton={true}
+                      />
+                    </div>
+                  )}
+                >
+                  <div className="order-4">
+                    <div className="mb-4 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-3 sm:pb-5">
+                      <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">最近活动</h3>
+                      <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">订阅请求和使用记录</p>
+                    </div>
+                    <SubscriptionRequestsCard
+                      subscription={subscription?.data?.[0] ?? null}
+                      userInfo={userInfo?.data ?? null}
+                      loading={loadingSubscription}
+                      t={t}
+                    />
                   </div>
-                  <UserInfoCard 
-                    userInfo={userInfo}
-                    loadingUserInfo={loadingUserInfo}
-                    t={t}
-                    planIdAllowed={isForwardingAllowedForPlan}
-                    forwardingUser={forwardingUser}
-                    onEnableForwarding={handleEnableForwarding}
-                    onSyncForwardingUser={handleSyncForwardingUser}
-                  />
-                </div>
+                </ErrorBoundary>
               </div>
-
-              {/* Second Row - Traffic Analytics */}
-              <div className="order-3">
-                <div className="mb-4 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-3 sm:pb-5">
-                  <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">流量分析</h3>
-                  <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">详细的流量使用统计图表</p>
-                </div>
-                <TrafficStatsCard 
-                  trafficLog={trafficLog}
-                  loadingTraffic={loadingTrafficLog}
-                  isMobile={isMobile}
-                  t={t}
-                />
-              </div>
-
-              {/* Third Row - Recent Activity (Full Width) */}
-              <div className="order-4">
-                <div className="mb-4 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-3 sm:pb-5">
-                  <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">最近活动</h3>
-                  <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">订阅请求和使用记录</p>
-                </div>
-                <SubscriptionRequestsCard
-                  subscription={subscription?.data ?? null}
-                  loading={loadingSubscription}
-                  t={t}
-                />
-              </div>
-            </div>
+            </ErrorBoundary>
           </main>
         </div>
       </div>

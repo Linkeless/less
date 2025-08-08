@@ -1,12 +1,13 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { ArrowPathIcon, ChevronUpIcon, ChevronDownIcon, GlobeAltIcon, DevicePhoneMobileIcon, CalendarIcon, ClockIcon } from '@heroicons/react/24/outline';
-import type { RecentSubscriptionRequestsResponse, SubscriptionData, RecentSubscriptionRequest } from '@/lib/types';
+import type { RecentSubscriptionRequestsResponse, UserSubscriptionResponse, RecentSubscriptionRequest, UserInfo } from '@/lib/types';
 import type { TranslationValues } from '@/lib/i18n/context';
-import { getRecentSubscriptionRequests } from '@/lib/actions';
+import { getRecentSubscriptionRequests } from '@/lib/client';
 
 interface SubscriptionRequestsCardProps {
-  subscription: SubscriptionData | null;
+  subscription: UserSubscriptionResponse | null;
+  userInfo: UserInfo | null;
   loading: boolean;
   t: TranslationValues;
 }
@@ -16,6 +17,7 @@ type SortDirection = 'asc' | 'desc';
 
 export default function SubscriptionRequestsCard({
   subscription,
+  userInfo,
   loading,
   t
 }: SubscriptionRequestsCardProps) {
@@ -27,13 +29,13 @@ export default function SubscriptionRequestsCard({
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   const fetchRecentRequests = async () => {
-    if (!subscription?.token) return;
+    if (!userInfo?.uuid) return;
     
     setIsLoading(true);
     setError(null);
     
     try {
-      const response = await getRecentSubscriptionRequests(subscription.token);
+      const response = await getRecentSubscriptionRequests(userInfo.uuid);
       console.log('Subscription Request API Response:', response);
       
       // Handle the response according to the actual structure
@@ -63,10 +65,15 @@ export default function SubscriptionRequestsCard({
   };
 
   useEffect(() => {
-    if (subscription?.token) {
-      fetchRecentRequests();
+    if (userInfo?.uuid) {
+      // 添加防抖延迟，避免频繁请求
+      const timer = setTimeout(() => {
+        fetchRecentRequests();
+      }, 300);
+      
+      return () => clearTimeout(timer);
     }
-  }, [subscription?.token]);
+  }, [userInfo?.uuid]);
 
   const handleSort = (field: SortField) => {
     if (field === sortField) {

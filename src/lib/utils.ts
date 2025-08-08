@@ -133,3 +133,11 @@ export const formatBytes = (bytes: number): string => {
   }
   return `${value.toFixed(1)}${units[unitIndex]}`;
 };
+
+// shadcn/ui utility functions
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}

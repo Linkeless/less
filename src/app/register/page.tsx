@@ -1,9 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { register, sendVerificationEmail } from '@/lib/actions';
+import { register } from '@/lib/client';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { EnvelopeIcon, KeyIcon, LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
+import { EnvelopeIcon, LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
 
 // Add global styles to match dashboard
 const globalStyles = `
@@ -21,11 +21,9 @@ export default function Register() {
         email: '',
         password: '',
         invite_code: '',
-        verify_code: '',
         confirm_password: '',
     });
     const [error, setError] = useState('');
-    const [verificationSent, setVerificationSent] = useState(false);
     const [isErrorOpen, setIsErrorOpen] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState(0);
     const [inviteCodeLocked, setInviteCodeLocked] = useState(false);
@@ -42,37 +40,21 @@ export default function Register() {
     }, []);
 
     const checkPasswordStrength = (password: string) => {
-        let strength = 0;
-        if (password.length >= 8) strength += 1;
-        if (/[A-Z]/.test(password)) strength += 1;
-        if (/[0-9]/.test(password)) strength += 1;
-        if (/[^A-Za-z0-9]/.test(password)) strength += 1;
-        return strength;
+        // 简化强度检查：主要基于长度
+        if (password.length >= 12) return 4;
+        if (password.length >= 8) return 3;
+        if (password.length >= 6) return 2;
+        if (password.length >= 3) return 1;
+        return 0;
     };
 
-    const handleSendVerification = async () => {
-        if (!formData.email) {
-            setError('请输入邮箱地址');
-            setIsErrorOpen(true);
-            return;
-        }
-        try {
-            await sendVerificationEmail(formData.email);
-            setVerificationSent(true);
-            setError('验证码已发送到您的邮箱');
-            setIsErrorOpen(true);
-        } catch (err: any) {
-            setError(err.message || '发送验证码失败');
-            setIsErrorOpen(true);
-        }
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         
-        if (passwordStrength < 3) {
-            setError('密码强度不足，请包含大写字母、数字和特殊字符');
+        if (formData.password.length < 6) {
+            setError('密码长度不能少于6个字符');
             setIsErrorOpen(true);
             return;
         }
@@ -84,8 +66,9 @@ export default function Register() {
         
         try {
             const response = await register({
-                ...formData,
-                email_code: formData.verify_code,
+                email: formData.email,
+                password: formData.password,
+                invite_code: formData.invite_code,
             });
             
             if (response.data && response.data.auth_data) {
@@ -173,7 +156,7 @@ export default function Register() {
                                                 as="h3"
                                                 className="text-lg font-medium leading-6 text-gray-900 dark:text-white"
                                             >
-                                                {verificationSent ? '通知' : '错误'}
+                                                错误
                                             </Dialog.Title>
                                             <div className="mt-2">
                                                 <p className="text-sm text-gray-500 dark:text-gray-400">{error}</p>
@@ -201,8 +184,8 @@ export default function Register() {
                                 <label htmlFor="email" className="block text-sm font-medium text-gray-900 dark:text-white">
                                     邮箱地址
                                 </label>
-                                <div className="mt-2 flex gap-2">
-                                    <div className="relative flex-grow">
+                                <div className="mt-2">
+                                    <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                             <EnvelopeIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                                         </div>
@@ -218,36 +201,6 @@ export default function Register() {
                                             className="block w-full rounded-md pl-10 px-3 py-1.5 text-base text-gray-900 dark:text-white bg-white dark:bg-gray-800 outline-1 -outline-offset-1 outline-gray-300 dark:outline-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                                         />
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={handleSendVerification}
-                                        className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 transition-colors"
-                                        disabled={verificationSent}
-                                    >
-                                        {verificationSent ? '已发送' : '发送验证码'}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label htmlFor="verify_code" className="block text-sm font-medium text-gray-900 dark:text-white">
-                                    验证码
-                                </label>
-                                <div className="mt-2 relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <KeyIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                                    </div>
-                                    <input
-                                        id="verify_code"
-                                        name="verify_code"
-                                        type="text"
-                                        autoComplete="one-time-code"
-                                        required
-                                        placeholder="请输入验证码"
-                                        value={formData.verify_code}
-                                        onChange={(e) => setFormData(prev => ({...prev, verify_code: e.target.value}))}
-                                        className="block w-full rounded-md pl-10 px-3 py-1.5 text-base text-gray-900 dark:text-white bg-white dark:bg-gray-800 outline-1 -outline-offset-1 outline-gray-300 dark:outline-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                                    />
                                 </div>
                             </div>
 
@@ -299,7 +252,7 @@ export default function Register() {
                                         <div className={`h-full w-1/4 rounded-sm transition-colors ${passwordStrength >= 3 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
                                         <div className={`h-full w-1/4 rounded-sm transition-colors ${passwordStrength >= 4 ? 'bg-green-700' : 'bg-gray-200'}`}></div>
                                     </div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">密码应包含大小写字母、数字和特殊字符</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">密码长度不能少于6个字符</p>
                                 </div>
                             </div>
                             <div>

@@ -3,8 +3,9 @@
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useLanguage } from '@/lib/i18n/hooks';
+import { useNavItems, type NavItem } from '@/components/layout/nav-config'
 import { useRouter } from 'next/navigation'
-import { handleLogout } from '@/lib/authUtils';
+import { logout } from '@/lib/client';
 import { useState } from 'react';
 import LanguageSwitch from '@/components/ui/language-switch';
 
@@ -14,11 +15,7 @@ interface TitleBarProps {
     email: string;
     imageUrl: string;
   };
-  navigation: Array<{
-    name: string;
-    href: string;
-    current: boolean;
-  }>;
+  navigation?: Array<NavItem>;
   userNavigation: Array<{
     name: string;
     onClick?: () => void;
@@ -35,13 +32,22 @@ function classNames(...classes: string[]) {
 export default function TitleBar({ user, navigation, userNavigation, showLanguageSwitch, rightExtra }: TitleBarProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const autoNav = useNavItems(navigation)
 
   const handleNavigation = (href: string, e: React.MouseEvent) => {
     e.preventDefault();
     if (href === '#') return;
 
     if (href === '/logout') {
-      handleLogout();
+      const handleLogoutClick = async () => {
+        try {
+          await logout();
+          router.push('/login');
+        } catch (error) {
+          console.error('退出登录失败:', error);
+        }
+      };
+      handleLogoutClick();
       return;
     }
     
@@ -71,7 +77,7 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
             </div>
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-4">
-                {navigation.map((item) => (
+                {autoNav.map((item) => (
                   <a
                     key={item.name}
                     href={item.href}
@@ -131,7 +137,7 @@ export default function TitleBar({ user, navigation, userNavigation, showLanguag
 
       <DisclosurePanel className="md:hidden">
         <div className="space-y-2 px-2 pb-4 pt-3">
-          {navigation.map((item) => (
+          {autoNav.map((item) => (
             <DisclosureButton
               key={item.name}
               as="a"

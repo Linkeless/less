@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getInviteInfo, getUserInfo, createInviteCode, getInviteCommissionRecords } from '@/lib/actions';
+import { getInviteInfo, createInviteCode, getInviteCommissionRecords, getUserInfo } from '@/lib/client';
 import md5 from 'md5';
 
 export function useInviteData() {
@@ -30,7 +30,7 @@ export function useInviteData() {
       setStat(inviteRes.data.stat || []);
       setCommissionRecords(recordsRes.data || []);
       
-      if (userRes.status === 'success' && userRes.data) {
+      if (userRes.code === 0 && userRes.data) {
         const email = userRes.data.email;
         const name = email.split('@')[0];
         const imageUrl = userRes.data.avatar_url || `https://www.gravatar.com/avatar/${md5(email.trim().toLowerCase())}?s=256&d=monsterid`;

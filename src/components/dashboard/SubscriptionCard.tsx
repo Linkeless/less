@@ -67,7 +67,7 @@ export default function SubscriptionCard({
         <div className="text-center py-12">
           <p className="text-sm text-gray-500">{t.dashboard.traffic.loadFailed}</p>
         </div>
-        {!subscription?.data?.plan && (
+        {!subscription?.data?.length && (
           <div className="text-center py-8">
             <p className="text-sm text-gray-500 dark:text-gray-400">{t.dashboard.purchase.needSubscription}</p>
             <a href="/product" className="mt-4 inline-block px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-lg hover:from-indigo-500 hover:to-indigo-400 transition-colors">
@@ -79,8 +79,9 @@ export default function SubscriptionCard({
     );
   }
   
-  const currentPlan = subscription.data?.plan;
-  const token = subscription.data.token; 
+  const firstSubscription = subscription?.data?.[0];
+  const currentPlan = null; // 新格式中不再有plan对象
+  const token = userInfo?.data?.uuid || ''; 
   const generatedUrlForCopy = getFilteredUrl(token, selectedNode, [selectedProtocol]);
 
   return (
@@ -91,25 +92,25 @@ export default function SubscriptionCard({
         <div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
-              {currentPlan?.name || t.dashboard.subscription.noActive}
+              {firstSubscription ? `订阅 #${firstSubscription.id}` : t.dashboard.subscription.noActive}
             </h3>
             <div className="flex flex-row items-center justify-between gap-2 mt-1">
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                {t.dashboard.subscription.expires}：{formatExpireDate(subscription.data.expired_at)}
+                {t.dashboard.subscription.expires}：{formatExpireDate(userInfo?.data?.expired_at)}
               </div>
-              {currentPlan && (
+              {firstSubscription && (
                 <div className="flex gap-2">
                   <a
-                    href={`/product/order?id=${subscription.data.plan_id}`}
+                    href={`/product/order?id=${firstSubscription.subscription_plan_id}`}
                     className="inline-flex items-center gap-2 px-4 py-1.5 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 transition"
                     aria-label={t.dashboard.subscription.renew}
                   >
                     <ArrowPathIcon className="w-5 h-5" aria-hidden="true" />
                     {t.dashboard.subscription.renew}
                   </a>
-                  {currentPlan.reset_price !== null && currentPlan.reset_price !== undefined && (
+                  {firstSubscription && (
                     <a
-                      href={`/product/order?id=${subscription.data.plan_id}&reset=1`}
+                      href={`/product/order?id=${firstSubscription.subscription_plan_id}&reset=1`}
                       className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 transition-all duration-200"
                     >
                       {t.dashboard.subscription.reset}
@@ -124,19 +125,19 @@ export default function SubscriptionCard({
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t.dashboard.subscription.trafficUsage}</span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {formatBytes(subscription.data.u + subscription.data.d)} / {formatBytes(subscription.data.transfer_enable)}
+                  {formatBytes(0)} / {formatBytes(userInfo?.data?.transfer_enable || 0)}
                 </span>
               </div>
               <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden mb-1">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-500 dark:from-indigo-500 dark:to-indigo-400 transition-all duration-300"
                   style={{
-                    width: `${Math.min(((subscription.data.u + subscription.data.d) / subscription.data.transfer_enable * 100), 100)}%`
+                    width: `0%`
                   }}
                 />
               </div>
               <div className="text-right text-xs text-gray-500 dark:text-gray-400">
-                {((subscription.data.u + subscription.data.d) / subscription.data.transfer_enable * 100).toFixed(1)}% 已用
+                {(((userInfo?.data?.u || 0) + (userInfo?.data?.d || 0)) / (userInfo?.data?.transfer_enable || 1) * 100).toFixed(1)}% 已用
               </div>
             </div>
           )}

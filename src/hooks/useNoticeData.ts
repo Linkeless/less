@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getUserNotices as fetchUserNoticesAction } from '@/lib/actions'; // Renamed for clarity
+// 通知功能已移除 - 接口不可用
 
 // Define a more specific type for Notice if available from your API response
 interface Notice {
@@ -32,26 +32,13 @@ export function useNoticeData(): UseNoticeDataReturn {
 
   const fetchNotices = useCallback(async () => {
     setLoadingNotices(true);
+    // 通知功能已移除 - 直接返回空数据，不调用API
     try {
-      const noticesData = await fetchUserNoticesAction();
-      const fetchedNotices = noticesData.data || [];
-      setNotices(fetchedNotices as Notice[]); // Ensure type assertion
-
-      // Check for popup notice among the fetched notices
-      if (Array.isArray(fetchedNotices)) {
-        const popup = fetchedNotices.find((n: Notice) => 
-          Array.isArray(n.tags) && n.tags.includes('弹窗')
-        );
-        if (popup) {
-          setPopupNotice(popup as Notice); // Ensure type assertion
-          setShowPopupNotice(true);
-        } else {
-          setPopupNotice(null);
-          // setShowPopupNotice(false); // Optionally hide if no new popup notice
-        }
-      }
+      setNotices([]);
+      setPopupNotice(null);
+      setShowPopupNotice(false);
     } catch (error) {
-      console.error('Failed to fetch notices:', error);
+      console.error('Notice functionality has been disabled:', error);
       setNotices([]);
       setPopupNotice(null);
     } finally {

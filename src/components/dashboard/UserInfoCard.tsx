@@ -3,7 +3,9 @@ import { useState } from 'react';
 import type { UserInfoResponse } from '@/lib/types';
 import type { TranslationValues } from '@/lib/i18n/context';
 import { formatBytes } from '@/lib/api'; // For formatting forwarding traffic
-import { resetSecurity } from '@/lib/actions'; // Import resetSecurity function
+import { resetSecurity } from '@/lib/client'; // Import resetSecurity function
+import { useToast } from '@/components/ui/Toast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 interface UserInfoCardProps {
   userInfo: UserInfoResponse | null;
@@ -27,6 +29,8 @@ export default function UserInfoCard({
 }: UserInfoCardProps) {
   const [showUUID, setShowUUID] = useState(false);
   const [resettingUuid, setResettingUuid] = useState(false);
+  const { showToast } = useToast();
+  const { confirm } = useConfirm();
 
   const handleActivateForwarding = async () => {
     await onEnableForwarding(); // Parent will reload the page
@@ -34,18 +38,29 @@ export default function UserInfoCard({
   };
 
   const handleResetUuid = async () => {
-    if (confirm('确定要重置UUID吗？重置后您需要更新所有相关配置。')) {
+    const confirmed = await confirm({
+      title: '重置UUID确认',
+      message: '确定要重置UUID吗？重置后您需要更新所有相关配置。',
+      confirmText: '确认重置',
+      cancelText: '取消',
+      type: 'danger'
+    });
+
+    if (confirmed) {
       setResettingUuid(true);
       try {
         const response = await resetSecurity();
-        if (response.status === 'success') {
-          // Reload page to reflect the updated UUID
-          window.location.reload();
+        if (response.code === 0) {
+          showToast('UUID重置成功，页面将自动刷新', 'success');
+          // 延迟刷新，让用户看到成功消息
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
         } else {
-          alert('重置UUID失败: ' + (response.message || '未知错误'));
+          showToast('重置UUID失败: ' + (response.message || '未知错误'), 'error');
         }
       } catch (error) {
-        alert('重置UUID失败: ' + (error instanceof Error ? error.message : '未知错误'));
+        showToast('重置UUID失败: ' + (error instanceof Error ? error.message : '未知错误'), 'error');
       } finally {
         setResettingUuid(false);
       }
@@ -65,7 +80,7 @@ export default function UserInfoCard({
     );
   }
 
-  if (!userInfo || userInfo.status !== 'success') {
+  if (!userInfo || userInfo.code !== 0) {
     return (
       <div className="space-y-6">
         <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 leading-7">
@@ -116,13 +131,13 @@ export default function UserInfoCard({
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">{t.dashboard.balance}</p>
               <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tabular-nums leading-tight">
-                ¥{(userData.balance / 100).toFixed(2)}
+                ¥{((userData.balance || 0) / 100).toFixed(2)}
               </p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">{t.dashboard.commission}</p>
               <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tabular-nums leading-tight">
-                ¥{(userData.commission_balance / 100).toFixed(2)}
+                ¥{((userData.commission_balance || 0) / 100).toFixed(2)}
               </p>
             </div>
           </div>
@@ -133,7 +148,7 @@ export default function UserInfoCard({
           <div className="flex justify-between text-sm">
             <span className="font-medium text-gray-600 dark:text-gray-400 leading-relaxed">{t.dashboard.memberSince}</span>
             <span className="font-semibold text-gray-900 dark:text-gray-100 leading-relaxed">
-              {new Date(userData.created_at * 1000).toLocaleDateString()}
+              {userData.created_at ? new Date(userData.created_at).toLocaleDateString() : 'N/A'}
             </span>
           </div>
           {userData.telegram_id && (

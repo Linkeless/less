@@ -138,6 +138,7 @@ export default {
       payNow: '立即支付',
       processing: '处理中...',
       fee: '手续费 {percent}%',
+      balance: '账户余额',
       orderNumber: '订单号',
       orderTime: '下单时间',
       orderStatus: '订单状态',

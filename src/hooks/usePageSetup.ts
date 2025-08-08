@@ -24,7 +24,7 @@ export function usePageSetup({ userInfo, loadingUserInfo }: UsePageSetupProps) {
   }, []);
 
   useEffect(() => {
-    if (!loadingUserInfo && (!userInfo || userInfo.status !== 'success')) {
+    if (!loadingUserInfo && (!userInfo || userInfo.code !== 0)) {
       router.push('/login');
     }
   }, [userInfo, loadingUserInfo, router]);

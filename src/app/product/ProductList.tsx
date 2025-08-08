@@ -106,13 +106,6 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
     );
   }
 
-  const navigation = [
-    { name: t.common.dashboard, href: '/dashboard', current: false },
-    { name: t.common.product, href: '/product', current: true },
-    { name: t.common.orders, href: '/orders', current: false },  
-    { name: t.invite.title, href: '/invite', current: false },
-  ]
-
   const userNavigation = [
     { name: t.common.signOut, component: <SignOutButton /> }
   ]
@@ -201,7 +194,6 @@ export default function ProductList({ initialProducts, initialUser }: ProductLis
         />
         <TitleBar 
           user={user}
-          navigation={navigation}
           userNavigation={userNavigation}
           showLanguageSwitch={true}
         />
