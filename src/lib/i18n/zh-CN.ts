@@ -201,6 +201,7 @@ export default {
     addRule: '添加规则',
     name: '名称',
     deviceGroup: '入口',
+    deviceGroupOut: '出口',
     listenPort: '监听端口',
     destination: '目标地址',
     status: '状态',

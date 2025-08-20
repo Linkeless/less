@@ -42,6 +42,9 @@ interface DeviceGroup {
   config: string;
   show_order?: number;
   display_num?: number;
+  allowed_out?: string;
+  allowed_in?: string;
+  display_protocol?: string;
 }
 
 interface DeviceGroupInfo {
@@ -78,7 +81,7 @@ export default function ForwardingRulesPage() {
   const [error, setError] = useState<string | null>(null);
   const [showCopyToast, setShowCopyToast] = useState(false);
   const [copyTimeout, setCopyTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [initialData, setInitialData] = useState<{ source: string; destination: string; device_group_in: number; listen_port: number } | undefined>(undefined);
+  const [initialData, setInitialData] = useState<{ source: string; destination: string; device_group_in: number; device_group_out?: number; listen_port: number } | undefined>(undefined);
 
   const [diagnosisModalOpen, setDiagnosisModalOpen] = useState(false);
   const [diagnosisResult, setDiagnosisResult] = useState<string | null>(null);
@@ -210,7 +213,7 @@ export default function ForwardingRulesPage() {
     }
   };
 
-  const handleAddRule = async (ruleData: { source: string; destination: string; device_group_in: number; listen_port?: number }) => {
+  const handleAddRule = async (ruleData: { source: string; destination: string; device_group_in: number; device_group_out?: number; listen_port?: number }) => {
 
     if (!forwardUserId) {
       setError('未获取到转发用户ID');
@@ -221,7 +224,7 @@ export default function ForwardingRulesPage() {
       const data: any = {
         name: ruleData.source,
         device_group_in: ruleData.device_group_in,
-        device_group_out: null,
+        device_group_out: ruleData.device_group_out || null,
         config: JSON.stringify({ dest: addresses })
       };
       if (typeof ruleData.listen_port === 'number') {
@@ -244,7 +247,7 @@ export default function ForwardingRulesPage() {
     }
   };
 
-  const handleEditRule = async (ruleData: { source: string; destination: string; device_group_in: number; listen_port?: number }) => {
+  const handleEditRule = async (ruleData: { source: string; destination: string; device_group_in: number; device_group_out?: number; listen_port?: number }) => {
     if (!editingRule) {
       setError('No rule selected');
       return;
@@ -259,7 +262,7 @@ export default function ForwardingRulesPage() {
       const data: any = {
         name: ruleData.source,
         device_group_in: ruleData.device_group_in,
-        device_group_out: null,
+        device_group_out: ruleData.device_group_out || null,
         config: JSON.stringify({ dest: addresses })
       };
       if (typeof ruleData.listen_port === 'number') {
@@ -313,6 +316,7 @@ export default function ForwardingRulesPage() {
       source: rule.name,
       destination: JSON.parse(rule.config).dest?.join('\n'),
       device_group_in: rule.device_group_in,
+      device_group_out: rule.device_group_out,
       listen_port: rule.listen_port
     });
     setIsModalOpen(true);
@@ -568,7 +572,13 @@ export default function ForwardingRulesPage() {
                               scope="col"
                               className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                             >
-                              {t.forwardingRules.deviceGroup}
+                              入口
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                            >
+                              出口
                             </th>
                             <th
                               scope="col"
@@ -599,7 +609,9 @@ export default function ForwardingRulesPage() {
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900 font-sans">
                           {rules.map((rule) => {
                             const config = JSON.parse(rule.config);
+                            const deviceGroupRaw = deviceGroups.find(g => g.id === rule.device_group_in);
                             const deviceGroup = getDeviceGroupInfo(rule.device_group_in);
+                            const deviceGroupOut = rule.device_group_out ? getDeviceGroupInfo(rule.device_group_out) : null;
                             return (
                               <tr key={rule.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                                 <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-white sm:pl-6">
@@ -622,6 +634,17 @@ export default function ForwardingRulesPage() {
                                         >
                                           <ClipboardIcon className="h-4 w-4" />
                                         </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+                                  <div className="space-y-1 font-sans">
+                                    {deviceGroupOut ? (
+                                      <div className="font-medium font-sans text-gray-900 dark:text-white">{deviceGroupOut.name}</div>
+                                    ) : (
+                                      <div className="text-gray-400 dark:text-gray-500">
+                                        直连
                                       </div>
                                     )}
                                   </div>
@@ -673,6 +696,7 @@ export default function ForwardingRulesPage() {
                                           source: rule.name,
                                           destination: config.dest?.join('\n'),
                                           device_group_in: rule.device_group_in,
+                                          device_group_out: rule.device_group_out,
                                           listen_port: rule.listen_port
                                         });
                                       }}
@@ -706,7 +730,9 @@ export default function ForwardingRulesPage() {
                       <div className="md:hidden flex flex-col gap-4 p-2">
                         {rules.map((rule) => {
                           const config = JSON.parse(rule.config);
+                          const deviceGroupRaw = deviceGroups.find(g => g.id === rule.device_group_in);
                           const deviceGroup = getDeviceGroupInfo(rule.device_group_in);
+                          const deviceGroupOut = rule.device_group_out ? getDeviceGroupInfo(rule.device_group_out) : null;
                           return (
                             <div
                               key={rule.id}
@@ -725,7 +751,7 @@ export default function ForwardingRulesPage() {
                                 </span>
                               </div>
                               <div className="mb-1 text-sm font-sans">
-                                <span className="font-semibold font-sans text-gray-700 dark:text-gray-200">{t.forwardingRules.deviceGroup}:</span>
+                                <span className="font-semibold font-sans text-gray-700 dark:text-gray-200">入口:</span>
                                 <span className="ml-1 font-sans text-gray-900 dark:text-white">{deviceGroup.name}</span>
                               </div>
                               {deviceGroup.connectHost && (
@@ -742,6 +768,12 @@ export default function ForwardingRulesPage() {
                                   </button>
                                 </div>
                               )}
+                              <div className="mb-1 text-sm font-sans">
+                                <span className="font-semibold font-sans text-gray-700 dark:text-gray-200">出口:</span>
+                                <span className="ml-1 font-sans text-gray-900 dark:text-white">
+                                  {deviceGroupOut ? deviceGroupOut.name : '直连'}
+                                </span>
+                              </div>
                               <div className="mb-1 text-sm font-sans">
                                 <span className="font-semibold font-sans text-gray-700 dark:text-gray-200">{t.forwardingRules.listenPort}:</span>
                                 <span className="ml-1 font-sans text-gray-900 dark:text-white">{rule.listen_port || t.forwardingRules.randomPort}</span>
@@ -769,6 +801,7 @@ export default function ForwardingRulesPage() {
                                       source: rule.name,
                                       destination: config.dest?.join('\n'),
                                       device_group_in: rule.device_group_in,
+                                      device_group_out: rule.device_group_out,
                                       listen_port: rule.listen_port
                                     });
                                   }}
