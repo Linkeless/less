@@ -256,21 +256,4 @@ export interface IPDetails {
   readme?: string;
 }
 
-export interface RecentSubscriptionRequest {
-  ip: string;
-  datetime: string;
-  user_agent: string;
-  host: string[] | string;
-  ip_details?: IPDetails;
-}
-
-export interface RecentSubscriptionRequestsResponse {
-  success: boolean;
-  data: {
-    user_id: number;
-    total_requests: number;
-    recent_requests: RecentSubscriptionRequest[];
-  };
-}
-
 // Add other type definitions as needed...

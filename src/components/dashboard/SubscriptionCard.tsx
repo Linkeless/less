@@ -8,26 +8,15 @@ import type { TranslationValues } from '@/lib/i18n/context';
 // Import utils
 import { getFilteredUrl, formatExpireDate } from '@/lib/utils';
 
-interface NodeOption {
-  id: number;
-  name: string;
-}
-
-interface ProtocolOption {
+interface OperatorOption {
   id: string;
   name: string;
 }
 
-const nodeOptions: NodeOption[] = [
-  { id: 1, name: '广州' },
-  { id: 2, name: '上海' },
-  { id: 3, name: '北京' },
-  { id: 4, name: '成都' },
-];
-
-const protocolOptions: ProtocolOption[] = [
-  { id: 'ss', name: 'Shadowsocks' },
-  { id: 'ss2022', name: 'SS-2022' }
+const operatorOptions: OperatorOption[] = [
+  { id: 'telecom', name: '电信' },
+  { id: 'unicom', name: '联通' },
+  { id: 'mobile', name: '移动' },
 ];
 
 interface SubscriptionCardProps {
@@ -45,8 +34,7 @@ export default function SubscriptionCard({
   t,
   handleCopyUrl,
 }: SubscriptionCardProps) {
-  const [selectedNode, setSelectedNode] = useState<NodeOption | null>(null);
-  const [selectedProtocol, setSelectedProtocol] = useState<ProtocolOption>(protocolOptions[0]);
+  const [selectedOperator, setSelectedOperator] = useState<OperatorOption | null>(null);
 
   if (loading) {
     return (
@@ -81,7 +69,7 @@ export default function SubscriptionCard({
   
   const currentPlan = subscription.data?.plan;
   const token = subscription.data.token; 
-  const generatedUrlForCopy = getFilteredUrl(token, selectedNode, [selectedProtocol]);
+  const generatedUrlForCopy = getFilteredUrl(token, selectedOperator);
 
   return (
     <div className="space-y-6">
@@ -144,80 +132,48 @@ export default function SubscriptionCard({
 
         {currentPlan ? (
           <div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-4">
-              <div className="flex flex-col">
-                <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 leading-relaxed">{t.dashboard.nodes.title}</h3>
-                <Listbox
-                  value={selectedNode}
-                  onChange={node => {
-                    if (!node) {
-                      setSelectedNode(null);
-                    } else if (selectedNode?.id === node.id) {
-                      setSelectedNode(null);
-                    } else {
-                      setSelectedNode(node);
-                    }
-                  }}
-                >
-                  {({ open }) => (
-                    <div className="relative mt-1">
-                      <ListboxButton className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-800 py-2 pl-3 pr-10 text-left border dark:border-gray-700 focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm">
-                        <span className="block truncate text-gray-900 dark:text-gray-100">
-                          {selectedNode ? selectedNode.name : t.dashboard.nodes.selectRegion}
-                        </span>
-                        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                          <ChevronDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                        </span>
-                      </ListboxButton>
-                      <Transition show={open} as="div" leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
-                        <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                          {nodeOptions.map((node) => (
-                            <ListboxOption key={node.id} value={node} className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-900 dark:text-indigo-100' : 'text-gray-900 dark:text-gray-100'}`}>
-                              {({ selected }) => (
-                                <>
-                                  <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>{node.name}</span>
-                                  {selected ? <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600 dark:text-indigo-400"><CheckIcon className="h-5 w-5" aria-hidden="true" /></span> : null}
-                                </>
-                              )}
-                            </ListboxOption>
-                          ))}
-                        </ListboxOptions>
-                      </Transition>
-                    </div>
-                  )}
-                </Listbox>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">{t.dashboard.nodes.selectHint}</p>
-              </div>
-              <div className="flex flex-col">
-                <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 leading-relaxed">协议筛选</h3>
-                <Listbox value={selectedProtocol} onChange={setSelectedProtocol}>
-                  {({ open }) => (
-                    <div className="relative mt-1">
-                      <ListboxButton className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-800 py-2 pl-3 pr-10 text-left border dark:border-gray-700 focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm">
-                        <span className="block truncate text-gray-900 dark:text-gray-100">{selectedProtocol.name}</span>
-                        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                          <ChevronDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                        </span>
-                      </ListboxButton>
-                      <Transition show={open} as="div" leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
-                        <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                          {protocolOptions.map((protocol) => (
-                            <ListboxOption key={protocol.id} value={protocol} className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-900 dark:text-indigo-100' : 'text-gray-900 dark:text-gray-100'}`}>
-                              {({ selected }) => (
-                                <>
-                                  <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>{protocol.name}</span>
-                                  {selected ? <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600 dark:text-indigo-400"><CheckIcon className="h-5 w-5" aria-hidden="true" /></span> : null}
-                                </>
-                              )}
-                            </ListboxOption>
-                          ))}
-                        </ListboxOptions>
-                      </Transition>
-                    </div>
-                  )}
-                </Listbox>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">选择需要的协议进行筛选，默认为Shadowsocks</p>
-              </div>
+            <div className="flex flex-col">
+              <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 leading-relaxed">选择运营商</h3>
+              <Listbox
+                value={selectedOperator}
+                onChange={operator => {
+                  if (!operator) {
+                    setSelectedOperator(null);
+                  } else if (selectedOperator?.id === operator.id) {
+                    setSelectedOperator(null);
+                  } else {
+                    setSelectedOperator(operator);
+                  }
+                }}
+              >
+                {({ open }) => (
+                  <div className="relative mt-1">
+                    <ListboxButton className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-800 py-2 pl-3 pr-10 text-left border dark:border-gray-700 focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm">
+                      <span className="block truncate text-gray-900 dark:text-gray-100">
+                        {selectedOperator ? selectedOperator.name : '选择运营商'}
+                      </span>
+                      <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                        <ChevronDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                      </span>
+                    </ListboxButton>
+                    <Transition show={open} as="div" leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
+                      <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                        {operatorOptions.map((operator) => (
+                          <ListboxOption key={operator.id} value={operator} className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-900 dark:text-indigo-100' : 'text-gray-900 dark:text-gray-100'}`}>
+                            {({ selected }) => (
+                              <>
+                                <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>{operator.name}</span>
+                                {selected ? <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600 dark:text-indigo-400"><CheckIcon className="h-5 w-5" aria-hidden="true" /></span> : null}
+                              </>
+                            )}
+                          </ListboxOption>
+                        ))}
+                      </ListboxOptions>
+                    </Transition>
+                  </div>
+                )}
+              </Listbox>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">选择您的运营商以获取最佳线路</p>
             </div>
             <div className="mt-6">
               <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-4">客户端下载</h3>
@@ -228,7 +184,7 @@ export default function SubscriptionCard({
                     id: client,
                     name: client === 'quantumult-x' ? 'Quantumult X' : client.charAt(0).toUpperCase() + client.slice(1),
                     href: (() => {
-                      const url = getFilteredUrl(token, selectedNode, [selectedProtocol]);
+                      const url = getFilteredUrl(token, selectedOperator);
                       const clientUrls = {
                         'clash': `clash://install-config?url=${encodeURIComponent(url + '&flag=clash')}`,
                         'surge': `surge:///install-config?url=${encodeURIComponent(url + '&flag=surge')}`,

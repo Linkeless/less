@@ -15,16 +15,12 @@ export const getGravatarUrl = (email: string): string => {
 
 export const getFilteredUrl = (
   token: string, 
-  node: {id: number} | null, 
-  protocols: Array<{id: string}>
+  operator: {id: string} | null
 ): string => {
   const baseUrl = BASE_SUB_API_URL || `${typeof window !== 'undefined' ? window.location.protocol : 'http:'}//${typeof window !== 'undefined' ? window.location.host : 'localhost'}`;
   let url = `${baseUrl}/service/sub?token=${token}`;
-  if (node) {
-    url += `&inbound=${node.id}`;
-  }
-  if (protocols.some(p => p.id === 'ss2022')) {
-    url += '&ss2022=true';
+  if (operator) {
+    url += `&operator=${operator.id}`;
   }
   return url;
 };

@@ -7,7 +7,6 @@ import SignOutButton from '@/components/auth/sign-out-button';
 import SubscriptionCard from '@/components/dashboard/SubscriptionCard';
 import UserInfoCard from '@/components/dashboard/UserInfoCard';
 import TrafficStatsCard from '@/components/dashboard/TrafficStatsCard';
-import SubscriptionRequestsCard from '@/components/dashboard/SubscriptionRequestsCard';
 import ResetUUIDDialog from '@/components/dashboard/dialogs/ResetUUIDDialog';
 import CopyNotification from '@/components/dashboard/dialogs/CopyNotification';
 import NoticesDialog from '@/components/dashboard/dialogs/NoticesDialog';
@@ -194,18 +193,6 @@ export default function Dashboard() {
                 />
               </div>
 
-              {/* Third Row - Recent Activity (Full Width) */}
-              <div className="order-4">
-                <div className="mb-4 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-3 sm:pb-5">
-                  <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">最近活动</h3>
-                  <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">订阅请求和使用记录</p>
-                </div>
-                <SubscriptionRequestsCard
-                  subscription={subscription?.data ?? null}
-                  loading={loadingSubscription}
-                  t={t}
-                />
-              </div>
             </div>
           </main>
         </div>
